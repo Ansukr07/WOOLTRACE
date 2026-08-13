@@ -4,22 +4,21 @@ import './UserProfile.css';
 
 const UserProfile = () => {
   return (
-    <section className="profile-container">
-      <div className="glow-background animate-fade-up"></div>
-      
-      <div className="profile-header animate-fade-up">
-        <span className="profile-subtitle">USER PROFILE</span>
-      </div>
+    <section className="profile-wrapper">
+      <div className="profile-container">
+        <div className="profile-header animate-fade-up">
+          <span className="profile-subtitle">THE WOOLTRACE USER</span>
+        </div>
 
       <div className="profile-content">
         {/* Top Left */}
         <div className="text-block text-tl animate-fade-up delay-400">
-          <p>He struggles with fragmented tools that don't reflect real-time field conditions, making decisions slow and reactive instead of precise.</p>
+          <p>Wool farmers often face fragmented markets, uncertain pricing, limited access to quality services and little visibility into where their wool goes after leaving the farm.</p>
         </div>
 
         {/* Top Right */}
         <div className="text-block text-tr animate-fade-up delay-400">
-          <p>He wants full control and clarity over land performance, resource usage, and operational efficiency in one system.</p>
+          <p>He wants better prices, trusted buyers, verified quality and a simple way to manage his wool from production to sale.</p>
         </div>
 
         {/* Center Image with floating cards */}
@@ -28,28 +27,28 @@ const UserProfile = () => {
           
           <div className="floating-card card-tl">
             <span className="card-title">Challenge</span>
-            <div className="icon-wrapper icon-coral">
+            <div className="icon-wrapper icon-dark">
               <AlertCircle size={20} />
             </div>
           </div>
 
           <div className="floating-card card-tr">
             <span className="card-title">Drive</span>
-            <div className="icon-wrapper icon-lime">
+            <div className="icon-wrapper icon-accent">
               <Target size={20} />
             </div>
           </div>
 
           <div className="floating-card card-bl">
             <span className="card-title">Expectation</span>
-            <div className="icon-wrapper icon-blue">
+            <div className="icon-wrapper icon-dark">
               <Eye size={20} />
             </div>
           </div>
 
           <div className="floating-card card-br">
             <span className="card-title">Satisfaction</span>
-            <div className="icon-wrapper icon-lime">
+            <div className="icon-wrapper icon-accent">
               <CheckCircle2 size={20} />
             </div>
           </div>
@@ -65,13 +64,14 @@ const UserProfile = () => {
 
         {/* Bottom Left */}
         <div className="text-block text-bl animate-fade-up delay-400">
-          <p>He expects a single source of truth that connects water, machinery, and crop health in real time.</p>
+          <p>He expects one reliable platform to track his wool, understand market prices, access services and connect directly with buyers.</p>
         </div>
 
         {/* Bottom Right */}
         <div className="text-block text-br animate-fade-up delay-400">
-          <p>He feels in control when every field, machine, and water flow responds instantly as one intelligent system.</p>
+          <p>With WoolTrace, every batch gets a digital identity, quality can be verified, market opportunities become visible and the journey from farm to fabric becomes transparent.</p>
         </div>
+      </div>
       </div>
     </section>
   );

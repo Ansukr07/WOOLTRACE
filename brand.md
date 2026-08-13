@@ -1,567 +1,440 @@
-# WoolTrace Brand Guidelines
+WoolTrace Brand Guidelines
 
-## 1. Typography
+Brand
 
-### Primary Typeface
+Name: WoolTrace
 
-**Plus Jakarta Sans**
+Tagline: From Farm to Fabric.
 
-Use Plus Jakarta Sans as the primary typeface across the entire WoolTrace product.
+Brand Essence: Trace. Trust. Trade. Transform.
 
-It should be used for:
+Positioning: WoolTrace is a connected digital ecosystem for India's
+wool industry, connecting farmers, wool producers, quality inspectors,
+buyers, sellers, warehouses, transporters, processing units, artisans,
+fabric producers, educators, and consumers.
 
-* Headings
-* Body text
-* Navigation
-* Buttons
-* Dashboard metrics
-* Forms
-* Tables
-* Charts
-* Labels
-* Notifications
-* Marketplace content
+1. Typography
 
-### Font Weights
+Primary Typeface
 
-| Weight       | Usage                                              |
-| ------------ | -------------------------------------------------- |
-| Regular 400  | Body text, descriptions, secondary information     |
-| Medium 500   | Navigation, labels, buttons, metadata              |
-| SemiBold 600 | Card titles, section headings                      |
-| Bold 700     | Main headings, important metrics, primary emphasis |
+Plus Jakarta Sans
 
-### Typography Hierarchy
+Use Plus Jakarta Sans throughout the WoolTrace product.
 
-```text
-Display
-Plus Jakarta Sans Bold
-Large hero statements
+Use it for: - Headings - Body text - Navigation - Buttons - Dashboard
+metrics - Forms - Tables - Charts - Labels - Notifications - Marketplace
+content
 
-H1
-Plus Jakarta Sans Bold
-Major page headings
+Font Weights
 
-H2
-Plus Jakarta Sans SemiBold
-Section headings
+Weight         Usage
 
-H3
-Plus Jakarta Sans SemiBold
-Card headings
+400 Regular    Body text, descriptions, secondary information
+500 Medium     Navigation, labels, buttons, metadata
+600 SemiBold   Card titles, section headings
+700 Bold       Main headings, important metrics, primary emphasis
 
-Body
-Plus Jakarta Sans Regular
-Descriptions and general content
+Typography Hierarchy
 
-Label
-Plus Jakarta Sans Medium
-Navigation, tags, metadata
+Display: Plus Jakarta Sans Bold --- large hero statements
 
-Metric
-Plus Jakarta Sans Bold
-Prices, quantities, statistics
-```
+H1: Plus Jakarta Sans Bold --- major page headings
 
-### Recommended Web Font
+H2: Plus Jakarta Sans SemiBold --- section headings
 
-```css
+H3: Plus Jakarta Sans SemiBold --- card headings
+
+Body: Plus Jakarta Sans Regular --- descriptions and general
+content
+
+Label: Plus Jakarta Sans Medium --- navigation, tags, metadata
+
+Metric: Plus Jakarta Sans Bold --- prices, quantities,
+statistics
+
+Web Font
+
 font-family: "Plus Jakarta Sans", sans-serif;
-```
 
-Google Fonts:
-
-```css
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-```
 
----
+2. Color Palette
 
-# 2. Color Palette
+WoolTrace uses a light, wool-inspired visual identity.
 
-## Primary Palette
+The product should primarily feel clean, natural, spacious, and
+textile-oriented. White and off-white are the dominant backgrounds. Ink
+Green provides brand contrast, while Soft Lime provides emphasis.
 
-### Ink Green
+Primary Colors
 
-**HEX:** `#0B120D`
+White
 
-**RGB:** `11, 18, 13`
+HEX: #FFFFFF
 
-**CMYK:** `39, 0, 28, 93`
+Primary application background.
+
+Use for: - Landing page - Dashboard backgrounds - Content sections -
+Marketplace pages - Forms - Navigation surfaces
+
+Represents: - Wool - Cleanliness - Purity - Transparency
+
+Soft Off-White
+
+HEX: #F8F8F3
+
+Secondary background.
+
+Use for: - Alternating sections - Dashboard areas - Secondary surfaces -
+Search/filter areas - Large content blocks - Empty states
+
+Ink Green
+
+HEX: #0B120D
 
 Primary brand color.
 
-Use for:
+Use for: - Primary text - Headings - Navigation text - Primary buttons -
+Dark feature sections - Footer - Icons - Traceability elements -
+High-contrast UI
 
-* Primary backgrounds
-* Navigation
-* Headers
-* Footer
-* Primary text on light backgrounds
-* Primary buttons
-* High-contrast sections
+Soft Lime
 
-This is the dominant WoolTrace color.
+HEX: #DDFF86
 
----
+Primary accent.
 
-### Soft Lime
+Use for: - CTAs - Active states - Important highlights - Positive
+trends - Selected navigation - Key metrics - Progress indicators -
+Interactive elements
 
-**HEX:** `#DDFF86`
+Use primarily as an accent rather than a large page background.
 
-**RGB:** `221, 255, 134`
+Light Sky Blue
 
-**CMYK:** `13, 0, 47, 0`
-
-Primary accent color.
-
-Use for:
-
-* CTAs
-* Active states
-* Important highlights
-* Positive trends
-* Selected navigation
-* Key metrics
-* Interactive elements
-
-Use sparingly against Ink Green for maximum contrast.
-
----
-
-### Light Sky Blue
-
-**HEX:** `#BED5E5`
-
-**RGB:** `190, 213, 229`
-
-**CMYK:** `17, 7, 0, 10`
+HEX: #BED5E5
 
 Secondary accent.
 
-Use for:
+Use for: - Information states - Logistics - Transportation - Maps -
+Shipment tracking - Secondary cards - Charts - Background highlights
 
-* Information states
-* Logistics
-* Transportation
-* Maps
-* Secondary cards
-* Charts
-* Background highlights
+Soft Coral
 
----
+HEX: #FFAAA4
 
-### Soft Coral
+Attention / warning accent.
 
-**HEX:** `#FFAAA4`
+Use for: - Alerts - Important notifications - Pending actions -
+Disputes - Warning states - Marketplace attention states
 
-**RGB:** `255, 164, 164`
+Do not use as a dominant color.
 
-**CMYK:** `0, 36, 36, 0`
+Warm Ivory
 
-Attention / secondary accent.
+HEX: #EDEDCE
 
-Use for:
+Natural wool/fabric accent.
 
-* Alerts
-* Important notifications
-* Pending actions
-* Marketplace highlights
-* Warm visual accents
-* Selected promotional elements
+Use for: - Wool-related sections - Quality sections - Educational
+content - Product cards - Natural-material highlights - Soft visual
+accents
 
-Do not use it as the dominant color.
+3. Color Tokens
 
----
-
-### Warm Ivory
-
-**HEX:** `#EDEDCE`
-
-**RGB:** `237, 237, 206`
-
-**CMYK:** `0, 0, 13, 7`
-
-Primary warm background/accent.
-
-Use for:
-
-* Page sections
-* Cards
-* Empty states
-* Educational sections
-* Wool/fabric-related visual areas
-* Soft backgrounds
-
----
-
-# 3. Color Tokens
-
-```css
 :root {
+  --color-white: #FFFFFF;
+  --color-off-white: #F8F8F3;
   --color-ink-green: #0B120D;
+
   --color-soft-lime: #DDFF86;
   --color-sky-blue: #BED5E5;
   --color-soft-coral: #FFAAA4;
   --color-warm-ivory: #EDEDCE;
 
-  --color-white: #FFFFFF;
   --color-black: #000000;
 }
-```
 
----
+4. Color Roles
 
-# 4. Recommended Color Roles
+UI Purpose              Color
 
-| UI Purpose      | Color                  |
-| --------------- | ---------------------- |
-| Primary brand   | Ink Green              |
-| Primary CTA     | Soft Lime              |
-| Primary text    | Ink Green              |
-| Main background | Warm Ivory / Off-white |
-| Information     | Light Sky Blue         |
-| Attention       | Soft Coral             |
-| Success         | Soft Lime              |
-| Dark sections   | Ink Green              |
-| Cards           | White / Warm Ivory     |
-| Borders         | Low-opacity Ink Green  |
-| Charts          | Brand palette          |
+Main background         White #FFFFFF
+Secondary background    Soft Off-White #F8F8F3
+Primary brand           Ink Green #0B120D
+Primary text            Ink Green
+Primary CTA             Soft Lime
+CTA text                Ink Green
+Information             Light Sky Blue
+Warning / Attention     Soft Coral
+Wool / Natural          Warm Ivory
+Dark feature sections   Ink Green
+Cards                   White
+Secondary cards         Soft Off-White / Warm Ivory
+Borders                 Low-opacity Ink Green
+Charts                  Brand palette
 
----
+5. Brand Color Combinations
 
-# 5. Brand Color Combinations
+Wool
 
-## Combination 01 — Primary
-
-```text
+White
++
 Ink Green
 +
-Soft Lime
-```
-
-Use for the primary WoolTrace identity.
-
-Example:
-
-```text
-┌─────────────────────────────┐
-│                             │
-│         WOOLTRACE            │
-│                             │
-│      [ Explore Market ]      │
-│                             │
-└─────────────────────────────┘
-```
-
-Ink Green background with Soft Lime CTA.
-
----
-
-## Combination 02 — Natural
-
-```text
 Warm Ivory
-+
+
+Primary combination for the landing page and general product UI.
+
+Primary CTA
+
 Ink Green
 +
 Soft Lime
-```
 
-Use for the main application.
+Use for important actions and high-impact interactive elements.
 
-This should be the dominant dashboard combination.
+Natural
 
----
+Soft Off-White
++
+Ink Green
++
+Warm Ivory
 
-## Combination 03 — Supply Chain
+Use for dashboards, education, quality, and farmer-focused experiences.
 
-```text
+Supply Chain
+
+White
++
 Ink Green
 +
 Light Sky Blue
-```
 
-Use for:
+Use for logistics, tracking, transportation, maps, and shipment screens.
 
-* Logistics
-* Tracking
-* Transportation
-* Maps
-* Shipment screens
+Marketplace
 
----
-
-## Combination 04 — Marketplace
-
-```text
-Warm Ivory
+White
 +
 Ink Green
 +
 Soft Lime
 +
 Soft Coral
-```
 
-Use Soft Coral sparingly for attention and marketplace actions.
+Use Soft Coral only for attention and warning states.
 
----
+6. Product-Specific Color Mapping
 
-# 6. Product-Specific Color Mapping
+Farm
 
-WoolTrace's colors should also communicate meaning.
+Ink Green
 
-### Farm
+Agriculture, nature, production, trust.
 
-**Ink Green**
+Wool / Quality
 
-Represents:
+Warm Ivory
 
-* Agriculture
-* Nature
-* Production
+Wool, natural materials, craft, authenticity, purity.
 
-### Wool / Quality
+Market
 
-**Warm Ivory**
+Soft Lime
 
-Represents:
+Opportunity, growth, positive price movement, better returns.
 
-* Wool
-* Natural materials
-* Craft
-* Authenticity
+Logistics
 
-### Market
+Light Sky Blue
 
-**Soft Lime**
+Movement, transportation, tracking, location.
 
-Represents:
+Alerts
 
-* Opportunity
-* Growth
-* Positive price movement
+Soft Coral
 
-### Logistics
+Attention, pending action, warning, disputes.
 
-**Light Sky Blue**
+Verification
 
-Represents:
+Ink Green + Soft Lime
 
-* Movement
-* Transportation
-* Tracking
-* Location
+Authenticity, quality verification, trusted batches.
 
-### Alerts / Attention
+7. UI Style
 
-**Soft Coral**
+Overall Style
 
-Represents:
+WoolTrace should feel:
 
-* Attention
-* Pending action
-* Important notification
+Light
 
----
+Spacious
 
-# 7. UI Style
+Editorial
 
-## Cards
+Premium
 
-Use:
+Natural
 
-```text
+Modern
+
+Trustworthy
+
+Functional
+
+The default page background should be White or Soft Off-White, not
+dark green.
+
+Use Ink Green sections intentionally for: - Feature showcases -
+Traceability experiences - Strong CTA sections - Footer - High-contrast
+data areas
+
+Do not make every section dark.
+
+Cards
+
 Border radius: 12–16px
-Border: subtle
+Border: 1px solid rgba(11, 18, 13, 0.10)
 Shadow: subtle
-Background: White / Warm Ivory
-```
+Background: #FFFFFF
 
-Avoid excessive floating cards.
+Secondary cards:
 
-Cards should feel structured and functional rather than decorative.
+Background: #F8F8F3
 
----
+Wool/quality cards:
 
-## Buttons
+Background: #EDEDCE
 
-### Primary
+Cards should be structured and functional rather than overly decorative.
 
-```text
-Background: Ink Green
-Text: White
-```
+Buttons
 
-### Accent CTA
+Primary
 
-```text
-Background: Soft Lime
-Text: Ink Green
-```
+Background: #0B120D
+Text: #FFFFFF
 
-### Secondary
+Accent CTA
 
-```text
+Background: #DDFF86
+Text: #0B120D
+
+Secondary
+
 Background: transparent
-Border: Ink Green
-Text: Ink Green
-```
+Border: #0B120D
+Text: #0B120D
 
-### Information
+Information
 
-```text
-Background: Light Sky Blue
-Text: Ink Green
-```
+Background: #BED5E5
+Text: #0B120D
 
----
+Warning
 
-# 8. Visual Language
+Background: #FFAAA4
+Text: #0B120D
+
+8. Visual Language
 
 The visual language should communicate:
 
-**Natural + Modern + Trusted + Connected + Traceable**
+Natural + Modern + Trusted + Connected + Traceable
 
-WoolTrace should visually communicate movement and continuity.
+WoolTrace should visually connect the physical wool supply chain with
+digital technology.
 
-Use:
+Use: - Connected timelines - Supply-chain paths - Location markers -
+Batch IDs - QR codes - Progress indicators - Traceability maps - Quality
+badges - Clear status indicators - Subtle fiber/line motifs
 
-* Connected timelines
-* Supply-chain paths
-* Location markers
-* Batch IDs
-* QR codes
-* Progress indicators
-* Traceability maps
-* Quality badges
-* Clear status indicators
+Avoid: - Excessive gradients - Excessive glassmorphism -
+Cryptocurrency-style interfaces - Generic e-commerce aesthetics -
+Generic farming dashboards - Overly futuristic UI - Government-portal
+aesthetics - Excessive dark sections
 
-Avoid making the interface look:
+9. Photography Direction
 
-* Too corporate
-* Too agricultural
-* Too playful
-* Too futuristic
-* Too government-portal-like
-* Too much like a generic e-commerce platform
+Use authentic, Indian, natural imagery.
 
-WoolTrace should feel like a modern technology platform built specifically for India's wool ecosystem.
+Preferred imagery: - Indian sheep farmers - Sheep herds - Wool
+shearing - Raw wool - Macro wool fibers - Wool grading - Textile
+processing - Indian artisans - Spinning - Weaving - Wool fabric -
+Warehouses - Rural landscapes - Wool transportation
 
----
-
-# 9. Photography Direction
-
-Use authentic imagery wherever photography is required.
-
-Preferred imagery:
-
-* Indian sheep farmers
-* Sheep herds
-* Wool shearing
-* Raw wool
-* Wool grading
-* Textile processing
-* Indian artisans
-* Spinning
-* Weaving
-* Wool fabric
-* Warehouses
-* Rural landscapes
-* Wool transportation
-
-Photography should feel:
-
-* Natural
-* Documentary
-* Warm
-* Authentic
-* Indian
-* Human
+Photography should feel: - Natural - Documentary - Warm - Authentic -
+Indian - Human - Textural
 
 Avoid generic Western stock photography where possible.
 
----
+Hero Image Direction
 
-# 10. Iconography
+Primary hero image: Indian sheep + natural landscape
 
-Use a single consistent icon family.
+Embedded typography image: Macro raw wool / wool fibers
 
-Recommended:
+This creates the visual progression:
 
-**Lucide Icons**
+Farm → Wool → Fabric
 
-Use icons for:
+10. Iconography
 
-* Farm
-* Sheep / livestock
-* Wool
-* Quality
-* Marketplace
-* Warehouse
-* Transport
-* Processing
-* Education
-* Analytics
-* Users
-* Notifications
-* Location
-* QR
-* Payments
-* Traceability
+Use one consistent icon family.
+
+Recommended: Lucide Icons
+
+Use icons for: - Farm - Sheep / livestock - Wool - Quality -
+Marketplace - Warehouse - Transport - Processing - Education -
+Analytics - Users - Notifications - Location - QR - Payments -
+Traceability
 
 Do not mix multiple icon styles.
 
----
+11. Brand Personality
 
-# 11. Brand Personality
+Trust
 
-WoolTrace should communicate:
+"Your wool is verified."
 
-### Trust
+Transparency
 
-**"Your wool is verified."**
+"Know where your wool came from."
 
-### Transparency
+Empowerment
 
-**"Know where your wool came from."**
+"Farmers get better access to markets."
 
-### Empowerment
+Connection
 
-**"Farmers get better access to markets."**
+"Every participant is connected."
 
-### Connection
+Traceability
 
-**"Every participant is connected."**
+"Follow every step from farm to fabric."
 
-### Traceability
+Progress
 
-**"Follow every step from farm to fabric."**
+"Traditional wool meets modern technology."
 
-### Progress
+12. Brand Statement
 
-**"Traditional wool meets modern technology."**
+WoolTrace
 
----
+From Farm to Fabric.
 
-# 12. Brand Statement
+A connected digital ecosystem for India's wool industry.
 
-**WoolTrace**
-
-### From Farm to Fabric.
-
-**A connected digital ecosystem for India's wool industry.**
-
----
-
-# 13. Brand Positioning
+13. Brand Positioning
 
 WoolTrace is not simply a wool marketplace.
 
-It is a **Farm-to-Fabric digital ecosystem** that connects:
+It is a Farm-to-Fabric digital ecosystem connecting:
 
-```text
 Farmers
    ↓
 Wool Producers
@@ -581,30 +454,17 @@ Artisans
 Fabric Producers
    ↓
 Consumers
-```
 
-The platform combines:
-
-* Wool management
-* Market intelligence
-* Quality assurance
-* Trading
-* Reverse bidding
-* Logistics
-* Warehousing
-* Processing
-* Education
-* Traceability
+The platform combines: - Wool management - Market intelligence - Quality
+assurance - Trading - Reverse bidding - Logistics - Warehousing -
+Processing - Education - Traceability
 
 into one connected system.
 
----
+14. Core Design Principle
 
-# 14. Design Principle
+Every major screen should reinforce:
 
-Every major screen should reinforce the central idea:
-
-```text
 FARM
  ↓
 WOOL
@@ -622,60 +482,114 @@ PROCESSING
 YARN
  ↓
 FABRIC
-```
 
-The product should visually communicate that **WoolTrace connects and records the entire journey of wool.**
+WoolTrace should visually communicate that it connects and records the
+entire journey of wool.
 
----
+15. Signature Visual Motif
 
-# 15. Signature Visual Motif
+The trace line is a recurring WoolTrace design element.
 
-The **trace line** should become a recurring visual element throughout WoolTrace.
+Farm
+  │
+  ●
+  │
+Quality
+  │
+  ●
+  │
+Market
+  │
+  ●
+  │
+Transport
+  │
+  ●
+  │
+Processing
+  │
+  ●
+  │
+Fabric
 
-Use a subtle connected line to represent:
+Use the trace line in: - Batch tracking - Shipment tracking - Order
+timelines - Quality history - Processing status - QR verification -
+Dashboard widgets
 
-```text
-🐑 Farm
-   │
-   ●
-   │
-🔬 Quality
-   │
-   ●
-   │
-🛒 Market
-   │
-   ●
-   │
-🚚 Transport
-   │
-   ●
-   │
-🏭 Processing
-   │
-   ●
-   │
-🧶 Fabric
-```
+The trace line represents continuity, transparency, and the physical
+journey of wool.
 
-This can appear in:
+16. Landing Page Direction
 
-* Batch tracking
-* Shipment tracking
-* Order timelines
-* Quality history
-* Processing status
-* QR verification
-* Dashboard widgets
+The landing page should primarily use:
 
-The trace line becomes a recognizable WoolTrace design element.
+WHITE
+   ↓
+SOFT OFF-WHITE
+   ↓
+WHITE
+   ↓
+SOFT OFF-WHITE
+   ↓
+DARK INK GREEN FEATURE SECTION
+   ↓
+WHITE
 
----
+The hero should remain white/off-white to create a clean wool-inspired
+first impression.
 
-# 16. Brand Essence
+Hero typography: Ink Green
 
-### WOOLTRACE
+Highlighted words: Soft Lime
 
-**Trace. Trust. Trade. Transform.**
+Hero CTA: Soft Lime background + Ink Green text
 
-The platform gives wool a digital identity, creates transparency across the supply chain, and connects every participant from farm to fabric.
+Use large natural wool/farm imagery.
+
+The landing page should feel:
+
+Light + Spacious + Editorial + Premium + Textile-focused
+
+17. Core Product Story
+
+Every user should understand WoolTrace through this sequence:
+
+A farmer produces wool
+        ↓
+A digital batch is created
+        ↓
+Quality is inspected
+        ↓
+The batch is certified
+        ↓
+The farmer sees market opportunities
+        ↓
+Buyers place offers / bids
+        ↓
+A transaction is created
+        ↓
+Transport is arranged
+        ↓
+The wool reaches a warehouse
+        ↓
+Processing begins
+        ↓
+Wool becomes yarn / fabric
+        ↓
+The consumer can verify its journey
+
+The landing page and application should consistently reinforce this
+story.
+
+18. Brand Essence
+
+WOOLTRACE
+
+Trace. Trust. Trade. Transform.
+
+WoolTrace gives wool a digital identity, creates transparency across the
+supply chain, and connects every participant from farm to fabric.
+
+The visual identity combines:
+
+Natural materials + modern technology + transparent journeys.

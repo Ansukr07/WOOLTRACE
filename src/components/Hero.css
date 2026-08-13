@@ -1,3 +1,8 @@
+.hero-wrapper {
+  background-color: var(--color-white);
+  width: 100%;
+}
+
 .hero-container {
   padding: 80px 40px;
   max-width: 1200px;
@@ -23,15 +28,15 @@
 }
 
 .hero-title {
-  font-size: 110px;
+  font-size: 80px;
   line-height: 1.1;
   font-weight: 700;
   letter-spacing: -0.04em;
-  color: var(--color-white);
+  color: #0B120D;
 }
 
 .highlight-text {
-  color: var(--color-soft-lime);
+  color: #79a117;
 }
 
 .inline-img {
@@ -68,18 +73,20 @@
 }
 
 .tag {
-  background-color: #1a221c;
-  color: #a4b4a7;
+  background-color: #FFFFFF;
+  color: #0B120D;
   padding: 10px 16px;
   border-radius: 8px;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
+  border: 1px solid rgba(11, 18, 13, 0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
   transition: all 0.2s;
 }
 
 .tag:hover {
-  background-color: var(--color-soft-lime);
-  color: var(--color-ink-green);
+  background-color: #DDFF86;
+  border-color: #DDFF86;
 }
 
 .description {
@@ -87,8 +94,9 @@
 }
 
 .description p {
-  color: #a4b4a7;
+  color: #0B120D;
   font-size: 18px;
   line-height: 1.6;
-  font-weight: 400;
+  font-weight: 500;
+  opacity: 0.8;
 }
