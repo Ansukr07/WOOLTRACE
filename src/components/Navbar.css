@@ -1,0 +1,82 @@
+.navbar {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  padding: 8px;
+  z-index: 1000;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  animation: slideDown 0.8s ease-out forwards;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.nav-list {
+  display: flex;
+  list-style: none;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.nav-item.active {
+  background-color: var(--color-soft-lime);
+}
+
+.nav-link {
+  display: block;
+  padding: 8px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-ink-green);
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-item.active .nav-link {
+  color: var(--color-ink-green);
+  font-weight: 600;
+}
+
+/* Hover Animation */
+.nav-text-main {
+  display: inline-block;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-text-hover {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, 150%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.nav-item:not(.active):hover .nav-text-main {
+  transform: translateY(-150%);
+}
+
+.nav-item:not(.active):hover .nav-text-hover {
+  transform: translate(-50%, -50%);
+}
