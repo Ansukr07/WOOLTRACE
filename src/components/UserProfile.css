@@ -16,14 +16,15 @@
   text-align: center;
   position: relative;
   z-index: 1;
-  margin-bottom: 120px;
+  margin-bottom: 80px;
 }
 
 .profile-subtitle {
   color: #0B120D;
-  font-size: 14px;
-  letter-spacing: 0.1em;
-  font-weight: 600;
+  font-size: 56px;
+  letter-spacing: 0.02em; /* Adjusted for proper spacing */
+  word-spacing: 4px;
+  font-weight: 700;
   text-transform: uppercase;
 }
 
@@ -63,15 +64,15 @@
   align-items: center;
   gap: 16px;
   z-index: 3;
-  border: 1px solid rgba(11, 18, 13, 0.10);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  border: 1px solid rgba(11, 18, 13, 0.15); /* Slightly darker border */
+  box-shadow: 0 12px 32px rgba(0,0,0,0.08); /* More visible shadow */
   min-width: 220px;
   justify-content: space-between;
 }
 
 .card-title {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 700; /* Increased weight for visibility */
   color: #0B120D;
 }
 
@@ -94,16 +95,28 @@
 .card-br { bottom: 40px; right: -60px; }
 
 .text-block {
-  max-width: 300px;
+  max-width: 320px;
   color: #3F4942;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.6;
+  font-weight: 400;
+  
+  /* Elegant glassmorphism with off-white base for visibility */
+  background: rgba(248, 248, 243, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(11, 18, 13, 0.12); /* Slightly stronger border */
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06); /* Stronger shadow */
+  position: relative;
+  z-index: 2;
 }
 
-.text-tl { grid-column: 1; grid-row: 1; text-align: left; align-self: start; margin-top: 40px; padding-right: 40px; }
-.text-tr { grid-column: 3; grid-row: 1; text-align: left; align-self: start; margin-top: 40px; padding-left: 40px; }
-.text-bl { grid-column: 1; grid-row: 2; text-align: left; align-self: end; margin-bottom: 40px; padding-right: 40px; }
-.text-br { grid-column: 3; grid-row: 2; text-align: left; align-self: end; margin-bottom: 40px; padding-left: 40px; }
+.text-tl { grid-column: 1; grid-row: 1; text-align: left; align-self: start; justify-self: end; margin-top: 20px; margin-right: 20px; }
+.text-tr { grid-column: 3; grid-row: 1; text-align: left; align-self: start; justify-self: start; margin-top: 20px; margin-left: 20px; }
+.text-bl { grid-column: 1; grid-row: 2; text-align: left; align-self: end; justify-self: end; margin-bottom: 20px; margin-right: 20px; }
+.text-br { grid-column: 3; grid-row: 2; text-align: left; align-self: end; justify-self: start; margin-bottom: 20px; margin-left: 20px; }
 
 /* Subtle connecting lines */
 .connection-lines {
@@ -114,7 +127,7 @@
 
 .line {
   position: absolute;
-  border: 1px dashed rgba(11, 18, 13, 0.18);
+  border: 2px dashed rgba(11, 18, 13, 0.4);
 }
 
 .line-tl {
