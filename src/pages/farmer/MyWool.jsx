@@ -4,14 +4,14 @@ import { Box, Plus, Search, Filter, ArrowRight } from 'lucide-react';
 import './MyWool.css';
 
 // Mock Batches
-const mockBatches = [
+const initialBatches = [
   {
     id: 'WT-KA-2026-00124',
     date: '12 Aug 2026',
     quantity: '428 KG',
     type: 'Medium Wool',
-    status: 'In Market',
-    grade: 'A'
+    status: 'At Farm',
+    grade: '-'
   },
   {
     id: 'WT-KA-2026-00118',
@@ -31,15 +31,78 @@ const mockBatches = [
   }
 ];
 
+import { qaService } from '../../services/qa/qaService';
+
 const MyWool = () => {
   const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
+  const [batches, setBatches] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleCreateBatch = (e) => {
+  React.useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      // Fetch dynamic batches from API
+      const apiBatches = await qaService.getBatches('FARMER-01');
+      const mappedApiBatches = apiBatches.map(b => ({
+        id: b.batchId,
+        date: new Date(b.shearingDate || b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        quantity: `${b.quantity} KG`,
+        type: b.woolType,
+        status: b.qualityStatus === 'Certified' ? 'Certified' : 'At Farm',
+        grade: '-'
+      }));
+
+      // Merge with initial mocks, ensuring no duplicates by ID
+      const allBatches = [...mappedApiBatches, ...initialBatches];
+      const uniqueBatches = Array.from(new Map(allBatches.map(item => [item.id, item])).values());
+      
+      setBatches(uniqueBatches);
+
+      // Now check certificates and requests for all unique batches
+      const certs = await qaService.getRequests({ farmerId: 'FARMER-01' }); // Wait, qaService doesn't have getAllCertificates for a farmer easily, let's just fetch requests
+      
+      uniqueBatches.forEach(async (batch) => {
+        const c = await qaService.getCertificateByBatch(batch.id);
+        if (c) {
+          setBatches(prev => prev.map(b => b.id === batch.id ? { ...b, status: 'Certified', grade: c.grade } : b));
+        } else {
+          const req = certs.find(r => r.batchId === batch.id);
+          if (req) {
+            setBatches(prev => prev.map(b => b.id === batch.id ? { ...b, status: 'Inspection ' + req.status.replace('_', ' ') } : b));
+          }
+        }
+      });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const [formData, setFormData] = useState({ date: '', count: '', type: '', quantity: '' });
+
+  const handleCreateBatch = async (e) => {
     e.preventDefault();
-    // Simulate creation
-    alert('Batch created successfully! ID: WT-KA-2026-00125');
-    setIsCreating(false);
+    try {
+      const res = await qaService.createBatch({
+        farmerId: 'FARMER-01',
+        farmerName: 'Rajesh Kumar',
+        quantity: Number(formData.quantity),
+        woolType: formData.type || 'Medium Wool',
+        origin: 'Mysuru, Karnataka',
+        shearingDate: formData.date
+      });
+      if (res.success) {
+        setIsCreating(false);
+        navigate(`/farmer/batch/${res.data.batchId}`);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   if (isCreating) {
@@ -58,32 +121,32 @@ const MyWool = () => {
             <div className="form-grid">
               <div className="form-group">
                 <label>Shearing Date</label>
-                <input type="date" required />
+                <input type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} />
               </div>
               <div className="form-group">
                 <label>Sheep Count</label>
-                <input type="number" placeholder="Number of sheep shorn" required />
+                <input type="number" placeholder="Number of sheep shorn" required value={formData.count} onChange={e => setFormData({...formData, count: e.target.value})} />
               </div>
               <div className="form-group">
                 <label>Wool Type</label>
-                <select required>
+                <select required value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})}>
                   <option value="">Select Type</option>
-                  <option value="fine">Fine Wool</option>
-                  <option value="medium">Medium Wool</option>
-                  <option value="coarse">Coarse Wool</option>
+                  <option value="Fine Wool">Fine Wool</option>
+                  <option value="Medium Wool">Medium Wool</option>
+                  <option value="Coarse Wool">Coarse Wool</option>
                 </select>
               </div>
               <div className="form-group">
                 <label>Quantity (KG)</label>
-                <input type="number" placeholder="Total weight" required />
+                <input type="number" placeholder="Total weight" required value={formData.quantity} onChange={e => setFormData({...formData, quantity: e.target.value})} />
               </div>
               <div className="form-group full-width">
                 <label>Initial Quality Assessment</label>
                 <textarea rows="3" placeholder="Describe color, length, dirt content..."></textarea>
               </div>
               <div className="form-group full-width">
-                <label>Upload Images (Optional)</label>
-                <input type="file" multiple accept="image/*" />
+                <label>Upload Images</label>
+                <input type="file" multiple accept="image/*" required />
               </div>
             </div>
             
@@ -119,8 +182,15 @@ const MyWool = () => {
         </button>
       </div>
 
-      <div className="batch-list">
-        {mockBatches.map(batch => (
+      {loading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '64px 0', flexDirection: 'column', gap: 16 }}>
+          <div className="spinner" style={{ width: 40, height: 40, border: '4px solid #F0F0F0', borderTop: '4px solid #0B120D', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+          <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+          <p style={{ color: '#666', fontWeight: 600 }}>Loading your wool batches...</p>
+        </div>
+      ) : (
+        <div className="batch-list">
+        {batches.map(batch => (
           <div key={batch.id} className="batch-card" onClick={() => navigate(`/farmer/batch/${batch.id}`)}>
             <div className="batch-card-header">
               <div className="batch-id">
@@ -152,6 +222,7 @@ const MyWool = () => {
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 };

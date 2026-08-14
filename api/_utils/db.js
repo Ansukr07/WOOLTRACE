@@ -23,7 +23,6 @@ async function connectToDatabase() {
     }
 
     cached.promise = mongoose.connect(uri, opts).then((mongoose) => {
-      console.log('Successfully connected to MongoDB');
       return mongoose;
     });
   }

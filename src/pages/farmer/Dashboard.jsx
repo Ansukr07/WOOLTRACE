@@ -19,6 +19,7 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
+import { qaService } from '../../services/qa/qaService';
 import './Dashboard.css';
 
 // Mock Data for the chart
@@ -34,13 +35,40 @@ const priceData = [
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
+  const [batches, setBatches] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('wooltrace_user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
+    fetchDashboardData();
   }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const apiBatches = await qaService.getBatches('FARMER-01');
+      setBatches(apiBatches);
+    } catch (error) {
+      console.error("Failed to fetch dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const activeBatches = batches.length;
+  const woolAvailable = batches.reduce((sum, b) => sum + Number(b.quantity || 0), 0);
+  
+  if (loading) {
+    return (
+      <div className="dashboard" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', flexDirection: 'column', gap: 16 }}>
+        <div className="spinner" style={{ width: 40, height: 40, border: '4px solid #E5E5E5', borderTop: '4px solid #16A34A', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+        <p style={{ color: '#666', fontWeight: 600 }}>Loading your farm dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard">
@@ -69,14 +97,14 @@ const Dashboard = () => {
           <div className="metric-icon bg-blue"><Box size={24} /></div>
           <div className="metric-info">
             <span className="label">Active Batches</span>
-            <span className="value">3</span>
+            <span className="value">{activeBatches}</span>
           </div>
         </div>
         <div className="metric-card">
           <div className="metric-icon bg-primary"><Scale size={24} /></div>
           <div className="metric-info">
             <span className="label">Wool Available</span>
-            <span className="value">428 KG</span>
+            <span className="value">{woolAvailable} KG</span>
           </div>
         </div>
       </div>
