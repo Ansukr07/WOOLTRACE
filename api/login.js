@@ -16,12 +16,37 @@ export default async function handler(req, res) {
     }
 
     // In a real app, hash password and check. For SIH prototype, basic check:
-    const user = await User.findOne({
+    let user = await User.findOne({
       $or: [{ email: identifier }, { mobile: identifier }]
     });
 
-    if (!user || user.password !== password) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    // Fallback: If it's a demo account and doesn't exist, create it on the fly
+    if (!user && identifier.endsWith('@wooltrace.com')) {
+      let role = 'FARMER';
+      if (identifier.includes('seller')) role = 'SELLER';
+      if (identifier.includes('inspector')) role = 'QUALITY_INSPECTOR';
+      if (identifier.includes('warehouse')) role = 'WAREHOUSE';
+      if (identifier.includes('transport')) role = 'TRANSPORT';
+
+      user = await User.create({
+        name: identifier.split('@')[0].toUpperCase(),
+        email: identifier,
+        password: password, // use whatever password they typed to create the demo account
+        role: role
+      });
+    }
+
+    if (!user) {
+      return res.status(401).json({ message: 'Account not found. Please register first.' });
+    }
+
+    if (user.password !== password) {
+      // For demo accounts, accept any password if they forgot it
+      if (identifier.endsWith('@wooltrace.com')) {
+        // bypass
+      } else {
+        return res.status(401).json({ message: 'Incorrect password.' });
+      }
     }
 
     // Basic token mock (or omit token and just return user info)

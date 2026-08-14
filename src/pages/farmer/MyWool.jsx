@@ -3,34 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Plus, Search, Filter, ArrowRight } from 'lucide-react';
 import './MyWool.css';
 
-// Mock Batches
-const initialBatches = [
-  {
-    id: 'WT-KA-2026-00124',
-    date: '12 Aug 2026',
-    quantity: '428 KG',
-    type: 'Medium Wool',
-    status: 'At Farm',
-    grade: '-'
-  },
-  {
-    id: 'WT-KA-2026-00118',
-    date: '05 Aug 2026',
-    quantity: '310 KG',
-    type: 'Fine Wool',
-    status: 'Sold',
-    grade: 'A+'
-  },
-  {
-    id: 'WT-KA-2026-00109',
-    date: '22 Jul 2026',
-    quantity: '505 KG',
-    type: 'Coarse Wool',
-    status: 'At Farm',
-    grade: 'Pending'
-  }
-];
-
 import { qaService } from '../../services/qa/qaService';
 
 const MyWool = () => {
@@ -45,37 +17,42 @@ const MyWool = () => {
 
   const loadData = async () => {
     try {
+      const userStr = localStorage.getItem('wooltrace_user');
+      const user = userStr ? JSON.parse(userStr) : { id: 'FARMER-01' };
+
       // Fetch dynamic batches from API
-      const apiBatches = await qaService.getBatches('FARMER-01');
-      const mappedApiBatches = apiBatches.map(b => ({
-        id: b.batchId,
-        date: new Date(b.shearingDate || b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-        quantity: `${b.quantity} KG`,
-        type: b.woolType,
-        status: b.qualityStatus === 'Certified' ? 'Certified' : 'At Farm',
-        grade: '-'
-      }));
-
-      // Merge with initial mocks, ensuring no duplicates by ID
-      const allBatches = [...mappedApiBatches, ...initialBatches];
-      const uniqueBatches = Array.from(new Map(allBatches.map(item => [item.id, item])).values());
+      const apiBatches = await qaService.getBatches(user.id);
       
-      setBatches(uniqueBatches);
-
-      // Now check certificates and requests for all unique batches
-      const certs = await qaService.getRequests({ farmerId: 'FARMER-01' }); // Wait, qaService doesn't have getAllCertificates for a farmer easily, let's just fetch requests
+      // Fetch certs and requests
+      const certs = await qaService.getRequests({ farmerId: user.id }); 
       
-      uniqueBatches.forEach(async (batch) => {
-        const c = await qaService.getCertificateByBatch(batch.id);
+      const fullyProcessedBatches = await Promise.all(apiBatches.map(async (b) => {
+        let status = b.qualityStatus === 'Certified' ? 'Certified' : 'At Farm';
+        let grade = '-';
+
+        const c = await qaService.getCertificateByBatch(b.batchId);
         if (c) {
-          setBatches(prev => prev.map(b => b.id === batch.id ? { ...b, status: 'Certified', grade: c.grade } : b));
+          status = 'Certified';
+          grade = c.grade;
         } else {
-          const req = certs.find(r => r.batchId === batch.id);
+          const req = certs.find(r => r.batchId === b.batchId);
           if (req) {
-            setBatches(prev => prev.map(b => b.id === batch.id ? { ...b, status: 'Inspection ' + req.status.replace('_', ' ') } : b));
+            status = 'Inspection ' + req.status.replace('_', ' ');
           }
         }
-      });
+
+        return {
+          id: b.batchId,
+          date: new Date(b.shearingDate || b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+          quantity: `${b.quantity} KG`,
+          type: b.woolType,
+          status,
+          grade
+        };
+      }));
+      
+      setBatches(fullyProcessedBatches);
+
     } catch (e) {
       console.error(e);
     } finally {
@@ -88,12 +65,15 @@ const MyWool = () => {
   const handleCreateBatch = async (e) => {
     e.preventDefault();
     try {
+      const userStr = localStorage.getItem('wooltrace_user');
+      const user = userStr ? JSON.parse(userStr) : { id: 'FARMER-01', name: 'Demo Farmer' };
+
       const res = await qaService.createBatch({
-        farmerId: 'FARMER-01',
-        farmerName: 'Rajesh Kumar',
+        farmerId: user.id,
+        farmerName: user.name,
         quantity: Number(formData.quantity),
         woolType: formData.type || 'Medium Wool',
-        origin: 'Mysuru, Karnataka',
+        origin: user.state || 'Registered Farm',
         shearingDate: formData.date
       });
       if (res.success) {

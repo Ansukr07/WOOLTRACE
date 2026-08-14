@@ -26,6 +26,7 @@ import Academy from './pages/farmer/Academy'
 import InspectorLayout from './layouts/InspectorLayout'
 import InspectorDashboard from './pages/inspector/InspectorDashboard'
 import InspectionDetail from './pages/inspector/InspectionDetail'
+import Certificates from './pages/inspector/Certificates'
 
 // Placeholder Layouts/Dashboards for new roles
 import SellerLayout from './layouts/SellerLayout'
@@ -84,6 +85,7 @@ function App() {
             <Route path="/inspector" element={<ProtectedRoute allowedRoles={['QUALITY_INSPECTOR']}><InspectorLayout /></ProtectedRoute>}>
               <Route index element={<InspectorDashboard />} />
               <Route path="inspection/:id" element={<InspectionDetail />} />
+              <Route path="certificates" element={<Certificates />} />
             </Route>
 
             {/* Seller Module */}

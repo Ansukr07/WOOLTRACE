@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import PDFDocument from 'pdfkit';
 import QRCode from 'qrcode';
 import dbConnect from '../_utils/db.js';
 import QualityCertificate from '../_models/QualityCertificate.js';
@@ -16,200 +16,89 @@ export default async function handler(req, res) {
     const cert = await QualityCertificate.findOne({ certificateId: id });
     if (!cert) return res.status(404).json({ success: false, message: 'Certificate not found' });
 
-    // Generate QR code as Data URI
-    const qrDataUri = await QRCode.toDataURL(cert.verificationUrl, { errorCorrectionLevel: 'H', width: 200 });
+    // Generate QR code as Buffer
+    const qrBuffer = await QRCode.toBuffer(cert.verificationUrl || `http://localhost:3000/verify/${cert.certificateId}`, { errorCorrectionLevel: 'H', width: 150 });
 
-    const html = `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <title>WoolTrace Quality Certificate</title>
-      <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        body {
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          margin: 0;
-          padding: 40px;
-          background: #FFF;
-          color: #0B120D;
-        }
-        .container {
-          border: 4px solid #DDFF86;
-          border-radius: 12px;
-          padding: 40px;
-          position: relative;
-        }
-        .header {
-          text-align: center;
-          margin-bottom: 40px;
-        }
-        .logo {
-          font-size: 28px;
-          font-weight: 800;
-          letter-spacing: -1px;
-          color: #16A34A;
-          margin-bottom: 10px;
-        }
-        h1 {
-          font-size: 32px;
-          text-transform: uppercase;
-          margin: 0 0 10px 0;
-          letter-spacing: 2px;
-        }
-        .verified-badge {
-          display: inline-block;
-          background: #DCFCE7;
-          color: #166534;
-          padding: 8px 16px;
-          border-radius: 4px;
-          font-weight: 800;
-          font-size: 14px;
-        }
-        .cert-id {
-          text-align: center;
-          color: #666;
-          margin-top: 20px;
-          font-size: 14px;
-        }
-        .divider {
-          height: 2px;
-          background: #F0F0F0;
-          margin: 30px 0;
-        }
-        h2 {
-          font-size: 16px;
-          color: #666;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          margin-bottom: 20px;
-        }
-        .grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
-        }
-        .item label {
-          display: block;
-          font-size: 12px;
-          color: #666;
-          text-transform: uppercase;
-          font-weight: 800;
-          margin-bottom: 4px;
-        }
-        .item .val {
-          font-size: 16px;
-          font-weight: 600;
-        }
-        .highlight-box {
-          background: #FAFFF0;
-          border: 1px solid #DDFF86;
-          padding: 20px;
-          border-radius: 8px;
-          display: flex;
-          justify-content: space-around;
-          margin: 30px 0;
-        }
-        .highlight-box .box-item {
-          text-align: center;
-        }
-        .highlight-box .box-val {
-          font-size: 36px;
-          font-weight: 800;
-          color: #16A34A;
-        }
-        .footer-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          margin-top: 40px;
-          align-items: center;
-        }
-        .inspector-info {
-          font-size: 14px;
-          line-height: 1.6;
-        }
-        .qr-section {
-          text-align: right;
-        }
-        .qr-section img {
-          width: 120px;
-          height: 120px;
-        }
-        .qr-section p {
-          font-size: 12px;
-          color: #666;
-          margin-top: 8px;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <div class="logo">WOOLTRACE</div>
-          <h1>Quality Certificate</h1>
-          <div class="verified-badge">✓ VERIFIED BATCH</div>
-          <div class="cert-id">Certificate ID: ${cert.certificateId}</div>
-        </div>
-
-        <h2>Batch Information</h2>
-        <div class="grid">
-          <div class="item"><label>Batch ID</label><div class="val">${cert.batchId}</div></div>
-          <div class="item"><label>Farmer</label><div class="val">${cert.farmerName}</div></div>
-          <div class="item"><label>Origin</label><div class="val">${cert.origin}</div></div>
-          <div class="item"><label>Quantity & Type</label><div class="val">${cert.quantity} KG • ${cert.woolType}</div></div>
-        </div>
-
-        <div class="divider"></div>
-
-        <h2>Quality Assessment</h2>
-        <div class="highlight-box">
-          <div class="box-item">
-            <label style="font-size:12px;font-weight:800;color:#666;">GRADE</label>
-            <div class="box-val">${cert.grade}</div>
-          </div>
-          <div class="box-item">
-            <label style="font-size:12px;font-weight:800;color:#666;">SCORE</label>
-            <div class="box-val">${cert.overallScore} <span style="font-size:16px;color:#999;">/100</span></div>
-          </div>
-        </div>
-
-        <div class="grid">
-          <div class="item"><label>Fiber Diameter</label><div class="val">${cert.fiberDiameter || '-'} μm</div></div>
-          <div class="item"><label>Cleanliness</label><div class="val">${cert.cleanliness || '-'}%</div></div>
-          <div class="item"><label>Moisture</label><div class="val">${cert.moisture || '-'}%</div></div>
-          <div class="item"><label>Contamination</label><div class="val">${cert.contamination || '-'}</div></div>
-        </div>
-
-        <div class="footer-grid">
-          <div class="inspector-info">
-            <label style="font-size:12px;font-weight:800;color:#666;text-transform:uppercase;">Inspected By</label><br>
-            <strong>${cert.inspectorName}</strong><br>
-            <span style="color:#666;">Auth ID: ${cert.inspectorId}</span><br>
-            <br>
-            <label style="font-size:12px;font-weight:800;color:#666;text-transform:uppercase;">Inspection Date</label><br>
-            <strong>${new Date(cert.issuedAt).toLocaleDateString()}</strong>
-          </div>
-          <div class="qr-section">
-            <img src="${qrDataUri}" alt="Verification QR Code" />
-            <p>Scan to verify certificate</p>
-          </div>
-        </div>
-      </div>
-    </body>
-    </html>
-    `;
-
-    const browser = await puppeteer.launch({ headless: 'new' });
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
-    const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
-    await browser.close();
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', \`attachment; filename=\${cert.certificateId}.pdf\`);
-    res.send(pdfBuffer);
+    res.setHeader('Content-Disposition', `attachment; filename=${cert.certificateId}.pdf`);
+
+    doc.pipe(res);
+
+    // Header
+    doc.fillColor('#16A34A').fontSize(24).font('Helvetica-Bold').text('WOOLTRACE', { align: 'center' });
+    doc.fillColor('#0B120D').fontSize(16).text('WOOL QUALITY CERTIFICATE', { align: 'center' });
+    doc.moveDown(2);
+
+    // Main details
+    doc.fontSize(12).font('Helvetica-Bold').text('Certificate Details', { underline: true });
+    doc.moveDown(0.5);
+
+    doc.font('Helvetica-Bold').text('Certificate ID: ', { continued: true }).font('Helvetica').text(cert.certificateId);
+    doc.font('Helvetica-Bold').text('Batch ID: ', { continued: true }).font('Helvetica').text(cert.batchId);
+    doc.font('Helvetica-Bold').text('Producer/Farmer: ', { continued: true }).font('Helvetica').text(cert.farmerName || 'Registered Farmer');
+    doc.font('Helvetica-Bold').text('Wool Type: ', { continued: true }).font('Helvetica').text(cert.woolType || 'Medium Wool');
+    doc.font('Helvetica-Bold').text('Quantity: ', { continued: true }).font('Helvetica').text(`${cert.quantity} KG`);
+    doc.font('Helvetica-Bold').text('Origin: ', { continued: true }).font('Helvetica').text(cert.origin || 'N/A');
+    doc.font('Helvetica-Bold').text('Inspection Date: ', { continued: true }).font('Helvetica').text(new Date(cert.issuedAt).toLocaleDateString());
+    doc.moveDown();
+    
+    doc.font('Helvetica-Bold').text('Grade: ', { continued: true }).font('Helvetica').text(cert.grade);
+    doc.font('Helvetica-Bold').text('Quality Score: ', { continued: true }).font('Helvetica').text(`${cert.overallScore}/100`);
+    doc.font('Helvetica-Bold').text('Inspector: ', { continued: true }).font('Helvetica').text(`${cert.inspectorName || 'Auth Inspector'} (${cert.inspectorId})`);
+    doc.font('Helvetica-Bold').text('Status: ', { continued: true }).fillColor('#16A34A').text('✓ VERIFIED').fillColor('#0B120D');
+    doc.font('Helvetica-Bold').text('Issue Date: ', { continued: true }).font('Helvetica').text(new Date(cert.issuedAt).toLocaleDateString());
+    
+    doc.moveDown(2);
+
+    // Quality Parameters Table
+    doc.font('Helvetica-Bold').text('Basic Quality Parameters', { underline: true });
+    doc.moveDown(0.5);
+    
+    const startY = doc.y;
+    doc.font('Helvetica-Bold').text('Parameter', 50, startY);
+    doc.text('Result', 250, startY);
+    
+    doc.moveTo(50, startY + 15).lineTo(500, startY + 15).stroke();
+    
+    let currentY = startY + 25;
+    const addRow = (param, result) => {
+      doc.font('Helvetica').text(param, 50, currentY);
+      doc.text(result, 250, currentY);
+      currentY += 20;
+    };
+
+    addRow('Cleanliness', cert.cleanliness ? `${cert.cleanliness}/100` : 'N/A');
+    addRow('Fiber Diameter', cert.fiberDiameter ? `${cert.fiberDiameter} microns` : 'N/A');
+    addRow('Moisture', cert.moisture ? `${cert.moisture}%` : 'Normal');
+    addRow('Color', cert.color || 'Natural');
+    addRow('Contamination', cert.contamination || 'Low');
+    
+    doc.moveDown(3);
+
+    // Footer and QR
+    doc.y = currentY + 40;
+    doc.font('Helvetica-Bold').text('Verification', 50, doc.y, { underline: true });
+    doc.moveDown(0.5);
+    
+    doc.image(qrBuffer, 50, doc.y, { width: 100 });
+    
+    doc.font('Helvetica').text('Scan to verify this certificate and view the wool batch\'s traceability.', 160, doc.y + 20, { width: 300 });
+    doc.moveDown();
+    doc.font('Helvetica-Bold').text(`Certificate Status: ${cert.status}`, 160, doc.y);
+    doc.moveDown();
+    doc.font('Helvetica-Bold').text('Issued by: WoolTrace Quality Assurance', 160, doc.y);
+    
+    doc.y = 750;
+    doc.fontSize(10).font('Helvetica-Oblique').text(`Certificate ID: ${cert.certificateId} | This certificate is digitally generated and can be verified through WoolTrace.`, 50, 750, { align: 'center', width: 500 });
+
+    doc.end();
+
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error: 'Failed to generate PDF' });
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, error: 'Failed to generate PDF' });
+    }
   }
 }

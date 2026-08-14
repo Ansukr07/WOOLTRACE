@@ -4,6 +4,7 @@ import QRCode from 'react-qr-code';
 import { QrCode, ArrowLeft, Download, CheckCircle, Clock, ShieldAlert, FileText } from 'lucide-react';
 import { useGlobalState } from '../../context/GlobalStateContext';
 import TraceabilityTimeline from '../../components/TraceabilityTimeline';
+import { qaService } from '../../services/qa/qaService';
 import './BatchDetail.css';
 
 export default function BatchDetail() {
@@ -12,17 +13,50 @@ export default function BatchDetail() {
   const [showQR, setShowQR] = useState(false);
   const [isSelling, setIsSelling] = useState(false);
   
-  const { batches, certificates, listings, orders } = useGlobalState();
+  const { listings, orders } = useGlobalState();
   const [cert, setCert] = useState(null);
-
-  const batch = batches.find(b => b.id === id);
+  const [batch, setBatch] = useState(null);
+  const [inspectionReq, setInspectionReq] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const foundCert = certificates.find(c => c.batchId === id);
-    if (foundCert) {
-      setCert(foundCert);
-    }
-  }, [id, certificates]);
+    const loadBatchAndCert = async () => {
+      try {
+        const fetchedBatch = await qaService.getBatchById(id);
+        if (fetchedBatch) {
+          // Normalize the batch data schema to match what the component expects
+          setBatch({
+            id: fetchedBatch.batchId,
+            quantity: fetchedBatch.quantity,
+            type: fetchedBatch.woolType,
+            createdAt: fetchedBatch.shearingDate || fetchedBatch.createdAt,
+            location: fetchedBatch.origin || 'Registered Farm'
+          });
+        }
+        
+        const fetchedCert = await qaService.getCertificateByBatch(id);
+        if (fetchedCert) {
+          setCert(fetchedCert);
+        } else {
+          // Check if there is an active inspection request
+          const reqs = await qaService.getRequests({ batchId: id });
+          if (reqs && reqs.length > 0) {
+            setInspectionReq(reqs[0]);
+          }
+        }
+      } catch(e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadBatchAndCert();
+  }, [id]);
+
+  if (loading) {
+    return <div style={{padding: '32px'}}>Loading Batch Details...</div>;
+  }
 
   if (!batch) {
     return <div style={{padding: '32px'}}>Batch not found.</div>;
@@ -39,11 +73,6 @@ export default function BatchDetail() {
           <p>Complete traceability and management for this batch.</p>
         </div>
         <div className="header-actions">
-          {cert && (
-            <button className="btn-secondary" onClick={() => setShowQR(true)}>
-              <QrCode size={18} /> View QR
-            </button>
-          )}
           {!isSelling && cert && !listings.find(l => l.batchId === id) && (
             <button className="btn-primary" onClick={() => setIsSelling(true)}>Sell Batch</button>
           )}
@@ -71,18 +100,63 @@ export default function BatchDetail() {
                 <span className="badge-grade" style={{ background: '#166534', color: '#FFF', padding: '4px 12px', borderRadius: 4, fontWeight: 800 }}>Grade {cert.grade}</span>
               </div>
               <div className="quality-scores" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>Certificate ID: <strong>{cert.id}</strong></div>
-                <div>Overall Score: <strong>{cert.qualityScore}/100</strong></div>
-                <div>Fiber Diameter: <strong>{cert.micron}</strong></div>
-                <div>Clean Yield: <strong>{cert.yield}</strong></div>
+                <div>Certificate ID: <strong>{cert.certificateId}</strong></div>
+                <div>Overall Score: <strong>{cert.overallScore}/100</strong></div>
+                <div>Fiber Diameter: <strong>{cert.fiberDiameter} microns</strong></div>
+                <div>Cleanliness Score: <strong>{cert.cleanliness}/100</strong></div>
               </div>
+              
+              <div style={{ marginTop: 20, display: 'flex', gap: 12 }}>
+                <button className="btn-secondary" onClick={() => setShowQR(true)}>
+                  <QrCode size={18} /> View QR
+                </button>
+                <a href={`/api/qa/download-certificate?id=${cert.certificateId}`} target="_blank" rel="noreferrer" className="btn-primary" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <FileText size={18} /> Download Certificate
+                </a>
+              </div>
+            </div>
+          ) : inspectionReq ? (
+            <div className="quality-section" style={{ background: '#FFFBEB', border: '1px solid #FCD34D', padding: 20, borderRadius: 12, textAlign: 'center' }}>
+              <Clock size={32} color="#D97706" style={{ margin: '0 auto 12px' }} />
+              <h3 style={{ margin: '0 0 8px 0', color: '#92400E' }}>Inspection Requested</h3>
+              <p style={{ fontSize: 14, color: '#92400E', marginBottom: 0 }}>
+                Status: <strong>{inspectionReq.status.replace('_', ' ')}</strong><br/>
+                Your request is in the queue and an inspector will be assigned soon.
+              </p>
             </div>
           ) : (
             <div className="quality-section" style={{ background: '#FAFFF0', border: '1px solid #DDFF86', padding: 20, borderRadius: 12, textAlign: 'center' }}>
               <ShieldAlert size={32} color="#0B120D" style={{ margin: '0 auto 12px' }} />
               <h3 style={{ margin: '0 0 8px 0' }}>Quality Unverified</h3>
               <p style={{ fontSize: 14, color: '#666', marginBottom: 16 }}>This batch has not been inspected. Request a quality inspection to receive a digital certificate.</p>
-              <button className="btn-primary">Request Quality Inspection</button>
+              <button 
+                className="btn-primary" 
+                onClick={async () => {
+                  try {
+                    const userStr = localStorage.getItem('wooltrace_user');
+                    const user = userStr ? JSON.parse(userStr) : { id: 'FARMER-01', name: 'Demo Farmer' };
+                    
+                    await qaService.createRequest({
+                      batchId: batch.id,
+                      farmerId: user.id,
+                      farmerName: user.name,
+                      location: batch.location,
+                      quantity: batch.quantity,
+                      woolType: batch.type,
+                      preferredDate: new Date().toISOString()
+                    });
+                    
+                    alert('Inspection requested successfully!');
+                    // Optionally reload to fetch updated state
+                    window.location.reload();
+                  } catch (e) {
+                    console.error(e);
+                    alert('Error requesting inspection.');
+                  }
+                }}
+              >
+                Request Quality Inspection
+              </button>
             </div>
           )}
 
@@ -185,6 +259,19 @@ export default function BatchDetail() {
                 CANCEL
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showQR && cert && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }} onClick={() => setShowQR(false)}>
+          <div style={{ background: '#FFF', padding: '48px', borderRadius: '12px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+            <h2 style={{marginTop: 0}}>Certificate Verification QR</h2>
+            <div style={{ margin: '32px 0', padding: '16px', background: '#FFF', display: 'inline-block', borderRadius: '8px', border: '1px solid #eee' }}>
+              <QRCode value={cert.verificationUrl || `http://localhost:3000/verify/${cert.certificateId}`} size={250} />
+            </div>
+            <p style={{ color: '#666', marginBottom: 24 }}>Scan this code to verify the digital Wool Quality Certificate.</p>
+            <button className="btn-secondary" onClick={() => setShowQR(false)}>Close</button>
           </div>
         </div>
       )}

@@ -5,24 +5,7 @@ const GlobalStateContext = createContext();
 export const useGlobalState = () => useContext(GlobalStateContext);
 
 // Initial Seed Data
-const INITIAL_BATCHES = [
-  {
-    id: 'WT-KA-2026-00124',
-    farmerId: 'FARMER-01',
-    farmerName: 'Demo Farmer',
-    quantity: 428,
-    type: 'Merino Cross',
-    location: 'Mysuru, Karnataka',
-    createdAt: '2026-08-14T10:00:00Z',
-    status: 'Listed',
-    history: [
-      { step: 'FARM', status: 'completed', date: '2026-08-14T10:00:00Z' },
-      { step: 'QUALITY', status: 'completed', date: '2026-08-14T11:00:00Z' },
-      { step: 'CERTIFICATE', status: 'completed', date: '2026-08-14T11:30:00Z' },
-      { step: 'LISTED', status: 'completed', date: '2026-08-14T12:00:00Z' }
-    ]
-  }
-];
+const INITIAL_BATCHES = [];
 
 const INITIAL_CERTIFICATES = [
   {

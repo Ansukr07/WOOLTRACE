@@ -1,5 +1,6 @@
 import connectToDatabase from './_utils/db.js';
 import User from './_models/User.js';
+import mongoose from 'mongoose';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -21,17 +22,26 @@ export default async function handler(req, res) {
       return res.status(409).json({ message: 'User with this email already exists' });
     }
 
-    // Create new user (No password hashing for prototype simplicity)
-    const newUser = await User.create({
+    // Drop the mobile_1 index if it exists to fix local DB duplicate null errors
+    try {
+      await User.collection.dropIndex('mobile_1');
+    } catch (e) {
+      // Ignore if index doesn't exist
+    }
+
+    const payload = {
       name,
       email,
-      mobile: mobile || '',
-      state: state || '',
-      numberOfSheep: numberOfSheep || 0,
-      woolProduction: woolProduction || 0,
       password,
       role: role || 'FARMER',
-    });
+    };
+
+    if (mobile) payload.mobile = mobile;
+    if (state) payload.state = state;
+    if (numberOfSheep) payload.numberOfSheep = numberOfSheep;
+    if (woolProduction) payload.woolProduction = woolProduction;
+
+    const newUser = await User.create(payload);
 
     res.status(201).json({
       message: 'Account created successfully',

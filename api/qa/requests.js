@@ -7,7 +7,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const { id, inspectorId, farmerId, status } = req.query;
+      const { id, batchId, inspectorId, farmerId, status } = req.query;
 
       if (id) {
         const request = await InspectionRequest.findOne({ requestId: id });
@@ -18,6 +18,7 @@ export default async function handler(req, res) {
       let query = {};
       if (inspectorId) query.inspectorId = inspectorId;
       if (farmerId) query.farmerId = farmerId;
+      if (batchId) query.batchId = batchId;
       if (status) query.status = status;
 
       const requests = await InspectionRequest.find(query).sort({ createdAt: -1 });

@@ -6,10 +6,16 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const { farmerId } = req.query;
+      const { farmerId, id } = req.query;
       let query = {};
       if (farmerId) query.farmerId = farmerId;
+      if (id) query.batchId = id;
       
+      if (id) {
+        const batch = await WoolBatch.findOne(query);
+        return res.status(200).json({ success: true, data: batch });
+      }
+
       const batches = await WoolBatch.find(query).sort({ createdAt: -1 });
       return res.status(200).json({ success: true, data: batches });
     } catch (error) {

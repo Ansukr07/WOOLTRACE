@@ -5,6 +5,12 @@ export const qaService = {
     return data.success ? data.data : [];
   },
 
+  async getBatchById(id) {
+    const res = await fetch(`/api/batches?id=${id}`);
+    const data = await res.json();
+    return data.success ? data.data : null;
+  },
+
   async createBatch(payload) {
     const res = await fetch('/api/batches', {
       method: 'POST',
