@@ -1,10 +1,10 @@
 .login-page {
-  min-height: 100vh;
+  min-height: 80vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #F8F8F3;
-  padding: 24px;
+  padding: 64px 24px;
   font-family: 'Plus Jakarta Sans', sans-serif;
   color: #0B120D;
 }
