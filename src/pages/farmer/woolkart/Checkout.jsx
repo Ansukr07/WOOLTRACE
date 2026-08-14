@@ -2,11 +2,15 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, ArrowLeft } from 'lucide-react';
 import { useWoolKart } from '../../../context/WoolKartContext';
+import { useGlobalState } from '../../../context/GlobalStateContext';
+import { useAuth } from '../../../context/AuthContext';
 import './WoolKartStyles.css';
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { cartItems, cartTotal, clearCart, addOrder } = useWoolKart();
+  const { cartItems, cartTotal, clearCart } = useWoolKart();
+  const { addOrder } = useGlobalState();
+  const { user } = useAuth();
 
   const [step, setStep] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState('UPI');
@@ -17,7 +21,7 @@ const Checkout = () => {
   const finalTotal = cartTotal + deliveryFee + taxes;
 
   const [address, setAddress] = useState({
-    name: 'Suresh Kumar',
+    name: user?.name || 'Buyer',
     mobile: '9876543210',
     address: 'Farm Plot 42, Green Valley',
     city: 'Mysuru',
@@ -47,10 +51,13 @@ const Checkout = () => {
       
       const newOrder = {
         id: orderId,
+        buyerId: user?.id || 'BUYER-TEMP',
+        buyerName: address.name,
         date: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         items: [...cartItems],
-        total: finalTotal,
-        status: 'Confirmed',
+        totalAmount: finalTotal,
+        status: 'Confirmed', // Skipping Escrow Pending for direct buy
         estimatedDelivery: '4-6 days'
       };
       
