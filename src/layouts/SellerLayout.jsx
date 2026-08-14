@@ -70,14 +70,6 @@ const SellerLayout = () => {
           ))}
           
           <div style={{marginTop: 'auto', borderTop: '1px solid #E5E5E5', paddingTop: '16px'}}>
-            <button 
-              className="nav-item action-btn" 
-              onClick={() => { switchRole('FARMER'); navigate('/farmer'); }} 
-              style={{border: 'none', background: 'none', width: '100%', textAlign: 'left', color: '#666'}}
-            >
-              <Repeat size={20} />
-              <span>Switch to Farmer</span>
-            </button>
             <button className="nav-item logout-btn" onClick={handleLogout} style={{border: 'none', background: 'none', width: '100%', textAlign: 'left', color: '#DC2626'}}>
               <LogOut size={20} />
               <span>Logout</span>
