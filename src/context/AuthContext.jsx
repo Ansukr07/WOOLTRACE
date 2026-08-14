@@ -19,6 +19,20 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (user) {
       localStorage.setItem('wooltrace_user', JSON.stringify(user));
+      
+      // Dynamically inject Google Translate script only for non-English users
+      if (user.preferredLanguage && user.preferredLanguage !== 'en') {
+        document.cookie = `googtrans=/en/${user.preferredLanguage}; path=/`;
+        if (!document.getElementById('google-translate-script')) {
+          window.googleTranslateElementInit = function() {
+            new window.google.translate.TranslateElement({pageLanguage: 'en', autoDisplay: false}, 'google_translate_element');
+          };
+          const script = document.createElement('script');
+          script.id = 'google-translate-script';
+          script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+          document.body.appendChild(script);
+        }
+      }
     } else {
       localStorage.removeItem('wooltrace_user');
     }
@@ -93,7 +107,12 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    const host = window.location.hostname;
+    // Aggressively wipe the cookie from all possible domains and paths
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${host};`;
+    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${host};`;
+    
     window.location.reload(); // Reload to remove translations
   };
 
