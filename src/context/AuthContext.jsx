@@ -39,6 +39,17 @@ export const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         setUser(data.user);
+        
+        // Set Google Translate Cookie
+        if (data.user.preferredLanguage && data.user.preferredLanguage !== 'en') {
+          document.cookie = `googtrans=/en/${data.user.preferredLanguage}; path=/`;
+          setTimeout(() => {
+            window.location.reload(); // Reload to apply translation fully
+          }, 100);
+        } else {
+          document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        }
+
         setIsLoading(false);
         return { success: true, user: data.user };
       } else {
@@ -82,6 +93,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
+    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    window.location.reload(); // Reload to remove translations
   };
 
   const switchRole = (newRole) => {

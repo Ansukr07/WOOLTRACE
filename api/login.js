@@ -58,7 +58,8 @@ export default async function handler(req, res) {
         email: user.email,
         mobile: user.mobile,
         role: user.role,
-        state: user.state
+        state: user.state,
+        preferredLanguage: user.preferredLanguage || 'en'
       }
     });
 

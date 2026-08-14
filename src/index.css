@@ -119,3 +119,22 @@ button {
 }
 
 .flex-1 { flex: 1; }
+
+/* ── Google Translate Widget Overrides ─────────────────────────────── */
+.skiptranslate > iframe.skiptranslate {
+  display: none !important; 
+  visibility: hidden !important;
+}
+
+body {
+  top: 0px !important; 
+}
+
+#goog-gt-tt {
+  display: none !important;
+}
+
+.goog-text-highlight {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}

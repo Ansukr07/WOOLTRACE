@@ -23,7 +23,8 @@ const Register = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: ''
+    password: '',
+    preferredLanguage: 'en'
   });
 
   const handleRegister = async (e) => {
@@ -110,6 +111,31 @@ const Register = () => {
                 value={formData.email}
                 onChange={e => setFormData({...formData, email: e.target.value})}
               />
+            </div>
+            <div className="form-group">
+              <label>Preferred Language</label>
+              <select
+                required
+                value={formData.preferredLanguage}
+                onChange={e => setFormData({...formData, preferredLanguage: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '1px solid #E5E5E5',
+                  backgroundColor: '#FFFFFF',
+                  fontSize: '15px',
+                  color: '#0B120D',
+                  outline: 'none'
+                }}
+              >
+                <option value="en">English</option>
+                <option value="hi">Hindi (हिंदी)</option>
+                <option value="kn">Kannada (ಕನ್ನಡ)</option>
+                <option value="te">Telugu (తెలుగు)</option>
+                <option value="mr">Marathi (मराठी)</option>
+                <option value="ta">Tamil (தமிழ்)</option>
+              </select>
             </div>
             <div className="form-group">
               <label>Password</label>

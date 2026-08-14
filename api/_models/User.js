@@ -30,6 +30,10 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: 'FARMER',
   },
+  preferredLanguage: {
+    type: String,
+    default: 'en',
+  },
   createdAt: {
     type: Date,
     default: Date.now,

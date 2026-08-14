@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   try {
     await connectToDatabase();
 
-    const { name, email, mobile, state, numberOfSheep, woolProduction, password, role } = req.body;
+    const { name, email, mobile, state, numberOfSheep, woolProduction, password, role, preferredLanguage } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Missing required fields' });
@@ -34,6 +34,7 @@ export default async function handler(req, res) {
       email,
       password,
       role: role || 'FARMER',
+      preferredLanguage: preferredLanguage || 'en',
     };
 
     if (mobile) payload.mobile = mobile;
@@ -50,6 +51,7 @@ export default async function handler(req, res) {
         name: newUser.name,
         email: newUser.email,
         role: newUser.role,
+        preferredLanguage: newUser.preferredLanguage || 'en'
       }
     });
 
