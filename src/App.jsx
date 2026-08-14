@@ -2,6 +2,7 @@ import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { GlobalStateProvider } from './context/GlobalStateContext'
+import { WoolKartProvider } from './context/WoolKartContext'
 import ProtectedRoute from './components/ProtectedRoute'
 
 import LandingPage from './pages/LandingPage'
@@ -29,6 +30,16 @@ import InspectionDetail from './pages/inspector/InspectionDetail'
 // Placeholder Layouts/Dashboards for new roles
 import SellerLayout from './layouts/SellerLayout'
 import SellerDashboard from './pages/seller/SellerDashboard'
+import Bids from './pages/seller/Bids'
+import BidDetail from './pages/seller/BidDetail'
+import Marketplace from './pages/seller/Marketplace'
+import MarketProductDetail from './pages/seller/MarketProductDetail'
+import MarketCart from './pages/seller/MarketCart'
+import MarketCheckout from './pages/seller/MarketCheckout'
+import Wishlist from './pages/seller/Wishlist'
+import Wallet from './pages/seller/Wallet'
+import Orders from './pages/seller/Orders'
+import OrderDetail from './pages/seller/OrderDetail'
 import VerifyCertificate from './pages/public/VerifyCertificate'
 
 const DummyDashboard = ({ name }) => (
@@ -42,9 +53,10 @@ function App() {
   return (
     <AuthProvider>
       <GlobalStateProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
+        <WoolKartProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
             
             {/* Unified Auth */}
             <Route path="/login" element={<Login />} />
@@ -77,6 +89,16 @@ function App() {
             {/* Seller Module */}
             <Route path="/seller" element={<ProtectedRoute allowedRoles={['SELLER']}><SellerLayout /></ProtectedRoute>}>
               <Route index element={<SellerDashboard />} />
+              <Route path="market" element={<Marketplace />} />
+              <Route path="product/:id" element={<MarketProductDetail />} />
+              <Route path="cart" element={<MarketCart />} />
+              <Route path="checkout" element={<MarketCheckout />} />
+              <Route path="wishlist" element={<Wishlist />} />
+              <Route path="bids" element={<Bids />} />
+              <Route path="bids/:id" element={<BidDetail />} />
+              <Route path="orders" element={<Orders />} />
+              <Route path="orders/:id" element={<OrderDetail />} />
+              <Route path="wallet" element={<Wallet />} />
             </Route>
 
             {/* Transport & Warehouse MVPs */}
@@ -86,12 +108,11 @@ function App() {
             {/* Public */}
             <Route path="/verify/:certificateId" element={<VerifyCertificate />} />
           </Routes>
-        </Router>
+          </Router>
+        </WoolKartProvider>
       </GlobalStateProvider>
     </AuthProvider>
   )
 }
 
 export default App
-
-

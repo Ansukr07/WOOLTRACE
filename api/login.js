@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
     // In a real app, hash password and check. For SIH prototype, basic check:
     const user = await User.findOne({
-      $or: [{ mobile: identifier }, { name: identifier }]
+      $or: [{ email: identifier }, { mobile: identifier }]
     });
 
     if (!user || user.password !== password) {
@@ -30,6 +30,7 @@ export default async function handler(req, res) {
       user: {
         id: user._id,
         name: user.name,
+        email: user.email,
         mobile: user.mobile,
         role: user.role,
         state: user.state

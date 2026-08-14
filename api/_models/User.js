@@ -5,22 +5,22 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  mobile: {
+  email: {
     type: String,
     required: true,
     unique: true,
   },
+  mobile: {
+    type: String,
+  },
   state: {
     type: String,
-    required: true,
   },
   numberOfSheep: {
     type: Number,
-    required: true,
   },
   woolProduction: {
     type: Number,
-    required: true,
   },
   password: {
     type: String,

@@ -9,34 +9,37 @@ export default async function handler(req, res) {
   try {
     await connectToDatabase();
 
-    const { name, mobile, state, numberOfSheep, woolProduction, password } = req.body;
+    const { name, email, mobile, state, numberOfSheep, woolProduction, password, role } = req.body;
 
-    if (!name || !mobile || !state || !password) {
+    if (!name || !email || !password) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ mobile });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(409).json({ message: 'User with this mobile number already exists' });
+      return res.status(409).json({ message: 'User with this email already exists' });
     }
 
     // Create new user (No password hashing for prototype simplicity)
     const newUser = await User.create({
       name,
-      mobile,
-      state,
+      email,
+      mobile: mobile || '',
+      state: state || '',
       numberOfSheep: numberOfSheep || 0,
       woolProduction: woolProduction || 0,
       password,
+      role: role || 'FARMER',
     });
 
     res.status(201).json({
-      message: 'Farmer account created successfully',
+      message: 'Account created successfully',
       user: {
         id: newUser._id,
         name: newUser.name,
-        mobile: newUser.mobile,
+        email: newUser.email,
+        role: newUser.role,
       }
     });
 

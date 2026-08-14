@@ -26,69 +26,58 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (identifier, password) => {
     setIsLoading(true);
-    // Simulate network delay
-    await new Promise(r => setTimeout(r, 600));
-    
-    // DEMO LOGIC: Detect role based on email or password for SIH demo
-    let role = 'FARMER';
-    let name = 'Demo Farmer';
-    let id = 'FARMER-01';
-    
-    const lowerIdentifier = identifier.toLowerCase();
-    
-    if (lowerIdentifier.includes('seller') || lowerIdentifier.includes('buyer')) {
-      role = 'SELLER';
-      name = 'Himalayan Wool Co.';
-      id = 'SELLER-01';
-    } else if (lowerIdentifier.includes('inspector') || lowerIdentifier.includes('qa')) {
-      role = 'QUALITY_INSPECTOR';
-      name = 'QA Officer Ramesh';
-      id = 'QA-01';
-    } else if (lowerIdentifier.includes('warehouse')) {
-      role = 'WAREHOUSE';
-      name = 'Central Storage Hub';
-      id = 'WH-01';
-    } else if (lowerIdentifier.includes('transport')) {
-      role = 'TRANSPORT';
-      name = 'Express Logistics';
-      id = 'TR-01';
-    } else if (lowerIdentifier.includes('processing')) {
-      role = 'PROCESSING';
-      name = 'ABC Textiles Mill';
-      id = 'PR-01';
-    } else if (lowerIdentifier.includes('educator')) {
-      role = 'EDUCATOR';
-      name = 'Dr. Sharma';
-      id = 'ED-01';
-    }
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ identifier, password }),
+      });
 
-    const userData = {
-      id,
-      name,
-      email: lowerIdentifier,
-      role,
-      verified: true,
-      location: 'Karnataka, India'
-    };
-    
-    setUser(userData);
-    setIsLoading(false);
-    return { success: true, user: userData };
+      const data = await response.json();
+
+      if (response.ok) {
+        setUser(data.user);
+        setIsLoading(false);
+        return { success: true, user: data.user };
+      } else {
+        setIsLoading(false);
+        return { success: false, message: data.message };
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setIsLoading(false);
+      return { success: false, message: 'An error occurred during login' };
+    }
   };
 
   const register = async (userData) => {
     setIsLoading(true);
-    await new Promise(r => setTimeout(r, 600));
-    
-    const newUser = {
-      ...userData,
-      id: `${userData.role}-${Math.floor(Math.random() * 1000)}`,
-      verified: false
-    };
-    
-    setUser(newUser);
-    setIsLoading(false);
-    return { success: true, user: newUser };
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setUser(data.user);
+        setIsLoading(false);
+        return { success: true, user: data.user };
+      } else {
+        setIsLoading(false);
+        return { success: false, message: data.message };
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      setIsLoading(false);
+      return { success: false, message: 'An error occurred during registration' };
+    }
   };
 
   const logout = () => {

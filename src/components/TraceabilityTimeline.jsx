@@ -1,10 +1,9 @@
 import React from 'react';
 import { Box, ShieldCheck, Store, Truck, Warehouse, CheckCircle } from 'lucide-react';
+import { useGlobalState } from '../context/GlobalStateContext';
 
 const TraceabilityTimeline = ({ batchId }) => {
-  // In a real app, this would fetch from GlobalStateContext using the batchId
-  // We'll mock the lookup logic inline for this component
-  const { batches, certificates, listings, orders, transportJobs, warehouseBookings } = require('../../context/GlobalStateContext').useGlobalState();
+  const { batches, certificates, listings, orders, transportJobs, warehouseBookings } = useGlobalState();
   
   const batch = batches.find(b => b.id === batchId);
   if (!batch) return null;

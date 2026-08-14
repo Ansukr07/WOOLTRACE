@@ -31,10 +31,10 @@ const SellerLayout = () => {
   const navItems = [
     { name: 'HOME', path: '/seller', icon: <Home size={20} /> },
     { name: 'MARKETPLACE', path: '/seller/market', icon: <Store size={20} /> },
-    { name: 'MY LISTINGS', path: '/seller/listings', icon: <List size={20} /> },
-    { name: 'INVENTORY', path: '/seller/inventory', icon: <Package size={20} /> },
-    { name: 'ORDERS', path: '/seller/orders', icon: <ShoppingCart size={20} /> },
     { name: 'BIDS', path: '/seller/bids', icon: <Gavel size={20} /> },
+    { name: 'ORDERS', path: '/seller/orders', icon: <ShoppingCart size={20} /> },
+    { name: 'CART', path: '/seller/cart', icon: <Package size={20} /> },
+    { name: 'WISHLIST', path: '/seller/wishlist', icon: <List size={20} /> },
     { name: 'WALLET', path: '/seller/wallet', icon: <Wallet size={20} /> },
     { name: 'PROFILE', path: '/seller/profile', icon: <User size={20} /> },
   ];
@@ -56,9 +56,16 @@ const SellerLayout = () => {
               to={item.path}
               end={item.path === '/seller'}
               className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+              style={{ position: 'relative' }}
             >
               {item.icon}
               <span>{item.name}</span>
+              {item.name === 'BIDS' && (
+                <span style={{
+                  position: 'absolute', right: '16px', background: '#DC2626', color: '#FFF', 
+                  fontSize: '10px', fontWeight: '800', padding: '2px 6px', borderRadius: '10px'
+                }}>4</span>
+              )}
             </NavLink>
           ))}
           

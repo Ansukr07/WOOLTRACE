@@ -54,8 +54,8 @@ export const WoolKartProvider = ({ children }) => {
         sellerName: product.sellerName,
         quantity: quantity,
         unitPrice: product.price,
-        unit: product.unit,
-        image: product.images[0],
+        unit: product.unit || 'kg',
+        image: product.images ? product.images[0] : null,
         subtotal: product.price * quantity
       }];
     });
