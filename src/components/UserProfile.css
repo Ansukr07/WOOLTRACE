@@ -154,3 +154,45 @@
   border-bottom-right-radius: 20px;
   bottom: 60px; right: -200px;
 }
+
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 0 24px;
+  }
+  .profile-subtitle {
+    font-size: 32px;
+  }
+  .profile-content {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+  .center-stage {
+    order: -1;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 24px;
+    gap: 16px;
+  }
+  .farmer-img {
+    margin-bottom: 24px;
+  }
+  .floating-card {
+    position: relative;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100%;
+    margin: 0;
+  }
+  .connection-lines {
+    display: none;
+  }
+  .text-block {
+    margin: 0 !important;
+    max-width: 100%;
+    width: 100%;
+  }
+}

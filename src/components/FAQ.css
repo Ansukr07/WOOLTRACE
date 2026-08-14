@@ -100,3 +100,15 @@
     gap: 40px;
   }
 }
+
+@media (max-width: 768px) {
+  .faq-wrapper {
+    padding: 60px 0;
+  }
+  .faq-container {
+    padding: 0 24px;
+  }
+  .faq-left h2 {
+    font-size: 32px;
+  }
+}

@@ -63,3 +63,59 @@ button {
 .delay-400 { animation-delay: 400ms; }
 .delay-500 { animation-delay: 500ms; }
 
+/* ── Global WoolTrace utility classes ─────────────────────────────── */
+.btn-primary {
+  background: #0B120D;
+  color: #DDFF86;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+.btn-primary:hover { background: #1A281E; }
+
+.btn-secondary {
+  background: #F8F8F3;
+  color: #0B120D;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+.btn-secondary:hover { background: #EDEDCE; }
+
+.panel {
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid #F0F0F0;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #666;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+
+.flex-1 { flex: 1; }

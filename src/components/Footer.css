@@ -214,4 +214,14 @@
     gap: 16px;
     text-align: center;
   }
+  .footer-wrapper {
+    padding-top: 60px;
+  }
+  .footer-container {
+    padding: 0 24px;
+  }
+  .footer-watermark {
+    font-size: 56px;
+    margin-bottom: 24px;
+  }
 }

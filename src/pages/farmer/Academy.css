@@ -1,0 +1,121 @@
+.academy-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.academy-hero {
+  background: linear-gradient(135deg, #0B120D 0%, #1A281E 100%);
+  color: #FFFFFF;
+  padding: 40px;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 600px;
+}
+
+.featured-tag {
+  background: #DDFF86;
+  color: #0B120D;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  display: inline-block;
+}
+
+.hero-content h2 {
+  font-size: 32px;
+  margin: 0 0 12px 0;
+}
+
+.hero-content p {
+  color: #E5E5E5;
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.mt-4 { margin-top: 16px; }
+.mt-2 { margin-top: 8px; }
+
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.course-card {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.course-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+}
+
+.course-thumbnail {
+  height: 160px;
+  background-color: #333;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.course-thumbnail .duration {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.8);
+  color: #FFF;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.course-info {
+  padding: 20px;
+}
+
+.course-category {
+  font-size: 12px;
+  font-weight: 700;
+  color: #16A34A;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.course-info h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.course-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+  font-weight: 600;
+}
+
+.align-center {
+  align-items: center;
+}

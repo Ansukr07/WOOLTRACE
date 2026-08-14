@@ -80,3 +80,16 @@
 .nav-item:not(.active):hover .nav-text-hover {
   transform: translate(-50%, -50%);
 }
+
+@media (max-width: 768px) {
+  .navbar {
+    width: 90%;
+    overflow-x: auto;
+    border-radius: 8px;
+    padding: 4px;
+  }
+  .nav-link {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+}
