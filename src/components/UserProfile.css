@@ -1,7 +1,22 @@
 .profile-wrapper {
   background-color: #FFFFFF;
   width: 100%;
-  padding: 100px 0;
+  padding: 120px 0 100px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-wrapper::before {
+  content: '';
+  position: absolute;
+  top: -430px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120vw;
+  height: 600px;
+  border-radius: 50%;
+  border-bottom: 1px solid rgba(11, 18, 13, 0.5);
+  z-index: 0;
 }
 
 .profile-container {
@@ -17,9 +32,14 @@
   position: relative;
   z-index: 1;
   margin-bottom: 80px;
+  margin-top: -10px; /* pull closer to the line */
 }
 
 .profile-subtitle {
+  background-color: #FFFFFF;
+  padding: 0 32px;
+  position: relative;
+  z-index: 2;
   color: #0B120D;
   font-size: 56px;
   letter-spacing: 0.02em; /* Adjusted for proper spacing */
@@ -98,8 +118,10 @@
   max-width: 320px;
   color: #3F4942;
   font-size: 16px;
-  line-height: 1.6;
-  font-weight: 400;
+  line-height: 1.7;
+  font-weight: 500;
+  letter-spacing: 0.015em;
+  word-spacing: 0.1em;
   
   /* Elegant glassmorphism with off-white base for visibility */
   background: rgba(248, 248, 243, 0.85);

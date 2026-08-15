@@ -14,9 +14,9 @@ function LandingPage() {
       <MainHero />
       <Hero />
       <UserProfile />
-      <Testimonials />
-      <FAQ />
-      <Footer />
+      <div id="reviews"><Testimonials /></div>
+      <div id="faq"><FAQ /></div>
+      <div id="contact"><Footer /></div>
     </>
   )
 }

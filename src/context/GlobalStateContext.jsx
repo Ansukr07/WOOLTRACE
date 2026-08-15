@@ -32,8 +32,8 @@ const INITIAL_LISTINGS = [
     title: 'Premium Merino Cross Wool',
     description: 'High quality fleece, freshly shorn.',
     quantity: 428,
-    minPrice: 380, // Reverse bidding minimum
-    price: 425, // Direct buy price
+    minPrice: 380,
+    price: 425,
     unit: 'kg',
     status: 'Active',
     createdAt: '2026-08-14T12:00:00Z',
@@ -42,6 +42,153 @@ const INITIAL_LISTINGS = [
     ]
   }
 ];
+
+// ── Processing Seed Data ──────────────────────────────────────────────────
+const INITIAL_PROCESSING_REQUESTS = [
+  {
+    id: 'PR-2026-00124',
+    batchId: 'WT-KA-2026-00124',
+    farmerId: 'FARMER-01',
+    farmerName: 'Rajesh Kumar',
+    processingUnitId: 'PU-01',
+    processingUnitName: 'WoolCraft Processing Centre',
+    requestedOperations: ['Sorting', 'Spinning'],
+    quantity: 428,
+    woolType: 'Medium Wool',
+    grade: 'A',
+    qualityScore: 87,
+    origin: 'Mysuru, Karnataka',
+    message: 'Please prioritise sorting first, then spinning to 2/32 count.',
+    priority: 'HIGH',
+    status: 'ACCEPTED',
+    createdAt: '2026-08-14T08:00:00Z',
+    updatedAt: '2026-08-14T09:00:00Z'
+  },
+  {
+    id: 'PR-2026-00087',
+    batchId: 'WT-RJ-2026-00087',
+    farmerId: 'FARMER-02',
+    farmerName: 'Mohan Singh',
+    processingUnitId: 'PU-01',
+    processingUnitName: 'WoolCraft Processing Centre',
+    requestedOperations: ['Washing', 'Carding', 'Dyeing'],
+    quantity: 620,
+    woolType: 'Fine Wool',
+    grade: 'B',
+    qualityScore: 76,
+    origin: 'Jodhpur, Rajasthan',
+    message: 'Natural dye preferred. Earthy tones.',
+    priority: 'NORMAL',
+    status: 'REQUESTED',
+    createdAt: '2026-08-15T06:30:00Z',
+    updatedAt: '2026-08-15T06:30:00Z'
+  },
+  {
+    id: 'PR-2026-00061',
+    batchId: 'WT-HP-2026-00061',
+    farmerId: 'FARMER-03',
+    farmerName: 'Priya Devi',
+    processingUnitId: 'PU-01',
+    processingUnitName: 'WoolCraft Processing Centre',
+    requestedOperations: ['Sorting', 'Washing', 'Carding'],
+    quantity: 310,
+    woolType: 'Coarse Wool',
+    grade: 'C',
+    qualityScore: 68,
+    origin: 'Kullu, Himachal Pradesh',
+    message: 'Coarse batch for carpet-grade output.',
+    priority: 'LOW',
+    status: 'COMPLETED',
+    createdAt: '2026-08-10T10:00:00Z',
+    updatedAt: '2026-08-13T15:30:00Z'
+  }
+];
+
+const INITIAL_PROCESSING_RECORDS = [
+  {
+    id: 'REC-2026-00001',
+    batchId: 'WT-KA-2026-00124',
+    processingRequestId: 'PR-2026-00124',
+    processingUnitId: 'PU-01',
+    operatorName: 'WoolCraft Processing Centre',
+    operation: 'Sorting',
+    inputQuantity: 428,
+    outputQuantity: 410,
+    wasteQuantity: 18,
+    outputBatchId: 'WT-KA-2026-00124-P01',
+    status: 'COMPLETED',
+    startTime: '2026-08-14T09:30:00Z',
+    completionTime: '2026-08-14T11:00:00Z',
+    equipment: 'Industrial Wool Sorter MT-200',
+    notes: 'Standard sorting complete. 18 KG rejected (vegetable matter, felted clumps).',
+    operationData: {
+      sortedQuantity: 410,
+      rejectedQuantity: 18,
+      fineWoolQty: 120,
+      mediumWoolQty: 290,
+      coarseWoolQty: 0
+    },
+    createdAt: '2026-08-14T09:30:00Z'
+  },
+  {
+    id: 'REC-2026-00002',
+    batchId: 'WT-HP-2026-00061',
+    processingRequestId: 'PR-2026-00061',
+    processingUnitId: 'PU-01',
+    operatorName: 'WoolCraft Processing Centre',
+    operation: 'Sorting',
+    inputQuantity: 310,
+    outputQuantity: 298,
+    wasteQuantity: 12,
+    outputBatchId: 'WT-HP-2026-00061-P01',
+    status: 'COMPLETED',
+    startTime: '2026-08-10T10:30:00Z',
+    completionTime: '2026-08-10T12:00:00Z',
+    equipment: 'Industrial Wool Sorter MT-200',
+    notes: 'Sorted for carpet-grade processing.',
+    operationData: {},
+    createdAt: '2026-08-10T10:30:00Z'
+  },
+  {
+    id: 'REC-2026-00003',
+    batchId: 'WT-HP-2026-00061',
+    processingRequestId: 'PR-2026-00061',
+    processingUnitId: 'PU-01',
+    operatorName: 'WoolCraft Processing Centre',
+    operation: 'Washing',
+    inputQuantity: 298,
+    outputQuantity: 276,
+    wasteQuantity: 22,
+    outputBatchId: 'WT-HP-2026-00061-P02',
+    status: 'COMPLETED',
+    startTime: '2026-08-11T09:00:00Z',
+    completionTime: '2026-08-11T14:00:00Z',
+    equipment: 'Industrial Scouring Bowl',
+    notes: 'Water-based scouring. Grease removed.',
+    operationData: { cleaningMethod: 'Aqueous Scouring', moistureAfter: '12%' },
+    createdAt: '2026-08-11T09:00:00Z'
+  },
+  {
+    id: 'REC-2026-00004',
+    batchId: 'WT-HP-2026-00061',
+    processingRequestId: 'PR-2026-00061',
+    processingUnitId: 'PU-01',
+    operatorName: 'WoolCraft Processing Centre',
+    operation: 'Carding',
+    inputQuantity: 276,
+    outputQuantity: 268,
+    wasteQuantity: 8,
+    outputBatchId: 'WT-HP-2026-00061-P03',
+    status: 'COMPLETED',
+    startTime: '2026-08-13T10:00:00Z',
+    completionTime: '2026-08-13T15:30:00Z',
+    equipment: 'Flatbed Carding Machine FC-55',
+    notes: 'Carding complete. Uniform fibre alignment achieved.',
+    operationData: {},
+    createdAt: '2026-08-13T10:00:00Z'
+  }
+];
+// ──────────────────────────────────────────────────────────────────────────
 
 export const GlobalStateProvider = ({ children }) => {
   const [batches, setBatches] = useState(() => {
@@ -96,6 +243,18 @@ export const GlobalStateProvider = ({ children }) => {
     ];
   });
 
+  // ── Processing State ────────────────────────────────────────────────────
+  const [processingRequests, setProcessingRequests] = useState(() => {
+    const stored = localStorage.getItem('wt_processing_requests');
+    return stored ? JSON.parse(stored) : INITIAL_PROCESSING_REQUESTS;
+  });
+
+  const [processingRecords, setProcessingRecords] = useState(() => {
+    const stored = localStorage.getItem('wt_processing_records');
+    return stored ? JSON.parse(stored) : INITIAL_PROCESSING_RECORDS;
+  });
+  // ────────────────────────────────────────────────────────────────────────
+
   // Sync to local storage
   useEffect(() => localStorage.setItem('wt_batches', JSON.stringify(batches)), [batches]);
   useEffect(() => localStorage.setItem('wt_certificates', JSON.stringify(certificates)), [certificates]);
@@ -106,6 +265,8 @@ export const GlobalStateProvider = ({ children }) => {
   useEffect(() => localStorage.setItem('wt_transactions', JSON.stringify(transactions)), [transactions]);
   useEffect(() => localStorage.setItem('wt_withdrawals', JSON.stringify(withdrawals)), [withdrawals]);
   useEffect(() => localStorage.setItem('wt_payment_methods', JSON.stringify(paymentMethods)), [paymentMethods]);
+  useEffect(() => localStorage.setItem('wt_processing_requests', JSON.stringify(processingRequests)), [processingRequests]);
+  useEffect(() => localStorage.setItem('wt_processing_records', JSON.stringify(processingRecords)), [processingRecords]);
 
   // Unified actions
   const addBatch = (batch) => setBatches(prev => [batch, ...prev]);
@@ -139,6 +300,16 @@ export const GlobalStateProvider = ({ children }) => {
   const addPaymentMethod = (pm) => setPaymentMethods(prev => [pm, ...prev]);
   const removePaymentMethod = (id) => setPaymentMethods(prev => prev.filter(pm => pm.id !== id));
 
+  // ── Processing Actions ──────────────────────────────────────────────────
+  const addProcessingRequest = (request) => setProcessingRequests(prev => [request, ...prev]);
+  const updateProcessingRequest = (id, updates) =>
+    setProcessingRequests(prev => prev.map(r => r.id === id ? { ...r, ...updates, updatedAt: new Date().toISOString() } : r));
+
+  const addProcessingRecord = (record) => setProcessingRecords(prev => [record, ...prev]);
+  const updateProcessingRecord = (id, updates) =>
+    setProcessingRecords(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+  // ────────────────────────────────────────────────────────────────────────
+
   return (
     <GlobalStateContext.Provider value={{
       batches, addBatch, updateBatch,
@@ -149,7 +320,10 @@ export const GlobalStateProvider = ({ children }) => {
       warehouseBookings, bookWarehouse, updateWarehouse,
       transactions, addTransaction,
       withdrawals, addWithdrawal,
-      paymentMethods, addPaymentMethod, removePaymentMethod
+      paymentMethods, addPaymentMethod, removePaymentMethod,
+      // Processing
+      processingRequests, addProcessingRequest, updateProcessingRequest,
+      processingRecords, addProcessingRecord, updateProcessingRecord,
     }}>
       {children}
     </GlobalStateContext.Provider>

@@ -1,3 +1,4 @@
+import { useGlobalState } from '../../context/GlobalStateContext';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ShieldCheck, Warehouse, Truck, Scissors, Star, MapPin,
@@ -161,6 +162,7 @@ const CATEGORIES = [
 
 
 export default function Services() {
+  const { addProcessingRequest } = useGlobalState() || {};
   const [userLocation, setUserLocation] = useState(null);
   const [locationLabel, setLocationLabel] = useState('');
   const [locating, setLocating] = useState(false);
@@ -251,6 +253,32 @@ export default function Services() {
       { id: Date.now(), formData, provider, status: 'Pending', dateCreated: new Date().toISOString() },
       ...prev,
     ]);
+
+    if (provider && (provider.category === 'PROCESSING' || provider.category === 'SORTING')) {
+      const newProcReq = {
+        id: `PR-2026-${String(Date.now()).slice(-5)}`,
+        batchId: formData.batch || 'WT-KA-2026-00124',
+        farmerId: 'FARMER-01',
+        farmerName: formData.name || 'Rajesh Kumar',
+        processingUnitId: 'PU-01',
+        processingUnitName: provider.name || 'WoolCraft Processing Centre',
+        requestedOperations: ['Sorting', 'Washing', 'Spinning'],
+        quantity: 428,
+        woolType: 'Medium Wool',
+        grade: 'Grade A',
+        qualityScore: 87,
+        origin: 'Mysuru, Karnataka',
+        message: formData.message || 'Processing service request from Farmer map.',
+        priority: 'NORMAL',
+        status: 'REQUESTED',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      if (addProcessingRequest) {
+        addProcessingRequest(newProcReq);
+      }
+    }
+
     setIsRequestModalOpen(false);
     setSelectedProvider(null);
     setShowMyRequests(true);

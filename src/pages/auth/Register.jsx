@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, Box, Store, ShieldCheck, Warehouse, Truck, Combine, BookOpen } from 'lucide-react';
+import { ArrowRight, Box, Store, ShieldCheck, Warehouse, Truck, Combine, BookOpen, AlertCircle, CheckCircle, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './Login.css';
 
@@ -10,7 +10,7 @@ const ROLES = [
   { id: 'QUALITY_INSPECTOR', label: 'QUALITY INSPECTOR', desc: 'Inspect and certify wool', icon: <ShieldCheck size={24} /> },
   { id: 'WAREHOUSE', label: 'WAREHOUSE PARTNER', desc: 'Store and manage wool', icon: <Warehouse size={24} /> },
   { id: 'TRANSPORT', label: 'TRANSPORT PARTNER', desc: 'Transport wool batches', icon: <Truck size={24} /> },
-  { id: 'PROCESSING', label: 'PROCESSING PARTNER', desc: 'Process wool', icon: <Combine size={24} /> },
+  { id: 'PROCESSING_UNIT', label: 'PROCESSING PARTNER', desc: 'Process wool', icon: <Combine size={24} /> },
   { id: 'EDUCATOR', label: 'EDUCATOR', desc: 'Provide training resources', icon: <BookOpen size={24} /> }
 ];
 
@@ -19,30 +19,98 @@ const Register = () => {
   const { register, isLoading } = useAuth();
   const [step, setStep] = useState(1);
   const [selectedRole, setSelectedRole] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: ''
+    password: '',
+    preferredLanguage: 'en'
   });
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    if (!selectedRole) {
+      setErrorMessage('Please select a role before registering.');
+      setStep(1);
+      return;
+    }
+
     const result = await register({ ...formData, role: selectedRole });
+    
     if (result.success) {
-      alert('Registration successful! Please sign in.');
-      navigate('/login');
+      setSuccessMessage('Account created successfully! Redirecting to your dashboard...');
+      setTimeout(() => {
+        if (selectedRole === 'PROCESSING_UNIT') navigate('/processing');
+        else if (selectedRole === 'FARMER') navigate('/farmer');
+        else if (selectedRole === 'SELLER') navigate('/seller');
+        else if (selectedRole === 'QUALITY_INSPECTOR') navigate('/inspector');
+        else if (selectedRole === 'WAREHOUSE') navigate('/warehouse');
+        else if (selectedRole === 'TRANSPORT') navigate('/transport');
+        else navigate('/login');
+      }, 1000);
+    } else {
+      setErrorMessage(result.message || 'Registration failed. Please check your information.');
     }
   };
 
   return (
     <div className="login-page">
+      {/* Top Left Home Back Button */}
+      <Link to="/" className="top-left-brand-link">
+        <ArrowLeft size={16} />
+        <span>WOOL<span className="logo-badge">TRACE</span> Home</span>
+      </Link>
+
       <div className="login-container" style={{maxWidth: '600px'}}>
         <div className="login-header">
-          <div className="logo">WOOL<span>TRACE</span></div>
+          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <div className="logo">WOOL<span>TRACE</span></div>
+          </Link>
           <h2>Create Account</h2>
           <p>Join the WoolTrace ecosystem.</p>
         </div>
+
+        {errorMessage && (
+          <div style={{
+            backgroundColor: '#FEE2E2',
+            color: '#991B1B',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: '600',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <AlertCircle size={18} style={{ flexShrink: 0 }} />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        {successMessage && (
+          <div style={{
+            backgroundColor: '#DCFCE7',
+            color: '#166534',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: '600',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <CheckCircle size={18} style={{ flexShrink: 0 }} />
+            <span>{successMessage}</span>
+          </div>
+        )}
 
         {step === 1 ? (
           <div>
@@ -112,13 +180,62 @@ const Register = () => {
               />
             </div>
             <div className="form-group">
+              <label>Preferred Language</label>
+              <select
+                required
+                value={formData.preferredLanguage}
+                onChange={e => setFormData({...formData, preferredLanguage: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '1px solid #E5E5E5',
+                  backgroundColor: '#FFFFFF',
+                  fontSize: '15px',
+                  color: '#0B120D',
+                  outline: 'none'
+                }}
+              >
+                <option value="en">English</option>
+                <option value="hi">Hindi (हिंदी)</option>
+                <option value="kn">Kannada (ಕನ್ನಡ)</option>
+                <option value="te">Telugu (తెలుగు)</option>
+                <option value="mr">Marathi (मराठी)</option>
+                <option value="ta">Tamil (தமிழ்)</option>
+              </select>
+            </div>
+            <div className="form-group">
               <label>Password</label>
-              <input 
-                type="password" 
-                required 
-                value={formData.password}
-                onChange={e => setFormData({...formData, password: e.target.value})}
-              />
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type={showPassword ? 'text' : 'password'} 
+                  required 
+                  value={formData.password}
+                  onChange={e => setFormData({...formData, password: e.target.value})}
+                  style={{ paddingRight: '44px' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#666',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '4px'
+                  }}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             <button type="submit" className="btn-primary" disabled={isLoading}>
