@@ -551,6 +551,7 @@ const INITIAL_RELEASES = [
 const INITIAL_PROCESSING_REQUESTS = [
   {
     id: 'PR-2026-00124',
+    requestId: 'PR-2026-00124',
     batchId: 'WT-KA-2026-00124',
     farmerId: 'FARMER-01',
     farmerName: 'Rajesh Gowda',
@@ -561,12 +562,252 @@ const INITIAL_PROCESSING_REQUESTS = [
     woolType: 'Merino Cross Fleece',
     grade: 'A',
     qualityScore: 87,
-    origin: 'Mysuru, Karnataka',
-    message: 'Please prioritise sorting first, then spinning.',
+    origin: 'Mysuru Warehouse',
+    destination: 'WoolCraft Processing Centre',
     priority: 'HIGH',
-    status: 'ACCEPTED',
+    status: 'IN_TRANSIT',
+    transportStatus: 'In Transit',
+    transportPartner: 'Rapid Farm Logistics',
+    eta: '42 min',
+    distanceKm: 48.2,
+    lat: 12.3050,
+    lng: 76.6500,
+    dispatchedAt: '2026-08-15T18:42:00Z',
     createdAt: '2026-08-14T08:00:00Z',
-    updatedAt: '2026-08-14T09:00:00Z'
+    updatedAt: '2026-08-15T18:42:00Z'
+  },
+  {
+    id: 'PR-2026-00131',
+    requestId: 'PR-2026-00131',
+    batchId: 'WT-KA-2026-00131',
+    farmerId: 'FARMER-04',
+    farmerName: 'Kavitha Reddy',
+    processingUnitId: 'PU-01',
+    processingUnitName: 'WoolCraft Processing Centre',
+    requestedOperations: ['Washing', 'Carding'],
+    quantity: 620,
+    woolType: 'Deccani Fine Wool',
+    grade: 'A',
+    qualityScore: 89,
+    origin: 'Mandya Warehouse',
+    destination: 'WoolCraft Processing Centre',
+    priority: 'HIGH',
+    status: 'DISPATCHED',
+    transportStatus: 'Dispatched from Warehouse',
+    eta: '1h 20m',
+    distanceKm: 64.5,
+    lat: 12.5220,
+    lng: 76.8980,
+    dispatchedAt: '2026-08-15T17:30:00Z',
+    createdAt: '2026-08-15T09:00:00Z',
+    updatedAt: '2026-08-15T17:30:00Z'
+  },
+  {
+    id: 'PR-2026-00142',
+    requestId: 'PR-2026-00142',
+    batchId: 'WT-KA-2026-00142',
+    farmerId: 'FARMER-07',
+    farmerName: 'Anil Kumar',
+    processingUnitId: 'PU-01',
+    processingUnitName: 'WoolCraft Processing Centre',
+    requestedOperations: ['Spinning'],
+    quantity: 550,
+    woolType: 'Nali Wool Grade B',
+    grade: 'B',
+    qualityScore: 78,
+    origin: 'Hassan Wool Depot',
+    destination: 'WoolCraft Processing Centre',
+    priority: 'NORMAL',
+    status: 'READY_FOR_PICKUP',
+    transportStatus: 'Awaiting Pickup',
+    eta: '2h 10m',
+    distanceKm: 112.0,
+    lat: 13.0069,
+    lng: 76.1017,
+    createdAt: '2026-08-15T11:20:00Z',
+    updatedAt: '2026-08-15T11:20:00Z'
+  },
+  {
+    id: 'PR-2026-00118',
+    requestId: 'PR-2026-00118',
+    batchId: 'WT-KA-2026-00118',
+    farmerId: 'FARMER-02',
+    farmerName: 'Suresh Patil',
+    processingUnitId: 'PU-01',
+    processingUnitName: 'WoolCraft Processing Centre',
+    requestedOperations: ['Spinning'],
+    operation: 'Spinning',
+    operatorName: 'Ravi Kumar',
+    equipment: 'Spinning Frame #03',
+    quantity: 410,
+    woolType: 'Carded Wool S-02',
+    grade: 'A',
+    qualityScore: 91,
+    origin: 'WoolCraft Processing Centre',
+    priority: 'NORMAL',
+    status: 'PROCESSING',
+    progressPct: 74,
+    startedAt: '2026-08-15T14:20:00Z',
+    expectedCompletion: '2026-08-15T20:30:00Z',
+    lat: 12.2958,
+    lng: 76.6394,
+    createdAt: '2026-08-13T10:00:00Z',
+    updatedAt: '2026-08-15T14:20:00Z'
+  },
+  {
+    id: 'PR-2026-00121',
+    requestId: 'PR-2026-00121',
+    batchId: 'WT-KA-2026-00121',
+    farmerId: 'FARMER-03',
+    farmerName: 'Lakshmi Devi',
+    processingUnitId: 'PU-01',
+    processingUnitName: 'WoolCraft Processing Centre',
+    requestedOperations: ['Carding'],
+    operation: 'Carding',
+    operatorName: 'Priya Sharma',
+    equipment: 'Carder Machine C-02',
+    quantity: 280,
+    woolType: 'Washed Raw Fleece',
+    grade: 'A',
+    qualityScore: 88,
+    origin: 'WoolCraft Processing Centre',
+    priority: 'URGENT',
+    status: 'PROCESSING',
+    progressPct: 52,
+    startedAt: '2026-08-15T11:00:00Z',
+    expectedCompletion: '2026-08-15T14:30:00Z',
+    delayed: true,
+    delayReason: 'Machine calibration adjustment',
+    lat: 12.2958,
+    lng: 76.6394,
+    createdAt: '2026-08-13T14:00:00Z',
+    updatedAt: '2026-08-15T11:00:00Z'
+  },
+  {
+    id: 'PR-2026-00115',
+    requestId: 'PR-2026-00115',
+    batchId: 'WT-KA-2026-00115',
+    farmerId: 'FARMER-05',
+    farmerName: 'Mahesh Swamy',
+    processingUnitId: 'PU-01',
+    processingUnitName: 'WoolCraft Processing Centre',
+    requestedOperations: ['Washing', 'Spinning'],
+    quantity: 500,
+    woolType: 'Greasy Raw Wool',
+    grade: 'B',
+    qualityScore: 81,
+    origin: 'Mysuru Warehouse',
+    priority: 'NORMAL',
+    status: 'RECEIVED',
+    lat: 12.2958,
+    lng: 76.6394,
+    createdAt: '2026-08-12T09:00:00Z',
+    updatedAt: '2026-08-15T10:15:00Z'
+  },
+  {
+    id: 'PR-2026-00110',
+    requestId: 'PR-2026-00110',
+    batchId: 'WT-KA-2026-00110-P02',
+    parentBatchId: 'WT-KA-2026-00110',
+    farmerId: 'FARMER-01',
+    farmerName: 'Rajesh Gowda',
+    processingUnitId: 'PU-01',
+    processingUnitName: 'WoolCraft Processing Centre',
+    requestedOperations: ['Spinning', 'Dyeing'],
+    quantity: 365,
+    woolType: 'Dyed Fine Yarn 30s',
+    grade: 'A',
+    qualityScore: 94,
+    origin: 'WoolCraft Processing Centre',
+    destination: 'Bengaluru Textile Unit',
+    destinationLat: 12.9716,
+    destinationLng: 77.5946,
+    distanceKm: 142.5,
+    status: 'READY_TO_SHIP',
+    completedAt: '2026-08-15T16:40:00Z',
+    lat: 12.2958,
+    lng: 76.6394,
+    createdAt: '2026-08-11T08:00:00Z',
+    updatedAt: '2026-08-15T16:40:00Z'
+  },
+  {
+    id: 'PR-2026-00112',
+    requestId: 'PR-2026-00112',
+    batchId: 'WT-KA-2026-00112-P01',
+    parentBatchId: 'WT-KA-2026-00112',
+    farmerId: 'FARMER-06',
+    farmerName: 'Ramesh Naik',
+    processingUnitId: 'PU-01',
+    processingUnitName: 'WoolCraft Processing Centre',
+    requestedOperations: ['Washing', 'Carding'],
+    quantity: 420,
+    woolType: 'Carded Fine Silver Wool',
+    grade: 'A',
+    qualityScore: 90,
+    origin: 'WoolCraft Processing Centre',
+    destination: 'Mysuru Weaving Guild',
+    destinationLat: 12.3100,
+    destinationLng: 76.6600,
+    distanceKm: 8.4,
+    status: 'READY_TO_SHIP',
+    completedAt: '2026-08-15T14:10:00Z',
+    lat: 12.2958,
+    lng: 76.6394,
+    createdAt: '2026-08-11T11:00:00Z',
+    updatedAt: '2026-08-15T14:10:00Z'
+  },
+  {
+    id: 'PR-2026-00105',
+    requestId: 'PR-2026-00105',
+    batchId: 'WT-KA-2026-00105-P01',
+    parentBatchId: 'WT-KA-2026-00105',
+    farmerId: 'FARMER-02',
+    farmerName: 'Suresh Patil',
+    processingUnitId: 'PU-01',
+    processingUnitName: 'WoolCraft Processing Centre',
+    requestedOperations: ['Spinning'],
+    quantity: 450,
+    woolType: 'Industrial Weaving Yarn',
+    grade: 'A',
+    qualityScore: 89,
+    origin: 'WoolCraft Processing Centre',
+    destination: 'Coimbatore Textile Park',
+    destinationLat: 11.0168,
+    destinationLng: 76.9558,
+    status: 'DISPATCHED',
+    transportStatus: 'In Transit',
+    transportPartner: 'Rapid Express Logistics',
+    liveGps: true,
+    currentLocation: 'Tumakuru Highway (KM 84)',
+    lat: 13.3400,
+    lng: 77.1000,
+    dispatchedAt: '2026-08-15T18:30:00Z',
+    expectedDelivery: '2026-08-15T22:15:00Z',
+    createdAt: '2026-08-10T14:00:00Z',
+    updatedAt: '2026-08-15T18:30:00Z'
+  },
+  {
+    id: 'PR-2026-00098',
+    requestId: 'PR-2026-00098',
+    batchId: 'WT-KA-2026-00098-P02',
+    parentBatchId: 'WT-KA-2026-00098',
+    farmerId: 'FARMER-04',
+    farmerName: 'Kavitha Reddy',
+    processingUnitId: 'PU-01',
+    processingUnitName: 'WoolCraft Processing Centre',
+    requestedOperations: ['Dyeing'],
+    quantity: 380,
+    woolType: 'Dyed Organic Wool Yarn',
+    grade: 'A',
+    qualityScore: 95,
+    origin: 'WoolCraft Processing Centre',
+    destination: 'Bengaluru Apparel Ltd',
+    status: 'DELIVERED',
+    deliveredAt: '2026-08-15T16:14:00Z',
+    lat: 12.9716,
+    lng: 77.5946,
+    createdAt: '2026-08-09T09:00:00Z',
+    updatedAt: '2026-08-15T16:14:00Z'
   }
 ];
 
@@ -988,6 +1229,191 @@ export const GlobalStateProvider = ({ children }) => {
   const updateProcessingRecord = (id, updates) =>
     setProcessingRecords(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
 
+  
+  // -- Processing Unit Profile & Facility State -----------------------------
+  const [processingFacility, setProcessingFacility] = useState({
+    id: 'PU-01',
+    name: 'WoolCraft Processing Centre',
+    address: 'Mysuru Industrial Zone, Mysuru, Karnataka',
+    lat: 12.2958,
+    lng: 76.6394,
+    verified: true,
+    status: 'ACCEPTING_BATCHES',
+    totalCapacityKg: 5000,
+    currentWorkloadKg: 3420,
+    operatingHours: '08:00 - 20:00 IST',
+    activeOperators: 8,
+    activeEquipment: 12,
+    operations: ['Sorting', 'Washing', 'Carding', 'Spinning', 'Dyeing']
+  });
+
+  const receiveProcessingBatch = (batchId, receivedQty, discrepancyReason = '') => {
+    setProcessingRequests(prev => prev.map(r => {
+      if (r.batchId === batchId || r.id === batchId) {
+        const expected = r.quantity || receivedQty;
+        return {
+          ...r,
+          status: 'RECEIVED',
+          receivedQuantity: receivedQty,
+          expectedQuantity: expected,
+          discrepancyReason,
+          receivedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return r;
+    }));
+
+    addTraceEvent(batchId, {
+      stage: 'PROCESSING',
+      title: 'RECEIVED AT PROCESSING UNIT',
+      location: 'WoolCraft Processing Centre, Mysuru',
+      status: 'Received',
+      actor: 'Factory Receiver (Processing Unit Admin)',
+      description: `Received ${receivedQty} KG at facility.${discrepancyReason ? ' Quantity Discrepancy logged: ' + discrepancyReason : ''}`
+    });
+  };
+
+  const startProcessingOperation = (batchId, operation, operatorName, equipment, notes = '') => {
+    const recordId = 'REC-2026-' + String(Math.floor(10000 + Math.random() * 90000));
+    
+    setProcessingRequests(prev => prev.map(r => {
+      if (r.batchId === batchId || r.id === batchId) {
+        return {
+          ...r,
+          status: 'PROCESSING',
+          operation,
+          operatorName,
+          equipment,
+          progressPct: 15,
+          startedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return r;
+    }));
+
+    const newRecord = {
+      id: recordId,
+      recordId,
+      batchId,
+      processingUnitId: 'PU-01',
+      operatorName: operatorName || 'Factory Operator',
+      operation,
+      inputQuantity: 400,
+      status: 'IN_PROGRESS',
+      startTime: new Date().toISOString(),
+      equipment: equipment || 'Machine #01',
+      notes
+    };
+
+    setProcessingRecords(prev => [newRecord, ...prev]);
+
+    addTraceEvent(batchId, {
+      stage: 'PROCESSING',
+      title: `OPERATION STARTED: ${operation.toUpperCase()}`,
+      location: 'WoolCraft Processing Centre, Mysuru',
+      status: 'In Progress',
+      actor: `${operatorName} (Processing Unit)`,
+      description: `Operation ${operation} initiated using ${equipment}. ${notes}`
+    });
+  };
+
+  const completeProcessingOperation = (batchId, outputQty, wasteQty = 0, outputBatchId = '', notes = '') => {
+    const childId = outputBatchId || `${batchId}-P01`;
+
+    setProcessingRequests(prev => prev.map(r => {
+      if (r.batchId === batchId || r.id === batchId) {
+        return {
+          ...r,
+          status: 'COMPLETED',
+          completedAt: new Date().toISOString(),
+          outputQuantity: outputQty,
+          wasteQuantity: wasteQty,
+          outputBatchId: childId,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return r;
+    }));
+
+    setProcessingRecords(prev => prev.map(rec => {
+      if (rec.batchId === batchId && rec.status === 'IN_PROGRESS') {
+        return {
+          ...rec,
+          status: 'COMPLETED',
+          outputQuantity: outputQty,
+          wasteQuantity: wasteQty,
+          outputBatchId: childId,
+          completionTime: new Date().toISOString(),
+          notes
+        };
+      }
+      return rec;
+    }));
+
+    addTraceEvent(batchId, {
+      stage: 'PROCESSING',
+      title: 'PROCESSING COMPLETED',
+      location: 'WoolCraft Processing Centre, Mysuru',
+      status: 'Completed',
+      actor: 'Factory Supervisor',
+      description: `Processing completed. Output: ${outputQty} KG, Waste: ${wasteQty} KG. Created child output batch ${childId}.`
+    });
+  };
+
+  const markProcessingReadyToShip = (batchId) => {
+    setProcessingRequests(prev => prev.map(r => {
+      if (r.batchId === batchId || r.id === batchId) {
+        return {
+          ...r,
+          status: 'READY_TO_SHIP',
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return r;
+    }));
+
+    addTraceEvent(batchId, {
+      stage: 'PROCESSING',
+      title: 'READY TO SHIP',
+      location: 'WoolCraft Processing Centre, Mysuru',
+      status: 'Ready',
+      actor: 'Processing Unit Admin',
+      description: `Batch verified and packed. Available in Outbound Dispatch Queue.`
+    });
+  };
+
+  const dispatchProcessingBatch = (batchId, destination = 'Bengaluru Textile Unit', transportPartner = 'Rapid Farm Logistics', notes = '') => {
+    setProcessingRequests(prev => prev.map(r => {
+      if (r.batchId === batchId || r.id === batchId) {
+        return {
+          ...r,
+          status: 'DISPATCHED',
+          transportStatus: 'Dispatched to Next Stage',
+          destination,
+          transportPartner,
+          dispatchedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return r;
+    }));
+
+    addTraceEvent(batchId, {
+      stage: 'TRANSPORT',
+      title: 'OUTBOUND DISPATCHED',
+      location: 'WoolCraft Processing Centre, Mysuru',
+      status: 'Dispatched',
+      actor: 'Processing Unit Admin',
+      description: `Dispatched to ${destination} via ${transportPartner}. ${notes}`
+    });
+  };
+
+  const updateFacilityStatus = (newStatus) => {
+    setProcessingFacility(prev => ({ ...prev, status: newStatus }));
+  };
+
   return (
     <GlobalStateContext.Provider value={{
       batches, addBatch, updateBatch, addTraceEvent,
@@ -1005,8 +1431,11 @@ export const GlobalStateProvider = ({ children }) => {
       paymentMethods, addPaymentMethod: (p) => setPaymentMethods(prev => [...prev, p]),
       removePaymentMethod: (id) => setPaymentMethods(prev => prev.filter(pm => pm.id !== id)),
       // Processing
+      processingFacility, updateFacilityStatus,
       processingRequests, addProcessingRequest, updateProcessingRequest,
-      processingRecords, addProcessingRecord, updateProcessingRecord
+      processingRecords, addProcessingRecord, updateProcessingRecord,
+      receiveProcessingBatch, startProcessingOperation, completeProcessingOperation,
+      markProcessingReadyToShip, dispatchProcessingBatch
     }}>
       {children}
     </GlobalStateContext.Provider>

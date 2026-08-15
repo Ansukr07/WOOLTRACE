@@ -1,10 +1,12 @@
-import React, { Suspense } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
-import { GlobalStateProvider } from './context/GlobalStateContext'
-import { WoolKartProvider } from './context/WoolKartContext'
-import ProtectedRoute from './components/ProtectedRoute'
+import React, { Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { GlobalStateProvider } from './context/GlobalStateContext';
+import { WoolKartProvider } from './context/WoolKartContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import WoolCloudLoader from './components/WoolCloudLoader';
 
+// Lazy-loaded pages & modules
 const LandingPage = React.lazy(() => import('./pages/LandingPage'));
 const Login = React.lazy(() => import('./pages/auth/Login'));
 const Register = React.lazy(() => import('./pages/auth/Register'));
@@ -71,21 +73,13 @@ const DummyDashboard = ({ name }) => (
   </div>
 );
 
-const FallbackLoader = () => (
-  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: 16 }}>
-    <div style={{ width: 40, height: 40, border: '4px solid #F0F0F0', borderTop: '4px solid #0B120D', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-    <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-    <p style={{ color: '#666', fontWeight: 600, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Loading WoolTrace...</p>
-  </div>
-);
-
 function App() {
   return (
     <AuthProvider>
       <GlobalStateProvider>
         <WoolKartProvider>
           <Router>
-            <Suspense fallback={<FallbackLoader />}>
+            <Suspense fallback={<WoolCloudLoader text="Initializing WoolTrace Ecosystem..." fullScreen={true} />}>
               <Routes>
                 <Route path="/" element={<LandingPage />} />
               

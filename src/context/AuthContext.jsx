@@ -1,44 +1,51 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import WoolCloudLoader from '../components/WoolCloudLoader';
 
 const AuthContext = createContext();
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
-// Pre-configured Demo Accounts for instant, frictionless evaluation
+// Demo Users Mapping
 const DEMO_USERS = {
   'farmer@wooltrace.com': {
     id: 'FARMER-01',
     name: 'Rajesh Gowda',
     email: 'farmer@wooltrace.com',
-    mobile: '9876543210',
+    mobile: '9845012345',
     role: 'FARMER',
-    state: 'Karnataka',
-    preferredLanguage: 'en'
-  },
-  'warehouse@wooltrace.com': {
-    id: 'WH-USER-01',
-    name: 'K. Somanna',
-    email: 'warehouse@wooltrace.com',
-    mobile: '9822334455',
-    role: 'WAREHOUSE',
     state: 'Karnataka',
     preferredLanguage: 'en'
   },
   'seller@wooltrace.com': {
     id: 'SELLER-01',
-    name: 'Himalayan Wool Co.',
+    name: 'Anand Kumar',
     email: 'seller@wooltrace.com',
-    mobile: '9811223344',
+    mobile: '9845098765',
     role: 'SELLER',
-    state: 'Himachal Pradesh',
+    state: 'Karnataka',
     preferredLanguage: 'en'
   },
   'inspector@wooltrace.com': {
-    id: 'QA-01',
-    name: 'Dr. Anita Desai',
+    id: 'INS-01',
+    name: 'Suresh Verma',
     email: 'inspector@wooltrace.com',
-    mobile: '9844556677',
+    mobile: '9811223344',
     role: 'QUALITY_INSPECTOR',
+    state: 'Karnataka',
+    preferredLanguage: 'en'
+  },
+  'warehouse@wooltrace.com': {
+    id: 'WH-01',
+    name: 'Mysuru Wool Storage Centre',
+    email: 'warehouse@wooltrace.com',
+    mobile: '9855667788',
+    role: 'WAREHOUSE',
     state: 'Karnataka',
     preferredLanguage: 'en'
   },
@@ -53,11 +60,11 @@ const DEMO_USERS = {
   },
   'processing@wooltrace.com': {
     id: 'PR-01',
-    name: 'Bikaner Wool Mill',
+    name: 'WoolCraft Processing Centre',
     email: 'processing@wooltrace.com',
     mobile: '9866778899',
     role: 'PROCESSING_UNIT',
-    state: 'Rajasthan',
+    state: 'Karnataka',
     preferredLanguage: 'en'
   }
 };
@@ -73,12 +80,13 @@ export const AuthProvider = ({ children }) => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [loadingText, setLoadingText] = useState('Authenticating WoolTrace Session...');
 
   useEffect(() => {
     if (user) {
       localStorage.setItem('wooltrace_user', JSON.stringify(user));
       
-      // Dynamically inject Google Translate script only for non-English users
       if (user.preferredLanguage && user.preferredLanguage !== 'en') {
         document.cookie = `googtrans=/en/${user.preferredLanguage}; path=/`;
         if (!document.getElementById('google-translate-script')) {
@@ -98,10 +106,10 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (identifier, password) => {
     setIsLoading(true);
+    setLoadingText('Authenticating WoolTrace Credentials...');
     const cleanId = (identifier || '').trim().toLowerCase();
 
     try {
-      // First attempt backend API request
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: {
@@ -114,7 +122,7 @@ export const AuthProvider = ({ children }) => {
         const data = await response.json();
         if (data.user) {
           setUser(data.user);
-          setIsLoading(false);
+          setTimeout(() => setIsLoading(false), 400);
           return { success: true, user: data.user };
         }
       }
@@ -122,7 +130,6 @@ export const AuthProvider = ({ children }) => {
       console.warn('API login fetch bypassed, attempting demo/client authentication:', error);
     }
 
-    // Local fallback for dev/prototype mode
     try {
       const usersList = JSON.parse(localStorage.getItem('wt_registered_users') || '[]');
       const found = usersList.find(u => 
@@ -134,7 +141,7 @@ export const AuthProvider = ({ children }) => {
         if (found.password === password) {
           const userObj = { id: found.id, name: found.name, email: found.email, role: found.role, preferredLanguage: found.preferredLanguage };
           setUser(userObj);
-          setIsLoading(false);
+          setTimeout(() => setIsLoading(false), 400);
           return { success: true, user: userObj };
         } else {
           setIsLoading(false);
@@ -142,15 +149,13 @@ export const AuthProvider = ({ children }) => {
         }
       }
 
-      // Check Demo Accounts mapping
       if (DEMO_USERS[cleanId]) {
         const demoUser = DEMO_USERS[cleanId];
         setUser(demoUser);
-        setIsLoading(false);
+        setTimeout(() => setIsLoading(false), 400);
         return { success: true, user: demoUser };
       }
 
-      // Wildcard mapping for *@wooltrace.com
       if (cleanId.endsWith('@wooltrace.com')) {
         let role = 'FARMER';
         if (cleanId.includes('seller')) role = 'SELLER';
@@ -167,11 +172,10 @@ export const AuthProvider = ({ children }) => {
           preferredLanguage: 'en'
         };
         setUser(demoUser);
-        setIsLoading(false);
+        setTimeout(() => setIsLoading(false), 400);
         return { success: true, user: demoUser };
       }
 
-      // Role-inferred fallback if using custom username like "farmer", "warehouse", "inspector", "seller"
       let inferredRole = 'FARMER';
       if (cleanId.includes('warehouse')) inferredRole = 'WAREHOUSE';
       else if (cleanId.includes('inspector') || cleanId.includes('qa')) inferredRole = 'QUALITY_INSPECTOR';
@@ -189,7 +193,7 @@ export const AuthProvider = ({ children }) => {
       };
 
       setUser(fallbackUser);
-      setIsLoading(false);
+      setTimeout(() => setIsLoading(false), 400);
       return { success: true, user: fallbackUser };
     } catch (e) {
       setIsLoading(false);
@@ -199,6 +203,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     setIsLoading(true);
+    setLoadingText('Creating WoolTrace Profile & Digital Identity...');
     try {
       const response = await fetch('/api/register', {
         method: 'POST',
@@ -212,7 +217,7 @@ export const AuthProvider = ({ children }) => {
         const data = await response.json();
         if (data.user) {
           setUser(data.user);
-          setIsLoading(false);
+          setTimeout(() => setIsLoading(false), 400);
           return { success: true, user: data.user };
         }
       }
@@ -220,7 +225,6 @@ export const AuthProvider = ({ children }) => {
       console.warn('API register fetch bypassed, creating local user profile:', error);
     }
 
-    // Local fallback for dev/prototype mode
     try {
       const { name, email, password, role, preferredLanguage } = userData;
       const mockUser = {
@@ -241,7 +245,7 @@ export const AuthProvider = ({ children }) => {
       usersList.push({ ...mockUser, password });
       localStorage.setItem('wt_registered_users', JSON.stringify(usersList));
       setUser(mockUser);
-      setIsLoading(false);
+      setTimeout(() => setIsLoading(false), 400);
       return { success: true, user: mockUser };
     } catch (e) {
       setIsLoading(false);
@@ -250,13 +254,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem('wooltrace_user');
-    const host = window.location.hostname;
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${host};`;
-    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${host};`;
-    window.location.href = '/';
+    setIsLoggingOut(true);
+    setLoadingText('Logging out of WoolTrace Session...');
+    setTimeout(() => {
+      setUser(null);
+      localStorage.removeItem('wooltrace_user');
+      const host = window.location.hostname;
+      document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${host};`;
+      document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${host};`;
+      window.location.href = '/';
+    }, 750);
   };
 
   const switchRole = (newRole) => {
@@ -274,12 +282,19 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={{
       user,
       isLoading,
+      isLoggingOut,
       login,
       register,
       logout,
       switchRole,
       hasRole
     }}>
+      {(isLoading || isLoggingOut) && (
+        <WoolCloudLoader 
+          text={isLoggingOut ? 'Logging Out of WoolTrace Session...' : loadingText} 
+          fullScreen={true} 
+        />
+      )}
       {children}
     </AuthContext.Provider>
   );

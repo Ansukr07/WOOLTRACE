@@ -71,5 +71,27 @@ export const processingService = {
     } catch {
       return { success: false, error: 'Network error' };
     }
+  },
+
+  async getCedaData() {
+    try {
+      const res = await fetch('/api/processing/ceda');
+      return await res.json();
+    } catch {
+      return { success: false, serviceStatus: 'OFFLINE' };
+    }
+  },
+
+  async performBatchAction(action, payload) {
+    try {
+      const res = await fetch('/api/processing/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ...payload })
+      });
+      return await res.json();
+    } catch {
+      return { success: false, error: 'Network error' };
+    }
   }
 };
