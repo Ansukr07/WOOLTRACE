@@ -1,9 +1,11 @@
 import React from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { ShieldCheck, ClipboardList, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import './Inspector.css';
 
 const InspectorLayout = () => {
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -31,7 +33,7 @@ const InspectorLayout = () => {
               <span>Auth ID: WQI-41</span>
             </div>
           </div>
-          <button className="nav-item logout" onClick={() => navigate('/')}>
+          <button className="nav-item logout" onClick={() => logout()}>
             <LogOut size={18} /> Logout
           </button>
         </div>

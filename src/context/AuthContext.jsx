@@ -66,9 +66,9 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     try {
       const stored = localStorage.getItem('wooltrace_user');
-      return stored ? JSON.parse(stored) : DEMO_USERS['farmer@wooltrace.com'];
+      return stored ? JSON.parse(stored) : null;
     } catch (e) {
-      return DEMO_USERS['farmer@wooltrace.com'];
+      return null;
     }
   });
 
@@ -251,11 +251,12 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem('wooltrace_user');
     const host = window.location.hostname;
     document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${host};`;
     document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${host};`;
-    window.location.reload();
+    window.location.href = '/';
   };
 
   const switchRole = (newRole) => {

@@ -11,7 +11,6 @@ const ProcessingLayout = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
   };
 
   const navItems = [

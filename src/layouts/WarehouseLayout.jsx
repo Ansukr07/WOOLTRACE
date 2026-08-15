@@ -88,7 +88,7 @@ export default function WarehouseLayout() {
             </button>
 
             <button
-              onClick={() => { logout(); navigate('/login'); }}
+              onClick={() => { logout(); }}
               className="warehouse-nav-item"
               style={{ background: 'none', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left', color: '#DC2626' }}
             >

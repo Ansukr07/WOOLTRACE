@@ -24,7 +24,7 @@ const TransportDashboard = () => {
         </div>
         <div style={{display: 'flex', gap: '12px'}}>
           <button className="btn-secondary" onClick={() => { switchRole('FARMER'); navigate('/farmer'); }}>Switch Role</button>
-          <button className="btn-secondary" onClick={() => { logout(); navigate('/login'); }}>Logout</button>
+          <button className="btn-secondary" onClick={() => { logout(); }}>Logout</button>
         </div>
       </div>
 

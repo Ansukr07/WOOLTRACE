@@ -25,7 +25,6 @@ const SellerLayout = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
   };
 
   const navItems = [

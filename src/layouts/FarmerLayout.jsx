@@ -28,7 +28,6 @@ const FarmerLayout = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
   };
 
   const handleRoleSwitch = (newRole, path) => {
