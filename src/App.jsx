@@ -22,6 +22,7 @@ const Cart = React.lazy(() => import('./pages/farmer/woolkart/Cart'));
 const Checkout = React.lazy(() => import('./pages/farmer/woolkart/Checkout'));
 const OrderConfirmation = React.lazy(() => import('./pages/farmer/woolkart/OrderConfirmation'));
 const Academy = React.lazy(() => import('./pages/farmer/Academy'));
+const ModuleDetail = React.lazy(() => import('./pages/farmer/components/ModuleDetail'));
 
 const InspectorLayout = React.lazy(() => import('./layouts/InspectorLayout'));
 const InspectorDashboard = React.lazy(() => import('./pages/inspector/InspectorDashboard'));
@@ -87,6 +88,7 @@ function App() {
                   <Route path="order-confirmation/:id" element={<OrderConfirmation />} />
                 </Route>
                 <Route path="academy" element={<Academy />} />
+                <Route path="academy/module/:moduleId" element={<ModuleDetail />} />
               </Route>
               
               {/* Inspector Module */}

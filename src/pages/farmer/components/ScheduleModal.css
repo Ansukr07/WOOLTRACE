@@ -1,0 +1,239 @@
+.quiz-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 18, 13, 0.55);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.quiz-modal.schedule-modal {
+  background: #FFFFFF;
+  border-radius: 24px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: modalSlideUp 0.3s ease;
+  font-family: inherit;
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #EDEDCE;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.modal-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0B120D;
+  margin: 0 0 4px;
+}
+
+.modal-subtitle {
+  font-size: 14px;
+  color: #0B120D;
+  opacity: 0.7;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #0B120D;
+  opacity: 0.5;
+  cursor: pointer;
+  padding: 4px;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  opacity: 1;
+}
+
+.modal-content {
+  padding: 16px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.session-card {
+  border: 1px solid #EDEDCE;
+  border-radius: 16px;
+  padding: 16px;
+  transition: all 0.2s ease;
+  background: #F8F8F3;
+}
+
+.session-card:hover {
+  border-color: #DDFF86;
+  box-shadow: 0 4px 12px rgba(11, 18, 13, 0.05);
+  transform: translateY(-2px);
+}
+
+.session-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.session-date-time {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.date-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #DDFF86;
+  color: #0B120D;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.time-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #0B120D;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.rsvp-btn {
+  background: #0B120D;
+  color: #DDFF86;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.rsvp-btn:hover {
+  background: #DDFF86;
+  color: #0B120D;
+}
+
+.rsvp-btn.rsvped {
+  background: rgba(221, 255, 134, 0.3);
+  color: #0B120D;
+}
+
+.session-group {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0B120D;
+  margin: 0 0 6px;
+}
+
+.session-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #0B120D;
+  font-size: 14px;
+  opacity: 0.7;
+  margin-bottom: 12px;
+}
+
+.session-topic, .session-facilitator {
+  font-size: 14px;
+  color: #0B120D;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.session-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(237, 237, 206, 0.6);
+}
+
+.attendee-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #0B120D;
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.seat-info span {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.seats-low {
+  color: #FFAAA4;
+}
+
+.seats-ok {
+  color: #0B120D;
+  opacity: 0.8;
+}
+
+.modal-footer {
+  padding: 16px 24px 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.done-btn {
+  background: #0B120D;
+  color: #DDFF86;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  width: 100%;
+}
+
+.done-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(11, 18, 13, 0.2);
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
