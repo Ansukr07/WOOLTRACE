@@ -42,6 +42,11 @@ const Orders = React.lazy(() => import('./pages/seller/Orders'));
 const OrderDetail = React.lazy(() => import('./pages/seller/OrderDetail'));
 const VerifyCertificate = React.lazy(() => import('./pages/public/VerifyCertificate'));
 
+// Processing Lazy Imports
+const ProcessingLayout = React.lazy(() => import('./layouts/ProcessingLayout'));
+const ProcessingDashboard = React.lazy(() => import('./pages/processing/ProcessingDashboard'));
+const ProcessingBatchDetail = React.lazy(() => import('./pages/processing/ProcessingBatchDetail'));
+
 const DummyDashboard = ({ name }) => (
   <div style={{ padding: '40px' }}>
     <h1>{name} Dashboard</h1>
@@ -114,6 +119,12 @@ function App() {
               {/* Transport & Warehouse MVPs */}
               <Route path="/transport" element={<ProtectedRoute allowedRoles={['TRANSPORT']}><DummyDashboard name="Transport" /></ProtectedRoute>} />
               <Route path="/warehouse" element={<ProtectedRoute allowedRoles={['WAREHOUSE']}><DummyDashboard name="Warehouse" /></ProtectedRoute>} />
+
+              {/* Processing Module */}
+              <Route path="/processing" element={<ProtectedRoute allowedRoles={['PROCESSING_UNIT']}><ProcessingLayout /></ProtectedRoute>}>
+                <Route index element={<ProcessingDashboard />} />
+                <Route path="batches/:batchId" element={<ProcessingBatchDetail />} />
+              </Route>
 
               {/* Public */}
               <Route path="/verify/:certificateId" element={<VerifyCertificate />} />

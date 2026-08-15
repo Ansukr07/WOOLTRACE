@@ -15,7 +15,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Missing identifier or password' });
     }
 
-    // In a real app, hash password and check. For SIH prototype, basic check:
     let user = await User.findOne({
       $or: [{ email: identifier }, { mobile: identifier }]
     });
@@ -27,11 +26,12 @@ export default async function handler(req, res) {
       if (identifier.includes('inspector')) role = 'QUALITY_INSPECTOR';
       if (identifier.includes('warehouse')) role = 'WAREHOUSE';
       if (identifier.includes('transport')) role = 'TRANSPORT';
+      if (identifier.includes('processing')) role = 'PROCESSING_UNIT';
 
       user = await User.create({
         name: identifier.split('@')[0].toUpperCase(),
         email: identifier,
-        password: password, // use whatever password they typed to create the demo account
+        password: password,
         role: role
       });
     }
@@ -41,7 +41,6 @@ export default async function handler(req, res) {
     }
 
     if (user.password !== password) {
-      // For demo accounts, accept any password if they forgot it
       if (identifier.endsWith('@wooltrace.com')) {
         // bypass
       } else {
@@ -49,7 +48,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // Basic token mock (or omit token and just return user info)
     res.status(200).json({
       message: 'Login successful',
       user: {
