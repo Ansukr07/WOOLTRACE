@@ -1,0 +1,121 @@
+.warehouse-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #F8F8F3;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.warehouse-sidebar {
+  width: 260px;
+  background-color: #FFFFFF;
+  border-right: 1px solid rgba(11, 18, 13, 0.10);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 50;
+}
+
+.warehouse-sidebar-header {
+  padding: 24px;
+  border-bottom: 1px solid rgba(11, 18, 13, 0.08);
+}
+
+.warehouse-logo {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0B120D;
+  text-decoration: none;
+  letter-spacing: -0.03em;
+  display: block;
+}
+
+.warehouse-logo span {
+  color: #16A34A;
+}
+
+.warehouse-role-tag {
+  display: inline-block;
+  background: #EDEDCE;
+  color: #0B120D;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-top: 6px;
+}
+
+.warehouse-nav {
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.warehouse-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  color: #555;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.warehouse-nav-item:hover {
+  background: #F8F8F3;
+  color: #0B120D;
+}
+
+.warehouse-nav-item.active {
+  background: #0B120D;
+  color: #DDFF86;
+}
+
+.warehouse-main {
+  flex: 1;
+  margin-left: 260px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.warehouse-top-header {
+  height: 70px;
+  background: #FFFFFF;
+  border-bottom: 1px solid rgba(11, 18, 13, 0.10);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 32px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.warehouse-hub-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0B120D;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.warehouse-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.warehouse-content-area {
+  flex: 1;
+  padding: 32px;
+}
