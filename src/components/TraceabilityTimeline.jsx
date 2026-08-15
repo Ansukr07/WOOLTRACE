@@ -1,24 +1,46 @@
 import React from 'react';
-import { Box, ShieldCheck, Store, Truck, Warehouse, CheckCircle, Factory, Scissors } from 'lucide-react';
+import { 
+  Sprout, ShieldCheck, Store, Truck, Warehouse, Cog, Shirt, 
+  CheckCircle2, Clock, MapPin, User, Calendar, QrCode
+} from 'lucide-react';
 import { useGlobalState } from '../context/GlobalStateContext';
 
-const TraceabilityTimeline = ({ batchId }) => {
-  const { batches, certificates, listings, orders, transportJobs, warehouseBookings, processingRecords, processingRequests } = useGlobalState();
+const STAGES = [
+  { id: 'FARM', label: 'Farm', icon: Sprout },
+  { id: 'QUALITY', label: 'Quality', icon: ShieldCheck },
+  { id: 'MARKET', label: 'Market', icon: Store },
+  { id: 'TRANSPORT', label: 'Transport', icon: Truck },
+  { id: 'WAREHOUSE', label: 'Warehouse', icon: Warehouse },
+  { id: 'PROCESSING', label: 'Processing', icon: Cog },
+  { id: 'FABRIC', label: 'Fabric', icon: Shirt },
+];
+
+const STAGE_ORDER = ['FARM', 'QUALITY', 'MARKET', 'TRANSPORT', 'WAREHOUSE', 'PROCESSING', 'FABRIC'];
+
+export default function TraceabilityTimeline({ batchId, hideEvents = false, onShowQR }) {
+  const { 
+    batches, certificates, listings, orders, transportJobs, 
+    warehouseBookings, processingRecords, processingRequests 
+  } = useGlobalState();
   
-  const batch = batches.find(b => b.id === batchId);
+  const batch = batches.find(b => b.id === batchId || b.batchId === batchId);
   if (!batch) return null;
 
-  const cert = certificates.find(c => c.batchId === batchId);
-  const listing = listings.find(l => l.batchId === batchId);
-  const order = listing ? orders.find(o => o.items?.some(i => i.productId === listing.id)) : null;
-  const transport = order ? transportJobs.find(t => t.orderId === order.id) : null;
-  const warehouse = order ? warehouseBookings.find(w => w.orderId === order.id) : null;
+  const currentStageIndex = STAGE_ORDER.indexOf(batch.currentStage || 'FARM');
 
+  const getStageStatus = (stageId) => {
+    const idx = STAGE_ORDER.indexOf(stageId);
+    if (idx < currentStageIndex) return 'completed';
+    if (idx === currentStageIndex) return 'current';
+    return 'upcoming';
+  };
+
+  // Integration with processing records from upstream pull
   const processingRequest = (processingRequests || []).find(r => r.batchId === batchId);
   const batchProcessingRecords = (processingRecords || []).filter(r => r.batchId === batchId);
   const hasCompletedProcessing = batchProcessingRecords.some(r => r.status === 'COMPLETED');
 
-  const processingDesc = () => {
+  const getProcessingDesc = () => {
     if (!processingRequest) return 'Not yet sent for processing.';
     if (processingRequest.status === 'COMPLETED' || hasCompletedProcessing) {
       const ops = batchProcessingRecords.filter(r => r.status === 'COMPLETED');
@@ -36,69 +58,264 @@ const TraceabilityTimeline = ({ batchId }) => {
     return 'Requested to ' + (processingRequest.processingUnitName || 'processing unit') + '.';
   };
 
-  const processingStatus = () => {
-    if (!processingRequest) return 'upcoming';
-    if (processingRequest.status === 'COMPLETED' || hasCompletedProcessing) return 'completed';
-    if (['IN_PROGRESS', 'ACCEPTED', 'RECEIVED', 'REQUESTED'].includes(processingRequest.status)) return 'active';
-    return 'upcoming';
-  };
-
-  const processingDate = () => {
-    if (!processingRequest) return null;
-    if (hasCompletedProcessing) {
-      const last = batchProcessingRecords.filter(r => r.status === 'COMPLETED').slice(-1)[0];
-      return last && last.completionTime ? new Date(last.completionTime).toLocaleDateString() : null;
-    }
-    return new Date(processingRequest.updatedAt || processingRequest.createdAt).toLocaleDateString();
-  };
-
-  const pStatus = processingStatus();
-  const outputIds = batchProcessingRecords.filter(r => r.outputBatchId).map(r => r.outputBatchId).join(', ');
-
-  const steps = [
-    { id: 'FARM', icon: <Box size={20} />, title: 'Farm Origin', desc: 'Shorn at ' + batch.location + ' by ' + batch.farmerName + '.', date: new Date(batch.createdAt).toLocaleDateString(), status: 'completed' },
-    { id: 'QUALITY', icon: <ShieldCheck size={20} />, title: 'Quality Inspection', desc: cert ? 'Inspected by ' + cert.inspectorName + '. Grade ' + cert.grade + '.' : 'Pending inspection.', date: cert ? new Date(cert.issuedAt).toLocaleDateString() : null, status: cert ? 'completed' : 'pending' },
-    { id: 'MARKET', icon: <Store size={20} />, title: 'Marketplace Listed', desc: listing ? 'Listed by ' + listing.sellerName + ' on WoolKart.' : 'Not yet listed.', date: listing ? new Date(listing.createdAt).toLocaleDateString() : null, status: listing ? 'completed' : cert ? 'pending' : 'upcoming' },
-    { id: 'SOLD', icon: <CheckCircle size={20} />, title: 'Batch Sold', desc: order ? 'Purchased by ' + order.buyerName + '.' : 'Waiting for buyers.', date: order ? new Date(order.createdAt).toLocaleDateString() : null, status: order ? 'completed' : listing ? 'pending' : 'upcoming' },
-    { id: 'TRANSPORT', icon: <Truck size={20} />, title: 'Transportation', desc: transport ? 'Handled by Transporter (' + transport.status + ').' : 'Not requested.', date: transport ? new Date(transport.createdAt).toLocaleDateString() : null, status: transport ? (transport.status === 'Delivered' ? 'completed' : 'active') : order ? 'pending' : 'upcoming' },
-    { id: 'WAREHOUSE', icon: <Warehouse size={20} />, title: 'Warehouse Storage', desc: warehouse ? 'Stored securely.' : 'Not in storage.', date: warehouse ? new Date(warehouse.createdAt).toLocaleDateString() : null, status: warehouse ? 'completed' : (transport && transport.status === 'Delivered') ? 'pending' : 'upcoming' },
-    { id: 'PROCESSING', icon: <Factory size={20} />, title: 'Wool Processing', desc: processingDesc(), date: processingDate(), status: pStatus },
-    { id: 'FABRIC', icon: <Scissors size={20} />, title: 'Yarn / Fabric', desc: hasCompletedProcessing ? 'Output: ' + (outputIds || 'batch ready') + '.' : 'Awaiting processing completion.', date: null, status: hasCompletedProcessing ? 'pending' : 'upcoming' }
-  ];
-
-  const dotBg = (s) => s === 'completed' ? '#0B120D' : s === 'active' ? '#D97706' : '#F8F8F3';
-  const lineBg = (s) => s === 'completed' ? '#0B120D' : '#E5E5E5';
+  const events = batch.events || [];
 
   return (
-    <div style={{backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '12px', border: '1px solid #E5E5E5'}}>
-      <h3 style={{fontSize: '18px', fontWeight: '700', marginBottom: '24px', color: '#0B120D'}}>Traceability Timeline</h3>
-      <div style={{display: 'flex', flexDirection: 'column'}}>
-        {steps.map((step, index) => (
-          <div key={step.id} style={{display: 'flex', gap: '16px'}}>
-            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-              <div style={{width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: dotBg(step.status), color: (step.status === 'completed' || step.status === 'active') ? '#FFF' : '#999', border: step.status === 'upcoming' ? '1px dashed #CCC' : step.status === 'pending' ? '2px solid #E5E5E5' : 'none', zIndex: 2, flexShrink: 0}}>
-                {step.icon}
+    <div style={{
+      backgroundColor: '#FFFFFF',
+      borderRadius: '16px',
+      border: '1px solid rgba(11, 18, 13, 0.10)',
+      padding: '24px',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+    }}>
+      {/* Header with Current Stage Prominence */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '24px',
+        paddingBottom: '16px',
+        borderBottom: '1px solid rgba(11, 18, 13, 0.08)'
+      }}>
+        <div>
+          <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#666' }}>
+            Traceability Chain
+          </span>
+          <h3 style={{ margin: '4px 0 0 0', fontSize: '18px', fontWeight: '800', color: '#0B120D', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            Farm-to-Fabric Journey
+          </h3>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: '#DDFF86',
+            color: '#0B120D',
+            padding: '6px 12px',
+            borderRadius: '100px',
+            fontSize: '12px',
+            fontWeight: '700'
+          }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0B120D', animation: 'pulse 1.5s infinite' }}></span>
+            Stage: {batch.currentStage || 'FARM'}
+          </div>
+          {onShowQR && (
+            <button
+              onClick={onShowQR}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: '#F8F8F3',
+                border: '1px solid rgba(11, 18, 13, 0.12)',
+                color: '#0B120D',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                fontSize: '12px',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              <QrCode size={14} /> Batch QR
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Visual Farm-to-Fabric Stepper (7 Stages) */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(7, 1fr)',
+        gap: '4px',
+        alignItems: 'center',
+        margin: '24px 0 28px 0',
+        padding: '16px 8px',
+        background: '#F8F8F3',
+        borderRadius: '12px'
+      }}>
+        {STAGES.map((s, idx) => {
+          const status = getStageStatus(s.id);
+          const Icon = s.icon;
+          const isCompleted = status === 'completed';
+          const isCurrent = status === 'current';
+
+          return (
+            <div key={s.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative' }}>
+              <div style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: isCompleted ? '#0B120D' : isCurrent ? '#DDFF86' : '#FFFFFF',
+                color: isCompleted ? '#DDFF86' : isCurrent ? '#0B120D' : '#999',
+                border: isCurrent ? '2px solid #0B120D' : isCompleted ? 'none' : '1px dashed #CCC',
+                boxShadow: isCurrent ? '0 0 0 4px rgba(221, 255, 134, 0.4)' : 'none',
+                fontWeight: '800',
+                fontSize: '13px',
+                zIndex: 2,
+                transition: 'all 0.3s ease'
+              }}>
+                {isCompleted ? '✓' : isCurrent ? '●' : '○'}
               </div>
-              {index < steps.length - 1 && <div style={{width: '2px', flex: 1, minHeight: '40px', margin: '4px 0', backgroundColor: lineBg(step.status)}} />}
+              <span style={{
+                fontSize: '11px',
+                fontWeight: isCurrent ? '800' : '600',
+                color: isCurrent ? '#0B120D' : isCompleted ? '#0B120D' : '#888',
+                marginTop: '8px'
+              }}>
+                {s.label}
+              </span>
             </div>
-            <div style={{paddingBottom: '32px', flex: 1, opacity: step.status === 'upcoming' ? 0.45 : 1}}>
-              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
-                <div>
-                  <h4 style={{fontSize: '15px', fontWeight: '700', color: step.status === 'upcoming' ? '#6B7280' : '#0B120D', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px'}}>
-                    {step.title}
-                    {step.id === 'PROCESSING' && step.status === 'active' && <span style={{fontSize: '10px', fontWeight: '800', background: '#DDFF86', color: '#0B120D', padding: '2px 8px', borderRadius: '20px'}}>CURRENT</span>}
-                    {step.status === 'completed' && <span style={{fontSize: '10px', fontWeight: '800', color: '#0B120D', opacity: 0.5}}>✓</span>}
-                  </h4>
-                  <p style={{fontSize: '13px', color: '#666', lineHeight: '1.5', margin: 0}}>{step.desc}</p>
-                </div>
-                {step.date && <span style={{fontSize: '12px', color: '#999', fontWeight: '600', flexShrink: 0, marginLeft: '8px'}}>{step.date}</span>}
+          );
+        })}
+      </div>
+
+      {/* Storage Slot Info Box if in Warehouse */}
+      {batch.storageLocation && (
+        <div style={{
+          background: '#EDEDCE',
+          border: '1px solid rgba(11, 18, 13, 0.12)',
+          borderRadius: '10px',
+          padding: '12px 16px',
+          marginBottom: '24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '8px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Warehouse size={18} color="#0B120D" />
+            <div>
+              <span style={{ fontSize: '11px', textTransform: 'uppercase', fontWeight: '700', color: '#555' }}>
+                Warehouse Storage Allocation
+              </span>
+              <div style={{ fontSize: '13px', fontWeight: '700', color: '#0B120D' }}>
+                {batch.currentLocation || 'Mysuru Wool Storage Centre'}
               </div>
             </div>
           </div>
-        ))}
-      </div>
+          <div style={{
+            display: 'flex',
+            gap: '8px',
+            background: '#FFFFFF',
+            padding: '4px 10px',
+            borderRadius: '6px',
+            border: '1px solid rgba(11, 18, 13, 0.10)',
+            fontSize: '12px',
+            fontWeight: '700'
+          }}>
+            <span>Zone: <strong>{batch.storageLocation.zone}</strong></span>
+            <span>·</span>
+            <span>Rack: <strong>{batch.storageLocation.rack}</strong></span>
+            <span>·</span>
+            <span>Sec: <strong>{batch.storageLocation.section}</strong></span>
+            <span>·</span>
+            <span>Pos: <strong>{batch.storageLocation.position}</strong></span>
+          </div>
+        </div>
+      )}
+
+      {/* Processing Integration Summary */}
+      {processingRequest && (
+        <div style={{
+          background: '#F8F8F3',
+          border: '1px solid rgba(11, 18, 13, 0.10)',
+          borderRadius: '10px',
+          padding: '12px 16px',
+          marginBottom: '24px',
+          fontSize: '13px'
+        }}>
+          <span style={{ fontSize: '11px', textTransform: 'uppercase', fontWeight: '700', color: '#666' }}>
+            Mill Processing Record
+          </span>
+          <div style={{ fontWeight: '700', color: '#0B120D', marginTop: '2px' }}>
+            {getProcessingDesc()}
+          </div>
+        </div>
+      )}
+
+      {/* Detailed Event History */}
+      {!hideEvents && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: '#0B120D' }}>
+              Trace Event History ({events.length})
+            </h4>
+            <span style={{ fontSize: '11px', color: '#666', fontWeight: '600' }}>Immutable Ledger</span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+            {events.slice().reverse().map((evt, idx) => (
+              <div key={evt.id || idx} style={{ display: 'flex', gap: '16px' }}>
+                {/* Line & Bullet */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div style={{
+                    width: '12px',
+                    height: '12px',
+                    borderRadius: '50%',
+                    backgroundColor: idx === 0 ? '#0B120D' : '#BED5E5',
+                    marginTop: '6px',
+                    border: '2px solid #FFFFFF',
+                    boxShadow: '0 0 0 2px rgba(11, 18, 13, 0.2)'
+                  }} />
+                  {idx < events.length - 1 && (
+                    <div style={{ width: '2px', flex: 1, minHeight: '44px', backgroundColor: 'rgba(11, 18, 13, 0.12)' }} />
+                  )}
+                </div>
+
+                {/* Event Card */}
+                <div style={{
+                  paddingBottom: '20px',
+                  flex: 1
+                }}>
+                  <div style={{
+                    background: '#F8F8F3',
+                    border: '1px solid rgba(11, 18, 13, 0.08)',
+                    borderRadius: '10px',
+                    padding: '12px 16px'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{
+                          background: '#0B120D',
+                          color: '#FFFFFF',
+                          fontSize: '10px',
+                          fontWeight: '800',
+                          padding: '2px 6px',
+                          borderRadius: '4px'
+                        }}>
+                          {evt.stage}
+                        </span>
+                        <strong style={{ fontSize: '14px', color: '#0B120D' }}>{evt.title}</strong>
+                      </div>
+                      <span style={{ fontSize: '11px', color: '#666', fontWeight: '600' }}>
+                        {evt.timestamp}
+                      </span>
+                    </div>
+
+                    <p style={{ margin: '6px 0', fontSize: '13px', color: '#333', lineHeight: '1.5' }}>
+                      {evt.description}
+                    </p>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '8px', fontSize: '11px', color: '#666' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <MapPin size={12} color="#0B120D" /> {evt.location}
+                      </span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <User size={12} color="#0B120D" /> {evt.actor}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-export default TraceabilityTimeline;
+}
