@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { moduleData } from './components/moduleData';
 import './Academy.css';
+import { jsPDF } from 'jspdf';
 
 /* ─── Languages ─────────────────────────────────────────────────────────── */
 const languages = [
@@ -1007,18 +1008,59 @@ const Academy = () => {
     return cohorts.filter((c) => c.village.toLowerCase().includes(searchLower) || c.state.toLowerCase().includes(searchLower));
   }, [searchQuery]);
 
-  // Download guide (creates a simple text blob)
+  // Download guide (creates a PDF using jsPDF)
   const downloadGuide = (guide) => {
-    const content = `WoolTrace Farmer Academy\n\n${guide.title}\n\n${guide.desc}\n\nPages: ${guide.pages}\n\nThis guide is provided by WoolTrace — From Farm to Fabric.\nVisit: https://wooltrace.in`;
-    const blob = new Blob([content], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = guide.file;
-    a.click();
-    URL.revokeObjectURL(url);
-    setDownloadToast(guide.title);
-    setTimeout(() => setDownloadToast(null), 3000);
+    try {
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.text("WoolTrace Farmer Academy", 20, 20);
+      doc.setFontSize(14);
+      doc.text(guide.title, 20, 40);
+      doc.setFontSize(12);
+      
+      // Handle potentially long descriptions
+      const splitDesc = doc.splitTextToSize(guide.desc, 170);
+      doc.text(splitDesc, 20, 50);
+      
+      let currentY = 50 + (splitDesc.length * 7) + 10;
+      
+      doc.setFontSize(10);
+      // Generate some dummy content based on the title to make it look like a real guide
+      let content = "";
+      if (guide.title.includes("Shearing")) {
+        content = "1. Spring Shearing (March-April): Ideal for most regions.\n2. Autumn Shearing (Sept-Oct): Secondary shearing season.\n\nBest Practices:\n- Keep the shearing floor clean.\n- Avoid second cuts to maintain staple length.\n- Separate stained wool immediately.\n- Ensure sheep are dry before shearing.";
+      } else if (guide.title.includes("Grading")) {
+        content = "BIS Wool Grades:\n- Fine Wool: < 25 microns. Used for apparel.\n- Medium Wool: 25-35 microns. Used for blankets and knitwear.\n- Coarse Wool: > 35 microns. Used for carpets.\n\nColor Grading:\n- White: Premium value.\n- Yellow/Tinged: Lower value due to dyeing difficulty.\n- Black/Grey: Naturally colored, niche market.";
+      } else if (guide.title.includes("QR")) {
+        content = "Step 1: Open the WoolTrace Farmer App.\nStep 2: Go to 'My Wool' and select 'Create Batch'.\nStep 3: Enter the shearing details, weight, and breed.\nStep 4: Click 'Generate QR'.\nStep 5: Print the QR code and attach it to the wool bale.\nStep 6: When buyers scan it, they will see the full history.";
+      } else if (guide.title.includes("Feed")) {
+        content = "Summer Nutrition:\n- Ensure constant access to clean water.\n- Supplement with mineral blocks.\n\nWinter Nutrition:\n- Provide high-quality hay or silage.\n- Increase energy intake with grains like maize or oats.\n- Protein supplements (e.g., soybean meal) improve wool growth.";
+      } else if (guide.title.includes("Price")) {
+        content = "Understanding Mandi Prices:\n- Prices fluctuate based on global demand and local supply.\n- Check the WoolTrace 'Market' tab for real-time rates.\n- Premium prices are paid for well-skirted, clean, white wool.\n- Negotiate based on your wool's micron count and yield percentage.";
+      } else if (guide.title.includes("Storage")) {
+        content = "Storage Guidelines:\n1. Keep it Dry: Moisture ruins wool and causes rotting.\n2. Off the Ground: Store bales on pallets to prevent dampness.\n3. Pest Control: Keep the storage area free of rodents and moths.\n4. Avoid Contamination: Do not store near chemicals, fuels, or strong odors.\n5. Ventilation: Ensure good airflow in the warehouse.";
+      } else {
+        content = "1. Introduction to the topic.\n2. Step-by-step instructions.\n3. Best practices for farmers.\n4. Common mistakes to avoid.\n5. Resources and helpline numbers.";
+      }
+      
+      const splitContent = doc.splitTextToSize(content, 170);
+      doc.text(splitContent, 20, currentY);
+      
+      currentY += (splitContent.length * 5) + 20;
+      
+      doc.setFontSize(10);
+      doc.text(`Pages: ${guide.pages}`, 20, currentY);
+      doc.text("This guide is provided by WoolTrace — From Farm to Fabric.", 20, currentY + 10);
+      doc.text("Visit: https://wooltrace.in", 20, currentY + 15);
+      
+      const fileName = guide.file.endsWith('.pdf') ? guide.file : guide.file.replace('.txt', '.pdf');
+      doc.save(fileName);
+      
+      setDownloadToast(guide.title);
+      setTimeout(() => setDownloadToast(null), 3000);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    }
   };
 
   // Scroll to modules

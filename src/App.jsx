@@ -112,6 +112,7 @@ function App() {
                   </Route>
                   <Route path="academy" element={<Academy />} />
                   <Route path="academy/module/:moduleId" element={<ModuleDetail />} />
+                  <Route path="wallet" element={<Wallet />} />
                 </Route>
                 
                 {/* Inspector Module */}

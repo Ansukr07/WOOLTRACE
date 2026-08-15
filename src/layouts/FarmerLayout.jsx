@@ -15,7 +15,8 @@ import {
   QrCode,
   Warehouse,
   RefreshCw,
-  Compass
+  Compass,
+  Wallet
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './FarmerLayout.css';
@@ -44,6 +45,7 @@ const FarmerLayout = () => {
     { name: 'SERVICES', path: '/farmer/services', icon: <Wrench size={18} /> },
     { name: 'WOOLKART', path: '/farmer/woolkart', icon: <ShoppingCart size={18} /> },
     { name: 'LEARN', path: '/farmer/academy', icon: <BookOpen size={18} /> },
+    { name: 'WALLET', path: '/farmer/wallet', icon: <Wallet size={18} /> },
   ];
 
   return (
