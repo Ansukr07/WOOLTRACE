@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    { "source": "/api/bidding/(.*)", "destination": "/api/bidding" },
+    { "source": "/api/market/(.*)",  "destination": "/api/market"  },
+    { "source": "/api/processing/(.*)", "destination": "/api/processing" },
+    { "source": "/api/qa/(.*)",      "destination": "/api/qa"      }
+  ]
+}
