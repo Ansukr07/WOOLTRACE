@@ -1,3 +1,29 @@
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# Build and Output Directories
+/dist
+/dist-ssr
+/build
+/out
+/.vite
+/.cache
+
+# Production & Serverless
+/.vercel
+/.vercel-cli-data
+
+# Environment & Secrets (NEVER COMMIT SECRETS)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*
+!.env.example
+
 # Logs
 logs
 *.log
@@ -7,26 +33,39 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Editor & OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# Editor directories and files
+# IDEs and Code Editors
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
+!.vscode/settings.json
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
+*.swp
+*.swo
 
-# Local environment files - never commit secrets
-.env
-.env.*
-!.env.example
-.vercel
-.vercel-cli-data/
-.env*
+# Temporary & Scratch Development Files
+scratch/
+tmp/
+temp/
+*.pyc
+__pycache__/
+*.scratch
+test_*.txt
+
+# Dev Helper Scratch Scripts in Root
+add_processing_helpers.py
+fix_context.py
+scratch_inspect.py
+update_context.py
+update.js
