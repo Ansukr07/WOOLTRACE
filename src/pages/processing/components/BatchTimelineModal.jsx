@@ -38,9 +38,9 @@ const BatchTimelineModal = ({ batch, onClose }) => {
           <button className="modal-close-btn" style={{ color: 'white' }} onClick={onClose}><X size={18} /></button>
         </div>
 
-        <div className="modal-body scrollable-modal-body" style={{ padding: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', overflowY: 'auto', maxHeight: 'calc(90vh - 130px)' }}>
+        <div className="modal-body scrollable-modal-body" style={{ padding: '24px', display: 'flex', flexWrap: 'wrap', gap: '24px', overflowY: 'auto', maxHeight: 'calc(90vh - 130px)' }}>
           {/* Left Panel: Batch Details & Parent/Child Traceability */}
-          <div className="batch-timeline-meta" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="batch-timeline-meta" style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div className="meta-card" style={{ background: '#F8FAFC', padding: '16px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
               <div style={{ fontSize: '12px', color: '#64748B', fontWeight: '600', textTransform: 'uppercase' }}>BATCH ID</div>
               <div style={{ fontSize: '20px', fontWeight: '800', color: '#0F172A', marginTop: '2px' }}>{batch.batchId}</div>
@@ -88,7 +88,7 @@ const BatchTimelineModal = ({ batch, onClose }) => {
           </div>
 
           {/* Right Panel: Step-by-Step Supply Chain Timeline (Scrollable) */}
-          <div className="batch-timeline-steps">
+          <div className="batch-timeline-steps" style={{ flex: '1 1 300px' }}>
             <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#1E293B', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px', position: 'sticky', top: '0', background: 'white', padding: '4px 0', zIndex: 5 }}>
               <Clock size={16} /> Operational Lifecycle Steps
             </h4>

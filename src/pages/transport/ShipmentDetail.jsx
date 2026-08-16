@@ -102,10 +102,10 @@ const ShipmentDetail = () => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
         
         {/* Left Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ flex: '2 1 500px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
           {/* Tracking Map (Mock) */}
           <div style={{ backgroundColor: '#F8F8F3', borderRadius: '12px', border: '1px solid #E5E5E5', overflow: 'hidden', height: '300px', position: 'relative' }}>
@@ -147,7 +147,7 @@ const ShipmentDetail = () => {
         </div>
 
         {/* Right Column - Actions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
           <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #0B120D', padding: '24px', position: 'sticky', top: '24px' }}>
             <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#0B120D', marginBottom: '20px' }}>Update Status</h2>

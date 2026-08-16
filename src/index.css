@@ -138,3 +138,78 @@ body {
   background-color: transparent !important;
   box-shadow: none !important;
 }
+
+/* ── Global Mobile Resets ─────────────────────────────── */
+@media (max-width: 768px) {
+  .modal-dialog-box {
+    width: 95% !important;
+    max-width: 95% !important;
+    max-height: 90vh !important;
+    margin: 2.5vh auto !important;
+    padding: 20px !important;
+    overflow-y: auto !important;
+  }
+
+  /* Make standard tables horizontally scrollable on mobile */
+  table:not(.stacked-table-mobile) {
+    display: block !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    width: 100% !important;
+  }
+
+  /* Stacked Card Tables for Mobile */
+  table.stacked-table-mobile, 
+  table.stacked-table-mobile thead, 
+  table.stacked-table-mobile tbody, 
+  table.stacked-table-mobile th, 
+  table.stacked-table-mobile td, 
+  table.stacked-table-mobile tr {
+    display: block;
+    width: 100%;
+  }
+  
+  table.stacked-table-mobile thead tr {
+    display: none;
+  }
+  
+  table.stacked-table-mobile tr {
+    margin-bottom: 16px;
+    border: 1px solid #E5E5E5;
+    border-radius: 12px;
+    background-color: #FFF;
+    padding: 12px 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  }
+  
+  table.stacked-table-mobile td {
+    border: none;
+    border-bottom: 1px dashed #E5E5E5;
+    padding: 12px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: right;
+    font-size: 14px;
+  }
+  
+  table.stacked-table-mobile td:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  
+  table.stacked-table-mobile td:first-child {
+    padding-top: 0;
+  }
+  
+  table.stacked-table-mobile td::before {
+    content: attr(data-label);
+    font-weight: 800;
+    color: #888;
+    font-size: 11px;
+    text-transform: uppercase;
+    text-align: left;
+    margin-right: 16px;
+  }
+}

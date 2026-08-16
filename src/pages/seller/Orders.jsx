@@ -148,7 +148,7 @@ const Orders = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {filteredOrders.length > 0 ? (
           <div style={{ background: '#FFF', border: '1px solid #E5E5E5', borderRadius: '12px', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <table className="stacked-table-mobile" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr style={{ background: '#F8F8F3', borderBottom: '1px solid #E5E5E5' }}>
                   <th style={{ padding: '16px', fontSize: '12px', fontWeight: '700', color: '#666' }}>Order</th>
@@ -165,14 +165,14 @@ const Orders = () => {
                   const firstItem = order.items?.[0] || {};
                   return (
                     <tr key={order.id} style={{ borderBottom: '1px solid #E5E5E5' }}>
-                      <td style={{ padding: '16px', fontSize: '14px', fontWeight: '700' }}>{order.id}</td>
-                      <td style={{ padding: '16px', fontSize: '14px' }}>{order.buyerName || order.buyerId || 'Guest'}</td>
-                      <td style={{ padding: '16px', fontSize: '14px' }}>
+                      <td data-label="Order ID" style={{ padding: '16px', fontSize: '14px', fontWeight: '700' }}>{order.id}</td>
+                      <td data-label="Buyer" style={{ padding: '16px', fontSize: '14px' }}>{order.buyerName || order.buyerId || 'Guest'}</td>
+                      <td data-label="Product" style={{ padding: '16px', fontSize: '14px' }}>
                         <div style={{ fontWeight: '600' }}>{firstItem.name || 'Wool Product'}</div>
                         <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Batch: {firstItem.batchId || 'N/A'} • {firstItem.quantity} {firstItem.unit || 'KG'}</div>
                       </td>
-                      <td style={{ padding: '16px', fontSize: '14px', fontWeight: '700' }}>₹{(order.totalAmount || order.total || 0).toLocaleString()}</td>
-                      <td style={{ padding: '16px', fontSize: '14px' }}>
+                      <td data-label="Amount" style={{ padding: '16px', fontSize: '14px', fontWeight: '700' }}>₹{(order.totalAmount || order.total || 0).toLocaleString()}</td>
+                      <td data-label="Status" style={{ padding: '16px', fontSize: '14px' }}>
                         <span style={{ 
                           padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '700',
                           background: ['Completed', 'Delivered'].includes(order.status) ? '#DCFCE7' : '#F0F9FF',
@@ -181,8 +181,8 @@ const Orders = () => {
                           {order.status}
                         </span>
                       </td>
-                      <td style={{ padding: '16px', fontSize: '14px', color: '#666' }}>{new Date(order.createdAt).toLocaleDateString()}</td>
-                      <td style={{ padding: '16px', textAlign: 'right' }}>
+                      <td data-label="Date" style={{ padding: '16px', fontSize: '14px', color: '#666' }}>{new Date(order.createdAt).toLocaleDateString()}</td>
+                      <td data-label="Action" style={{ padding: '16px', textAlign: 'right' }}>
                         <button 
                           onClick={() => navigate(`/seller/orders/${order.id}`)}
                           style={{ padding: '8px 16px', background: '#F8F8F3', border: '1px solid #E5E5E5', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' }}

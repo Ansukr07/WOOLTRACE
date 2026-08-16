@@ -103,6 +103,11 @@
   .wh-layout-grid {
     grid-template-columns: 1fr;
   }
+  .wh-map-container {
+    height: 300px !important;
+    position: relative !important;
+    top: 0 !important;
+  }
 }
 
 .wh-cards-list {

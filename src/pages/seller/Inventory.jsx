@@ -69,7 +69,7 @@ const Inventory = () => {
         </div>
 
         <div style={{padding: '0'}}>
-          <table style={{width: '100%', borderCollapse: 'collapse'}}>
+          <table className="stacked-table-mobile" style={{width: '100%', borderCollapse: 'collapse'}}>
             <thead>
               <tr style={{backgroundColor: '#F8F8F3', borderBottom: '1px solid #E5E5E5', textAlign: 'left'}}>
                 <th style={{padding: '16px 24px', fontSize: '12px', fontWeight: '700', color: '#666', textTransform: 'uppercase'}}>Batch ID</th>
@@ -87,15 +87,15 @@ const Inventory = () => {
 
                 return (
                   <tr key={batch.id} style={{borderBottom: '1px solid #E5E5E5'}}>
-                    <td style={{padding: '24px', fontWeight: '600', color: '#0B120D'}}>
+                    <td data-label="Batch ID" style={{padding: '24px', fontWeight: '600', color: '#0B120D'}}>
                       <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                         <Package size={18} color="#16A34A" />
                         {batch.id}
                       </div>
                     </td>
-                    <td style={{padding: '24px', color: '#666'}}>{batch.type}</td>
-                    <td style={{padding: '24px', fontWeight: '600'}}>{batch.quantity} KG</td>
-                    <td style={{padding: '24px'}}>
+                    <td data-label="Type" style={{padding: '24px', color: '#666'}}>{batch.type}</td>
+                    <td data-label="Quantity" style={{padding: '24px', fontWeight: '600'}}>{batch.quantity} KG</td>
+                    <td data-label="Status" style={{padding: '24px'}}>
                       <span style={{
                         padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '700',
                         backgroundColor: isListed ? '#DDFF86' : '#F8F8F3',
@@ -104,7 +104,7 @@ const Inventory = () => {
                         {isListed ? 'Listed on Market' : 'In Storage'}
                       </span>
                     </td>
-                    <td style={{padding: '24px'}}>
+                    <td data-label="Certificate" style={{padding: '24px'}}>
                       {cert ? (
                         <div style={{display: 'flex', alignItems: 'center', gap: '6px', color: '#16A34A', fontSize: '14px', fontWeight: '600'}}>
                           <CheckCircle size={16} /> Grade {cert.grade}
@@ -113,7 +113,7 @@ const Inventory = () => {
                         <span style={{color: '#999', fontSize: '14px'}}>Pending QA</span>
                       )}
                     </td>
-                    <td style={{padding: '24px'}}>
+                    <td data-label="Actions" style={{padding: '24px'}}>
                       {!isListed ? (
                         <button 
                           onClick={() => navigate(`/seller/list-wool?batchId=${batch.id}`)}

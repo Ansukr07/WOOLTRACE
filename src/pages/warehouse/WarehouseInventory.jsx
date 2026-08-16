@@ -165,7 +165,7 @@ export default function WarehouseInventory() {
         overflow: 'hidden',
         boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
       }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+        <table className="stacked-table-mobile" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
           <thead>
             <tr style={{ background: '#F8F8F3', borderBottom: '1px solid rgba(11, 18, 13, 0.10)' }}>
               <th style={{ padding: '16px 20px', fontWeight: '800', color: '#0B120D' }}>Batch ID</th>
@@ -189,26 +189,26 @@ export default function WarehouseInventory() {
               storedBatches.map((b) => (
                 <tr key={b.id} style={{ borderBottom: '1px solid rgba(11, 18, 13, 0.06)' }}>
                   {/* Batch ID */}
-                  <td style={{ padding: '16px 20px', fontWeight: '800', color: '#0B120D' }}>
+                  <td data-label="Batch ID" style={{ padding: '16px 20px', fontWeight: '800', color: '#0B120D' }}>
                     <Link to={`/farmer/track?id=${b.id}`} style={{ color: '#0B120D', textDecoration: 'none' }}>
                       {b.id}
                     </Link>
                   </td>
 
                   {/* Farmer */}
-                  <td style={{ padding: '16px 20px' }}>
+                  <td data-label="Farmer / Origin" style={{ padding: '16px 20px' }}>
                     <div style={{ fontWeight: '700', color: '#0B120D' }}>{b.farmerName}</div>
                     <div style={{ fontSize: '12px', color: '#666' }}>{b.origin}</div>
                   </td>
 
                   {/* Quantity */}
-                  <td style={{ padding: '16px 20px', fontWeight: '700' }}>
+                  <td data-label="Quantity" style={{ padding: '16px 20px', fontWeight: '700' }}>
                     {b.quantity} KG
                     <div style={{ fontSize: '11px', color: '#777', fontWeight: 'normal' }}>{b.woolType}</div>
                   </td>
 
                   {/* Grade */}
-                  <td style={{ padding: '16px 20px' }}>
+                  <td data-label="Grade" style={{ padding: '16px 20px' }}>
                     <span style={{
                       background: '#EDEDCE',
                       color: '#0B120D',
@@ -222,7 +222,7 @@ export default function WarehouseInventory() {
                   </td>
 
                   {/* Storage Location */}
-                  <td style={{ padding: '16px 20px' }}>
+                  <td data-label="Storage Location" style={{ padding: '16px 20px' }}>
                     {b.storageLocation ? (
                       <div style={{
                         display: 'inline-flex',
@@ -252,12 +252,12 @@ export default function WarehouseInventory() {
                   </td>
 
                   {/* Check-In Date */}
-                  <td style={{ padding: '16px 20px', fontSize: '13px', color: '#555' }}>
+                  <td data-label="Check-In Date" style={{ padding: '16px 20px', fontSize: '13px', color: '#555' }}>
                     {new Date(b.shearingDate || b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </td>
 
                   {/* Status */}
-                  <td style={{ padding: '16px 20px' }}>
+                  <td data-label="Status" style={{ padding: '16px 20px' }}>
                     <span style={{
                       background: '#DCFCE7',
                       color: '#166534',
@@ -271,7 +271,7 @@ export default function WarehouseInventory() {
                   </td>
 
                   {/* Actions */}
-                  <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                  <td data-label="Actions" style={{ padding: '16px 20px', textAlign: 'right' }}>
                     <button
                       onClick={() => handleOpenEditSlot(b)}
                       style={{
