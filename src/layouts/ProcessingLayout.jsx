@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Outlet, NavLink, Link } from 'react-router-dom';
-import { LayoutDashboard, Bell, Menu, X, LogOut, Factory, Truck, AlertTriangle, CheckCircle, Package } from 'lucide-react';
+import { Leaf,  LayoutDashboard, Bell, Menu, X, LogOut, Factory, Truck, AlertTriangle, CheckCircle, Package } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './ProcessingLayout.css';
 
@@ -80,7 +80,8 @@ const ProcessingLayout = () => {
   }, []);
 
   const navItems = [
-    { name: 'DASHBOARD', path: '/processing', icon: <LayoutDashboard size={20} />, end: true }
+    { name: 'DASHBOARD', path: '/processing', icon: <LayoutDashboard size={20} />, end: true },
+    { name: 'RESOURCE & SUSTAINABILITY', path: '/processing/sustainability', icon: <Leaf size={20} /> }
   ];
 
   const initials = user ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'PU';

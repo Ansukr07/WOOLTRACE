@@ -57,11 +57,6 @@ const WarehouseInventory = React.lazy(() => import('./pages/warehouse/WarehouseI
 const WarehouseRequests = React.lazy(() => import('./pages/warehouse/WarehouseRequests'));
 const WarehouseReleases = React.lazy(() => import('./pages/warehouse/WarehouseReleases'));
 
-// Processing Module
-const ProcessingLayout = React.lazy(() => import('./layouts/ProcessingLayout'));
-const ProcessingDashboard = React.lazy(() => import('./pages/processing/ProcessingDashboard'));
-const ProcessingBatchDetail = React.lazy(() => import('./pages/processing/ProcessingBatchDetail'));
-
 // Transport Module
 const TransportLayout = React.lazy(() => import('./layouts/TransportLayout'));
 const TransportDashboard = React.lazy(() => import('./pages/transport/TransportDashboard'));
@@ -73,6 +68,12 @@ const TransportHistory = React.lazy(() => import('./pages/transport/TransportHis
 const Vehicles = React.lazy(() => import('./pages/transport/Vehicles'));
 const TransportEarnings = React.lazy(() => import('./pages/transport/TransportEarnings'));
 const TransportProfile = React.lazy(() => import('./pages/transport/TransportProfile'));
+
+// Processing Module
+const ProcessingLayout = React.lazy(() => import('./layouts/ProcessingLayout'));
+const ProcessingDashboard = React.lazy(() => import('./pages/processing/ProcessingDashboard'));
+const ResourceSustainabilityView = React.lazy(() => import('./pages/processing/ResourceSustainabilityView'));
+const ProcessingBatchDetail = React.lazy(() => import('./pages/processing/ProcessingBatchDetail'));
 
 // Public
 const VerifyCertificate = React.lazy(() => import('./pages/public/VerifyCertificate'));
@@ -156,9 +157,11 @@ function App() {
                 {/* Processing Module */}
                 <Route path="/processing" element={<ProtectedRoute allowedRoles={['PROCESSING_UNIT']}><ProcessingLayout /></ProtectedRoute>}>
                   <Route index element={<ProcessingDashboard />} />
+                  <Route path="sustainability" element={<ResourceSustainabilityView />} />
                   <Route path="batches/:batchId" element={<ProcessingBatchDetail />} />
                 </Route>
 
+                {/* Transport MVP */}
                 {/* Transport Module */}
                 <Route path="/transport" element={<ProtectedRoute allowedRoles={['TRANSPORT']}><TransportLayout /></ProtectedRoute>}>
                   <Route index element={<TransportDashboard />} />
@@ -171,6 +174,8 @@ function App() {
                   <Route path="earnings" element={<TransportEarnings />} />
                   <Route path="profile" element={<TransportProfile />} />
                 </Route>
+                <Route path="/teacher" element={<ProtectedRoute allowedRoles={['EDUCATOR']}><ResourceLibrary /></ProtectedRoute>} />
+                <Route path="/educator" element={<Navigate to="/teacher" replace />} />
                 <Route path="/teacher" element={<ProtectedRoute allowedRoles={['EDUCATOR']}><ResourceLibrary /></ProtectedRoute>} />
                 <Route path="/educator" element={<Navigate to="/teacher" replace />} />
 

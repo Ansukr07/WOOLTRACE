@@ -4,6 +4,100 @@ const GlobalStateContext = createContext();
 
 export const useGlobalState = () => useContext(GlobalStateContext);
 
+
+const INITIAL_RESOURCE_LOGS = [
+  {
+    id: "RSL-2026-0089",
+    batchId: "WT-KA-2026-00124",
+    stage: "SCOURING",
+    stageName: "Wool Scouring & Washing",
+    date: "2026-08-15T14:30:00Z",
+    processedQtyKg: 428,
+    waterLiters: 3295,
+    recycledWaterLiters: 815,
+    waterIntensityLPerKg: 7.7,
+    energyKwh: 120,
+    energyIntensityKwhPerKg: 0.28,
+    yieldPct: 92.4,
+    costInr: 1450,
+    operator: "Ramesh Kumar",
+    status: "OPTIMAL",
+    notes: "Standard scouring cycle with hot water recirculation."
+  },
+  {
+    id: "RSL-2026-0088",
+    batchId: "WT-RJ-2026-00089",
+    stage: "CARDING",
+    stageName: "Carding & Combing",
+    date: "2026-08-15T11:15:00Z",
+    processedQtyKg: 650,
+    waterLiters: 1950,
+    recycledWaterLiters: 480,
+    waterIntensityLPerKg: 3.0,
+    energyKwh: 234,
+    energyIntensityKwhPerKg: 0.36,
+    yieldPct: 94.1,
+    costInr: 2180,
+    operator: "Suresh Patel",
+    status: "OPTIMAL",
+    notes: "Mechanical carding with eco-lubricant spray."
+  },
+  {
+    id: "RSL-2026-0087",
+    batchId: "WT-KA-2026-00121",
+    stage: "DYEING",
+    stageName: "Natural Dyeing & Tinting",
+    date: "2026-08-14T16:45:00Z",
+    processedQtyKg: 350,
+    waterLiters: 4200,
+    recycledWaterLiters: 1100,
+    waterIntensityLPerKg: 12.0,
+    energyKwh: 185,
+    energyIntensityKwhPerKg: 0.53,
+    yieldPct: 91.8,
+    costInr: 3420,
+    operator: "Meena Sharma",
+    status: "WARNING",
+    notes: "Indigo natural dye bath cycle. Water intensity high due to triple rinse."
+  },
+  {
+    id: "RSL-2026-0086",
+    batchId: "WT-HP-2026-00045",
+    stage: "DRYING",
+    stageName: "Thermal Convection Drying",
+    date: "2026-08-14T09:20:00Z",
+    processedQtyKg: 500,
+    waterLiters: 250,
+    recycledWaterLiters: 0,
+    waterIntensityLPerKg: 0.5,
+    energyKwh: 310,
+    energyIntensityKwhPerKg: 0.62,
+    yieldPct: 98.2,
+    costInr: 2790,
+    operator: "Anil Kumar",
+    status: "ANOMALY",
+    notes: "High energy consumption spike due to chamber heater #3 calibration issue."
+  },
+  {
+    id: "RSL-2026-0085",
+    batchId: "WT-MH-2026-00078",
+    stage: "SPINNING",
+    stageName: "Yarn Spinning & Winding",
+    date: "2026-08-13T15:10:00Z",
+    processedQtyKg: 600,
+    waterLiters: 480,
+    recycledWaterLiters: 120,
+    waterIntensityLPerKg: 0.8,
+    energyKwh: 168,
+    energyIntensityKwhPerKg: 0.28,
+    yieldPct: 95.6,
+    costInr: 1512,
+    operator: "Deepak Verma",
+    status: "OPTIMAL",
+    notes: "Low twist yarn spinning line running on off-peak tariff."
+  }
+];
+
 // Initial Seed Batches with Complete Farm-to-Fabric Traceability and Events
 const INITIAL_BATCHES = [
   {
@@ -833,6 +927,22 @@ const INITIAL_PROCESSING_RECORDS = [
 ];
 
 export const GlobalStateProvider = ({ children }) => {
+
+  // -- Energy & Water Consumption Tracking State --
+  const [resourceLogs, setResourceLogs] = useState(() => {
+    const stored = localStorage.getItem("wt_resource_logs_v1");
+    return stored ? JSON.parse(stored) : INITIAL_RESOURCE_LOGS;
+  });
+  const [waterReuseRate, setWaterReuseRate] = useState(24.7);
+
+  useEffect(() => {
+    localStorage.setItem("wt_resource_logs_v1", JSON.stringify(resourceLogs));
+  }, [resourceLogs]);
+
+  const logResourceUsage = (newLog) => {
+    setResourceLogs(prev => [newLog, ...prev]);
+  };
+
   const [batches, setBatches] = useState(() => {
     const stored = localStorage.getItem('wt_batches_v2');
     return stored ? JSON.parse(stored) : INITIAL_BATCHES;
@@ -1416,6 +1526,7 @@ export const GlobalStateProvider = ({ children }) => {
 
   return (
     <GlobalStateContext.Provider value={{
+      resourceLogs, logResourceUsage, waterReuseRate, setWaterReuseRate,
       batches, addBatch, updateBatch, addTraceEvent,
       certificates, addCertificate,
       warehouses,

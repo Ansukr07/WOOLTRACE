@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Dependencies
 /node_modules
 /.pnp
@@ -70,3 +71,56 @@ scratch_inspect.py
 update_context.py
 update.js
 .vercel
+=======
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Production build outputs
+dist/
+dist-ssr/
+build/
+
+# Logs & debugging
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment & local settings
+.env
+.env.local
+.env.*.local
+!.env.example
+*.local
+
+# Python cache & temporary scripts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# Editor & System files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# Vercel / Deployment caches
+.vercel
+.vercel-cli-data/
+>>>>>>> 8df42b9 (Feature: Processing- Water and Energy usage analytics for processing partner with charts)
