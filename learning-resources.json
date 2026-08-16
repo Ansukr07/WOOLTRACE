@@ -10,7 +10,14 @@
     "sourceOrganization": "Department of Animal Husbandry and Dairying",
     "sourceUrl": "https://dahd.gov.in/extension-and-publicity/entrepreneurial-activities/sheep-goat",
     "thumbnailUrl": "",
-    "isOfficial": true
+    "isOfficial": true,
+    "source": "Department of Animal Husbandry and Dairying",
+    "url": "https://dahd.gov.in/extension-and-publicity/entrepreneurial-activities/sheep-goat",
+    "thumbnail": "",
+    "uploadedBy": "seed",
+    "createdAt": null,
+    "views": 0,
+    "active": true
   },
   {
     "id": "dahd-iec-material",
@@ -23,7 +30,14 @@
     "sourceOrganization": "Department of Animal Husbandry and Dairying",
     "sourceUrl": "https://dahd.gov.in/extension-publicity/iec-material",
     "thumbnailUrl": "",
-    "isOfficial": true
+    "isOfficial": true,
+    "source": "Department of Animal Husbandry and Dairying",
+    "url": "https://dahd.gov.in/extension-publicity/iec-material",
+    "thumbnail": "",
+    "uploadedBy": "seed",
+    "createdAt": null,
+    "views": 0,
+    "active": true
   },
   {
     "id": "dahd-nlm-scheme-brochure",
@@ -36,7 +50,14 @@
     "sourceOrganization": "Department of Animal Husbandry and Dairying",
     "sourceUrl": "https://www.dahd.gov.in/en/nlm-scheme-brochure",
     "thumbnailUrl": "",
-    "isOfficial": true
+    "isOfficial": true,
+    "source": "Department of Animal Husbandry and Dairying",
+    "url": "https://www.dahd.gov.in/en/nlm-scheme-brochure",
+    "thumbnail": "",
+    "uploadedBy": "seed",
+    "createdAt": null,
+    "views": 0,
+    "active": true
   },
   {
     "id": "icar-hindi-resource-17467",
@@ -49,7 +70,14 @@
     "sourceOrganization": "Indian Council of Agricultural Research",
     "sourceUrl": "https://www.icar.gov.in/hi/node/17467",
     "thumbnailUrl": "",
-    "isOfficial": true
+    "isOfficial": true,
+    "source": "Indian Council of Agricultural Research",
+    "url": "https://www.icar.gov.in/hi/node/17467",
+    "thumbnail": "",
+    "uploadedBy": "seed",
+    "createdAt": null,
+    "views": 0,
+    "active": true
   },
   {
     "id": "icar-youtube-sheep-wool-video-pwe7pkewpik",
@@ -62,7 +90,14 @@
     "sourceOrganization": "Indian Council of Agricultural Research",
     "sourceUrl": "https://www.youtube.com/watch?v=pwe7PKEwpIk",
     "thumbnailUrl": "",
-    "isOfficial": true
+    "isOfficial": true,
+    "source": "Indian Council of Agricultural Research",
+    "url": "https://www.youtube.com/watch?v=pwe7PKEwpIk",
+    "thumbnail": "",
+    "uploadedBy": "seed",
+    "createdAt": null,
+    "views": 0,
+    "active": true
   },
   {
     "id": "icar-youtube-sheep-wool-video-ib9swphvroc",
@@ -75,7 +110,14 @@
     "sourceOrganization": "Indian Council of Agricultural Research",
     "sourceUrl": "https://www.youtube.com/watch?v=iB9SWPHvrOc",
     "thumbnailUrl": "",
-    "isOfficial": true
+    "isOfficial": true,
+    "source": "Indian Council of Agricultural Research",
+    "url": "https://www.youtube.com/watch?v=iB9SWPHvrOc",
+    "thumbnail": "",
+    "uploadedBy": "seed",
+    "createdAt": null,
+    "views": 0,
+    "active": true
   },
   {
     "id": "icar-youtube-sheep-wool-video-e9ytf6mqogo",
@@ -88,7 +130,14 @@
     "sourceOrganization": "Indian Council of Agricultural Research",
     "sourceUrl": "https://www.youtube.com/watch?v=E9YTF6mqOgo",
     "thumbnailUrl": "",
-    "isOfficial": true
+    "isOfficial": true,
+    "source": "Indian Council of Agricultural Research",
+    "url": "https://www.youtube.com/watch?v=E9YTF6mqOgo",
+    "thumbnail": "",
+    "uploadedBy": "seed",
+    "createdAt": null,
+    "views": 0,
+    "active": true
   },
   {
     "id": "icar-resource-15143",
@@ -101,7 +150,14 @@
     "sourceOrganization": "Indian Council of Agricultural Research",
     "sourceUrl": "https://www.icar.gov.in/en/node/15143",
     "thumbnailUrl": "",
-    "isOfficial": true
+    "isOfficial": true,
+    "source": "Indian Council of Agricultural Research",
+    "url": "https://www.icar.gov.in/en/node/15143",
+    "thumbnail": "",
+    "uploadedBy": "seed",
+    "createdAt": null,
+    "views": 0,
+    "active": true
   },
   {
     "id": "icar-cswri-farmer-scientist-interaction",
@@ -114,7 +170,14 @@
     "sourceOrganization": "Indian Council of Agricultural Research",
     "sourceUrl": "https://www.icar.gov.in/en/icar-cswri-organises-farmer-scientist-interaction",
     "thumbnailUrl": "",
-    "isOfficial": true
+    "isOfficial": true,
+    "source": "Indian Council of Agricultural Research",
+    "url": "https://www.icar.gov.in/en/icar-cswri-organises-farmer-scientist-interaction",
+    "thumbnail": "",
+    "uploadedBy": "seed",
+    "createdAt": null,
+    "views": 0,
+    "active": true
   },
   {
     "id": "icar-cswri-avikanagar-foundation-udaipur",
@@ -127,7 +190,14 @@
     "sourceOrganization": "Indian Council of Agricultural Research",
     "sourceUrl": "https://www.icar.gov.in/en/bhaakaranaupa-saiesadabalayauuaraai-avaikaanagara-evan-kaeda-phaaundaesana-udayapaura-kae",
     "thumbnailUrl": "",
-    "isOfficial": true
+    "isOfficial": true,
+    "source": "Indian Council of Agricultural Research",
+    "url": "https://www.icar.gov.in/en/bhaakaranaupa-saiesadabalayauuaraai-avaikaanagara-evan-kaeda-phaaundaesana-udayapaura-kae",
+    "thumbnail": "",
+    "uploadedBy": "seed",
+    "createdAt": null,
+    "views": 0,
+    "active": true
   },
   {
     "id": "icar-workshop-sheep-enterprises-natural-fibers",
@@ -140,7 +210,14 @@
     "sourceOrganization": "Indian Council of Agricultural Research",
     "sourceUrl": "https://www.icar.gov.in/en/workshop-agribusiness-incubation-sheep-enterprises-and-use-natural-fibers-place-plastics",
     "thumbnailUrl": "",
-    "isOfficial": true
+    "isOfficial": true,
+    "source": "Indian Council of Agricultural Research",
+    "url": "https://www.icar.gov.in/en/workshop-agribusiness-incubation-sheep-enterprises-and-use-natural-fibers-place-plastics",
+    "thumbnail": "",
+    "uploadedBy": "seed",
+    "createdAt": null,
+    "views": 0,
+    "active": true
   },
   {
     "id": "himachal-woolfed-resource-efjsg8gfypambh3jq8y8q",
@@ -153,7 +230,14 @@
     "sourceOrganization": "Himachal Pradesh Wool Federation",
     "sourceUrl": "https://himachal.nic.in/woolfed/Content/MenuContent?qs=EFjSG8GfYpAmbH3jQ8y%2F8Q%3D%3D",
     "thumbnailUrl": "",
-    "isOfficial": true
+    "isOfficial": true,
+    "source": "Himachal Pradesh Wool Federation",
+    "url": "https://himachal.nic.in/woolfed/Content/MenuContent?qs=EFjSG8GfYpAmbH3jQ8y%2F8Q%3D%3D",
+    "thumbnail": "",
+    "uploadedBy": "seed",
+    "createdAt": null,
+    "views": 0,
+    "active": true
   },
   {
     "id": "himachal-woolfed-resource-hyhm1mkjnaaytf7o4ndrq",
@@ -166,7 +250,14 @@
     "sourceOrganization": "Himachal Pradesh Wool Federation",
     "sourceUrl": "https://himachal.nic.in/woolfed/Content/MenuContent?qs=h%2Fyhm1mKjnAaYTf7O4ndRQ%3D%3D",
     "thumbnailUrl": "",
-    "isOfficial": true
+    "isOfficial": true,
+    "source": "Himachal Pradesh Wool Federation",
+    "url": "https://himachal.nic.in/woolfed/Content/MenuContent?qs=h%2Fyhm1mKjnAaYTf7O4ndRQ%3D%3D",
+    "thumbnail": "",
+    "uploadedBy": "seed",
+    "createdAt": null,
+    "views": 0,
+    "active": true
   },
   {
     "id": "himachal-woolfed-resource-hyhm1mkjnah59nmyffpdw",
@@ -179,7 +270,14 @@
     "sourceOrganization": "Himachal Pradesh Wool Federation",
     "sourceUrl": "https://himachal.nic.in/woolfed/Content/MenuContent?qs=h%2Fyhm1mKjnAh59nMyFFpDw%3D%3D",
     "thumbnailUrl": "",
-    "isOfficial": true
+    "isOfficial": true,
+    "source": "Himachal Pradesh Wool Federation",
+    "url": "https://himachal.nic.in/woolfed/Content/MenuContent?qs=h%2Fyhm1mKjnAh59nMyFFpDw%3D%3D",
+    "thumbnail": "",
+    "uploadedBy": "seed",
+    "createdAt": null,
+    "views": 0,
+    "active": true
   },
   {
     "id": "udhampur-sheep-husbandry",
@@ -192,7 +290,14 @@
     "sourceOrganization": "District Udhampur",
     "sourceUrl": "https://udhampur.nic.in/sheep-husbandry/",
     "thumbnailUrl": "",
-    "isOfficial": true
+    "isOfficial": true,
+    "source": "District Udhampur",
+    "url": "https://udhampur.nic.in/sheep-husbandry/",
+    "thumbnail": "",
+    "uploadedBy": "seed",
+    "createdAt": null,
+    "views": 0,
+    "active": true
   },
   {
     "id": "india-gov-sheep-husbandry-jammu-kashmir",
@@ -205,7 +310,14 @@
     "sourceOrganization": "National Portal of India",
     "sourceUrl": "https://www.india.gov.in/category/agriculture-rural-environment/subcategory/animal-husbandry-fisheries/details/information-on-sheep-husbandry-jammu-Kashmir",
     "thumbnailUrl": "",
-    "isOfficial": true
+    "isOfficial": true,
+    "source": "National Portal of India",
+    "url": "https://www.india.gov.in/category/agriculture-rural-environment/subcategory/animal-husbandry-fisheries/details/information-on-sheep-husbandry-jammu-Kashmir",
+    "thumbnail": "",
+    "uploadedBy": "seed",
+    "createdAt": null,
+    "views": 0,
+    "active": true
   },
   {
     "id": "uttarakhand-nlm-entrepreneurship-development-program",
@@ -218,6 +330,13 @@
     "sourceOrganization": "Animal Husbandry Department, Uttarakhand",
     "sourceUrl": "https://ahd.uk.gov.in/scheme/national-livestock-mission-entrepreneurship-development-program/",
     "thumbnailUrl": "",
-    "isOfficial": true
+    "isOfficial": true,
+    "source": "Animal Husbandry Department, Uttarakhand",
+    "url": "https://ahd.uk.gov.in/scheme/national-livestock-mission-entrepreneurship-development-program/",
+    "thumbnail": "",
+    "uploadedBy": "seed",
+    "createdAt": null,
+    "views": 0,
+    "active": true
   }
 ]

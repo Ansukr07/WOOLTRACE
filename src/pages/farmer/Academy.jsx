@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Award,
@@ -39,8 +39,10 @@ import {
   RESOURCE_CATEGORIES,
   RESOURCE_REGIONS,
   RESOURCE_TYPES,
+  fetchLearningResources,
   filterLearningResources,
   getRecommendedLearningResources,
+  incrementLearningResourceViews,
 } from '../../services/learningResources';
 import './Academy.css';
 import { jsPDF } from 'jspdf';
@@ -969,6 +971,7 @@ const Academy = () => {
   const [resourceRegion, setResourceRegion] = useState('Recommended');
   const [resourceType, setResourceType] = useState('All');
   const [resourceDetail, setResourceDetail] = useState(null);
+  const [resources, setResources] = useState([]);
 
   // Modal states
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -981,7 +984,15 @@ const Academy = () => {
 
   const t = copy[activeLanguage] || copy.en;
   const filters = ['All', 'Beginner', 'Intermediate', 'Advanced'];
-  const recommendedResources = useMemo(() => getRecommendedLearningResources(user?.state), [user?.state]);
+  const recommendedResources = useMemo(() => getRecommendedLearningResources(user?.state, resources), [resources, user?.state]);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchLearningResources({ active: true }).then((items) => {
+      if (mounted) setResources(items);
+    });
+    return () => { mounted = false; };
+  }, []);
 
   // Persist language choice
   const switchLanguage = (code) => {
@@ -1025,14 +1036,15 @@ const Academy = () => {
   const visibleResources = useMemo(() => {
     const baseResources = resourceRegion === 'Recommended'
       ? recommendedResources
-      : filterLearningResources(recommendedResources, { region: resourceRegion });
+      : resources;
 
     return filterLearningResources(baseResources, {
       query: searchQuery,
       category: resourceCategory,
+      region: resourceRegion === 'Recommended' ? 'All' : resourceRegion,
       type: resourceType,
     });
-  }, [recommendedResources, resourceCategory, resourceRegion, resourceType, searchQuery]);
+  }, [recommendedResources, resourceCategory, resourceRegion, resourceType, resources, searchQuery]);
 
   // Download guide (creates a PDF using jsPDF)
   const downloadGuide = (guide) => {
@@ -1096,6 +1108,16 @@ const Academy = () => {
 
   // Check if any module has progress (for CTA label)
   const hasProgress = moduleData.some((m) => getProgress(m.id) > 0);
+
+  const openResource = async (resource) => {
+    try {
+      const updated = await incrementLearningResourceViews(resource.id);
+      setResources((current) => current.map((item) => item.id === updated.id ? updated : item));
+    } catch (error) {
+      console.warn('Unable to update resource views:', error);
+    }
+    window.open(resource.url, '_blank', 'noopener');
+  };
 
   return (
     <div className="academy-page">
@@ -1381,10 +1403,10 @@ const Academy = () => {
               </div>
               <h3>{resource.title}</h3>
               <p>{resource.description}</p>
-              <strong>{resource.sourceOrganization}</strong>
+              <strong>{resource.source}</strong>
               <div className="resource-actions">
                 <button onClick={() => setResourceDetail(resource)}>Details</button>
-                <button onClick={() => window.open(resource.sourceUrl, '_blank', 'noopener')}>
+                <button onClick={() => openResource(resource)}>
                   Open <ExternalLink size={13} />
                 </button>
               </div>
@@ -1449,19 +1471,19 @@ const Academy = () => {
       )}
       {joinCohort && <CohortJoinModal cohort={joinCohort} onClose={() => setJoinCohort(null)} t={t} />}
       {schemeDetail && <SchemeDetailModal scheme={schemeDetail} onClose={() => setSchemeDetail(null)} t={t} />}
-      {resourceDetail && <ResourceDetailModal resource={resourceDetail} onClose={() => setResourceDetail(null)} />}
+      {resourceDetail && <ResourceDetailModal resource={resourceDetail} onOpen={openResource} onClose={() => setResourceDetail(null)} />}
     </div>
   );
 };
 
-const ResourceDetailModal = ({ resource, onClose }) => (
+const ResourceDetailModal = ({ resource, onOpen, onClose }) => (
   <div className="modal-backdrop" onClick={onClose}>
     <div className="modal-panel resource-detail-modal" onClick={(event) => event.stopPropagation()}>
       <div className="modal-header">
         <div>
           <div className="scheme-status">{resource.category}</div>
           <h2>{resource.title}</h2>
-          <p>{resource.sourceOrganization}</p>
+          <p>{resource.source}</p>
         </div>
         <button className="modal-close" onClick={onClose}><X size={20} /></button>
       </div>
@@ -1474,7 +1496,7 @@ const ResourceDetailModal = ({ resource, onClose }) => (
         </div>
       </div>
       <div className="modal-footer">
-        <button className="scheme-apply-btn-full" onClick={() => window.open(resource.sourceUrl, '_blank', 'noopener')}>
+        <button className="scheme-apply-btn-full" onClick={() => onOpen(resource)}>
           Open official resource <ExternalLink size={15} />
         </button>
       </div>

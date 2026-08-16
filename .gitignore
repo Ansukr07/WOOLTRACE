@@ -69,3 +69,4 @@ fix_context.py
 scratch_inspect.py
 update_context.py
 update.js
+.vercel

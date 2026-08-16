@@ -33,15 +33,37 @@ const LearningResourceSchema = new mongoose.Schema({
   },
   sourceOrganization: {
     type: String,
+  },
+  source: {
+    type: String,
     required: true,
   },
   sourceUrl: {
+    type: String,
+  },
+  url: {
     type: String,
     required: true,
   },
   thumbnailUrl: {
     type: String,
     default: '',
+  },
+  thumbnail: {
+    type: String,
+    default: '',
+  },
+  uploadedBy: {
+    type: String,
+    default: 'seed',
+  },
+  views: {
+    type: Number,
+    default: 0,
+  },
+  active: {
+    type: Boolean,
+    default: true,
   },
   isOfficial: {
     type: Boolean,
