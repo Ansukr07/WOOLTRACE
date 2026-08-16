@@ -18,6 +18,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     if (user.role === 'WAREHOUSE') return <Navigate to="/warehouse" replace />;
     if (user.role === 'TRANSPORT') return <Navigate to="/transport" replace />;
     if (user.role === 'PROCESSING_UNIT') return <Navigate to="/processing" replace />;
+    if (user.role === 'EDUCATOR') return <Navigate to="/teacher" replace />;
     
     // Fallback if role is unmapped
     return <Navigate to="/login" replace />;

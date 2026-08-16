@@ -52,6 +52,7 @@ const Register = () => {
         else if (selectedRole === 'QUALITY_INSPECTOR') navigate('/inspector');
         else if (selectedRole === 'WAREHOUSE') navigate('/warehouse');
         else if (selectedRole === 'TRANSPORT') navigate('/transport');
+        else if (selectedRole === 'EDUCATOR') navigate('/teacher');
         else navigate('/login');
       }, 1000);
     } else {

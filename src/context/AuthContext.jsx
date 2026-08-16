@@ -58,6 +58,15 @@ const DEMO_USERS = {
     state: 'Karnataka',
     preferredLanguage: 'en'
   },
+  'educator@wooltrace.com': {
+    id: 'EDU-01',
+    name: 'WoolTrace Educator',
+    email: 'educator@wooltrace.com',
+    mobile: '9800011122',
+    role: 'EDUCATOR',
+    state: 'All India',
+    preferredLanguage: 'en'
+  },
   'processing@wooltrace.com': {
     id: 'PR-01',
     name: 'WoolCraft Processing Centre',
@@ -163,6 +172,7 @@ export const AuthProvider = ({ children }) => {
         if (cleanId.includes('warehouse')) role = 'WAREHOUSE';
         if (cleanId.includes('transport')) role = 'TRANSPORT';
         if (cleanId.includes('processing')) role = 'PROCESSING_UNIT';
+        if (cleanId.includes('educator') || cleanId.includes('teacher')) role = 'EDUCATOR';
 
         const demoUser = {
           id: `DEMO-${Date.now()}`,
@@ -182,6 +192,7 @@ export const AuthProvider = ({ children }) => {
       else if (cleanId.includes('seller') || cleanId.includes('buyer')) inferredRole = 'SELLER';
       else if (cleanId.includes('transport')) inferredRole = 'TRANSPORT';
       else if (cleanId.includes('processing')) inferredRole = 'PROCESSING_UNIT';
+      else if (cleanId.includes('educator') || cleanId.includes('teacher')) inferredRole = 'EDUCATOR';
 
       const fallbackUser = {
         id: `USER-${Date.now().toString().slice(-4)}`,

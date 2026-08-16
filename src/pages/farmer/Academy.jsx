@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Award,
@@ -8,7 +8,6 @@ import {
   ClipboardList,
   Download,
   Factory,
-  FileText,
   Globe2,
   GraduationCap,
   Handshake,
@@ -27,7 +26,6 @@ import {
   TrendingUp,
   Truck,
   Users,
-  Video,
   Warehouse,
   X,
   Phone,
@@ -36,6 +34,14 @@ import {
   Star,
 } from 'lucide-react';
 import { moduleData } from './components/moduleData';
+import { useAuth } from '../../context/AuthContext';
+import {
+  RESOURCE_CATEGORIES,
+  RESOURCE_REGIONS,
+  RESOURCE_TYPES,
+  filterLearningResources,
+  getRecommendedLearningResources,
+} from '../../services/learningResources';
 import './Academy.css';
 import { jsPDF } from 'jspdf';
 
@@ -75,6 +81,8 @@ const copy = {
     cohortsSubtitle: 'Join a nearby farmer training group. Learn together, improve wool quality, and access better markets.',
     guidesTitle: 'Practical Guides',
     guidesSubtitle: 'Quick-reference guides you can download and use in the field.',
+    resourcesTitle: 'Official Learning Resources',
+    resourcesSubtitle: 'Recommended official resources based on your state, with All India resources included.',
     schemesTitle: 'Government Schemes & Support',
     schemesSubtitle: 'Know the wool-related schemes that can help you earn more and access support.',
     startLesson: 'Start Lesson',
@@ -949,6 +957,7 @@ const toneAccent = { ivory: '#EDEDCE', blue: '#BED5E5', lime: '#DDFF86', coral: 
 /* ─── Academy Component ──────────────────────────────────────────────────── */
 const Academy = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const modulesRef = useRef(null);
 
   const [activeLanguage, setActiveLanguage] = useState(
@@ -956,6 +965,10 @@ const Academy = () => {
   );
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [resourceCategory, setResourceCategory] = useState('All');
+  const [resourceRegion, setResourceRegion] = useState('Recommended');
+  const [resourceType, setResourceType] = useState('All');
+  const [resourceDetail, setResourceDetail] = useState(null);
 
   // Modal states
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -968,6 +981,7 @@ const Academy = () => {
 
   const t = copy[activeLanguage] || copy.en;
   const filters = ['All', 'Beginner', 'Intermediate', 'Advanced'];
+  const recommendedResources = useMemo(() => getRecommendedLearningResources(user?.state), [user?.state]);
 
   // Persist language choice
   const switchLanguage = (code) => {
@@ -996,17 +1010,29 @@ const Academy = () => {
       );
     }
     return mods;
-  }, [activeFilter, searchQuery]);
+  }, [activeFilter, searchLower, searchQuery]);
 
   const visibleGuides = useMemo(() => {
     if (!searchQuery) return guides;
     return guides.filter((g) => g.title.toLowerCase().includes(searchLower) || g.desc.toLowerCase().includes(searchLower));
-  }, [searchQuery]);
+  }, [searchLower, searchQuery]);
 
   const visibleCohorts = useMemo(() => {
     if (!searchQuery) return cohorts;
     return cohorts.filter((c) => c.village.toLowerCase().includes(searchLower) || c.state.toLowerCase().includes(searchLower));
-  }, [searchQuery]);
+  }, [searchLower, searchQuery]);
+
+  const visibleResources = useMemo(() => {
+    const baseResources = resourceRegion === 'Recommended'
+      ? recommendedResources
+      : filterLearningResources(recommendedResources, { region: resourceRegion });
+
+    return filterLearningResources(baseResources, {
+      query: searchQuery,
+      category: resourceCategory,
+      type: resourceType,
+    });
+  }, [recommendedResources, resourceCategory, resourceRegion, resourceType, searchQuery]);
 
   // Download guide (creates a PDF using jsPDF)
   const downloadGuide = (guide) => {
@@ -1157,7 +1183,7 @@ const Academy = () => {
       </section>
 
       {/* ── Search empty state ── */}
-      {searchQuery && visibleModules.length === 0 && visibleGuides.length === 0 && visibleCohorts.length === 0 && (
+      {searchQuery && visibleModules.length === 0 && visibleGuides.length === 0 && visibleCohorts.length === 0 && visibleResources.length === 0 && (
         <div className="academy-no-results">
           <Search size={36} />
           <p>{t.noResults} "<strong>{searchQuery}</strong>"</p>
@@ -1323,6 +1349,50 @@ const Academy = () => {
         </section>
       )}
 
+      {/* Official Learning Resources */}
+      <section className="resources-section">
+        <div className="section-heading">
+          <div>
+            <h2>{t.resourcesTitle || copy.en.resourcesTitle}</h2>
+            <p>{t.resourcesSubtitle || copy.en.resourcesSubtitle}</p>
+          </div>
+          <div className="resource-filters">
+            <select value={resourceCategory} onChange={(event) => setResourceCategory(event.target.value)} aria-label="Filter resources by category">
+              <option>All</option>
+              {RESOURCE_CATEGORIES.map((item) => <option key={item}>{item}</option>)}
+            </select>
+            <select value={resourceRegion} onChange={(event) => setResourceRegion(event.target.value)} aria-label="Filter resources by region">
+              <option>Recommended</option>
+              <option>All</option>
+              {RESOURCE_REGIONS.map((item) => <option key={item}>{item}</option>)}
+            </select>
+            <select value={resourceType} onChange={(event) => setResourceType(event.target.value)} aria-label="Filter resources by type">
+              <option>All</option>
+              {RESOURCE_TYPES.map((item) => <option key={item}>{item}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="resources-grid">
+          {visibleResources.map((resource) => (
+            <article key={resource.id} className="resource-card">
+              <div className="resource-meta">
+                <span>{resource.type}</span>
+                <span>{resource.region}</span>
+              </div>
+              <h3>{resource.title}</h3>
+              <p>{resource.description}</p>
+              <strong>{resource.sourceOrganization}</strong>
+              <div className="resource-actions">
+                <button onClick={() => setResourceDetail(resource)}>Details</button>
+                <button onClick={() => window.open(resource.sourceUrl, '_blank', 'noopener')}>
+                  Open <ExternalLink size={13} />
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
       {/* ── Government Schemes ── */}
       {!searchQuery && (
         <section className="schemes-section">
@@ -1379,9 +1449,38 @@ const Academy = () => {
       )}
       {joinCohort && <CohortJoinModal cohort={joinCohort} onClose={() => setJoinCohort(null)} t={t} />}
       {schemeDetail && <SchemeDetailModal scheme={schemeDetail} onClose={() => setSchemeDetail(null)} t={t} />}
+      {resourceDetail && <ResourceDetailModal resource={resourceDetail} onClose={() => setResourceDetail(null)} />}
     </div>
   );
 };
+
+const ResourceDetailModal = ({ resource, onClose }) => (
+  <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-panel resource-detail-modal" onClick={(event) => event.stopPropagation()}>
+      <div className="modal-header">
+        <div>
+          <div className="scheme-status">{resource.category}</div>
+          <h2>{resource.title}</h2>
+          <p>{resource.sourceOrganization}</p>
+        </div>
+        <button className="modal-close" onClick={onClose}><X size={20} /></button>
+      </div>
+      <div className="resource-detail-body">
+        <p>{resource.description}</p>
+        <div className="resource-detail-grid">
+          <span><strong>Type</strong>{resource.type}</span>
+          <span><strong>Region</strong>{resource.region}</span>
+          <span><strong>Language</strong>{resource.language}</span>
+        </div>
+      </div>
+      <div className="modal-footer">
+        <button className="scheme-apply-btn-full" onClick={() => window.open(resource.sourceUrl, '_blank', 'noopener')}>
+          Open official resource <ExternalLink size={15} />
+        </button>
+      </div>
+    </div>
+  </div>
+);
 
 /* ─── Inline lightweight ScheduleModal ──────────────────────────────────── */
 const scheduleSessions = [
@@ -1398,7 +1497,11 @@ const ScheduleModal = ({ onClose, t }) => {
   const toggle = (idx) => {
     setRsvpd((prev) => {
       const next = new Set(prev);
-      next.has(idx) ? next.delete(idx) : next.add(idx);
+      if (next.has(idx)) {
+        next.delete(idx);
+      } else {
+        next.add(idx);
+      }
       return next;
     });
   };

@@ -65,6 +65,7 @@ const ProcessingBatchDetail = React.lazy(() => import('./pages/processing/Proces
 // Public
 const VerifyCertificate = React.lazy(() => import('./pages/public/VerifyCertificate'));
 const PublicTrackBatch = React.lazy(() => import('./pages/public/PublicTrackBatch'));
+const ResourceLibrary = React.lazy(() => import('./pages/teacher/ResourceLibrary'));
 
 const DummyDashboard = ({ name }) => (
   <div style={{ padding: '40px' }}>
@@ -148,6 +149,8 @@ function App() {
 
                 {/* Transport MVP */}
                 <Route path="/transport" element={<ProtectedRoute allowedRoles={['TRANSPORT']}><DummyDashboard name="Transport" /></ProtectedRoute>} />
+                <Route path="/teacher" element={<ProtectedRoute allowedRoles={['EDUCATOR']}><ResourceLibrary /></ProtectedRoute>} />
+                <Route path="/educator" element={<Navigate to="/teacher" replace />} />
 
                 {/* Public Verification & Tracking */}
                 <Route path="/verify/:certificateId" element={<VerifyCertificate />} />
