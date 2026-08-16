@@ -107,7 +107,7 @@ export default function WarehouseDashboard() {
       </div>
 
       {/* Grid: Stored Batches & Incoming Batches */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '24px', marginBottom: '28px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '28px' }}>
         {/* Currently Stored Batches */}
         <div style={{ background: '#FFFFFF', padding: '24px', borderRadius: '16px', border: '1px solid rgba(11, 18, 13, 0.10)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -189,7 +189,7 @@ export default function WarehouseDashboard() {
       </div>
 
       {/* Grid: Pending Requests & Outgoing/Expiring Batches */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
         {/* Pending Storage Requests */}
         <div style={{ background: '#FFFFFF', padding: '24px', borderRadius: '16px', border: '1px solid rgba(11, 18, 13, 0.10)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>

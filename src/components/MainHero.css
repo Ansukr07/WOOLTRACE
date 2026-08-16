@@ -223,24 +223,19 @@
     width: 100px;
     height: 36px;
   }
-  .overlay-bottom-left {
-    flex-direction: column;
-    align-items: flex-start;
+  .heading-line {
+    flex-wrap: wrap;
     gap: 16px;
   }
-  .stats-container {
-    flex-direction: column;
-    width: 100%;
+  .overlay-bottom-left {
+    display: none;
   }
   .overlay-bottom-right {
-    position: relative;
-    bottom: auto;
-    right: auto;
-    margin-top: 24px;
+    display: none;
   }
   .main-hero-image-wrapper {
-    height: auto;
-    min-height: 600px;
+    height: 400px;
+    min-height: auto;
   }
   .image-overlay {
     padding: 24px;

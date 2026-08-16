@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, QrCode, Boxes, Inbox, ArrowUpRight, 
-  LogOut, RefreshCw, User, Warehouse
+  LogOut, RefreshCw, Warehouse, Menu, X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useGlobalState } from '../context/GlobalStateContext';
@@ -12,6 +12,7 @@ export default function WarehouseLayout() {
   const { user, logout, switchRole } = useAuth();
   const { warehouseRequests, releaseRequests } = useGlobalState();
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const pendingStorageCount = warehouseRequests.filter(r => r.status === 'Pending').length;
   const pendingReleaseCount = releaseRequests.filter(r => r.status === 'Pending').length;
@@ -99,12 +100,82 @@ export default function WarehouseLayout() {
         </nav>
       </aside>
 
+      {/* Mobile Navigation Overlay */}
+      {isMobileMenuOpen && (
+        <div className="mobile-nav-overlay" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="mobile-nav-content" onClick={e => e.stopPropagation()}>
+            <div className="mobile-nav-header">
+              <Link to="/warehouse" className="logo" onClick={() => setIsMobileMenuOpen(false)}>
+                WOOL<span>TRACE</span>
+              </Link>
+              <button onClick={() => setIsMobileMenuOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                <X size={24} color="#0B120D" />
+              </button>
+            </div>
+            <nav className="mobile-nav-links">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.name}
+                  to={item.path}
+                  end={item.end}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                >
+                  {item.icon}
+                  <span style={{ flex: 1 }}>{item.name}</span>
+                  {item.badge && (
+                    <span style={{
+                      background: '#DDFF86',
+                      color: '#0B120D',
+                      padding: '2px 8px',
+                      borderRadius: '100px',
+                      fontSize: '11px',
+                      fontWeight: '800'
+                    }}>
+                      {item.badge}
+                    </span>
+                  )}
+                </NavLink>
+              ))}
+
+              <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '16px', borderTop: '1px solid #E5E5E5' }}>
+                <button
+                  onClick={() => { handleRoleSwitch(); setIsMobileMenuOpen(false); }}
+                  className="nav-item"
+                  style={{ background: 'none', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
+                >
+                  <RefreshCw size={18} />
+                  <span>Switch to Farmer</span>
+                </button>
+                <button
+                  onClick={() => { logout(); setIsMobileMenuOpen(false); }}
+                  className="nav-item"
+                  style={{ background: 'none', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left', color: '#DC2626' }}
+                >
+                  <LogOut size={18} />
+                  <span>Logout</span>
+                </button>
+              </div>
+            </nav>
+          </div>
+        </div>
+      )}
+
       {/* Main Area */}
       <div className="warehouse-main">
         <header className="warehouse-top-header">
-          <div className="warehouse-hub-name">
-            <Warehouse size={20} color="#0B120D" />
-            <span>Mysuru Wool Storage Centre (WH-01)</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button 
+              className="mobile-menu-toggle"
+              onClick={() => setIsMobileMenuOpen(true)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'none', padding: '4px' }}
+            >
+              <Menu size={24} color="#0B120D" />
+            </button>
+            <div className="warehouse-hub-name">
+              <Warehouse size={20} color="#0B120D" />
+              <span className="hub-name-text">Mysuru Wool Storage Centre (WH-01)</span>
+            </div>
           </div>
 
           <div className="warehouse-header-actions">
