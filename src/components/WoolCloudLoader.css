@@ -1,6 +1,6 @@
-/* WoolTrace Translucent Wool Cloud Loader (Aligned with brand.md) */
+/* Minimalist & Elegant Professional Loader */
 
-.wool-cloud-loader-wrapper {
+.minimal-loader-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -9,209 +9,91 @@
   z-index: 99999;
 }
 
-.wool-cloud-loader-wrapper.fullscreen-overlay {
+.minimal-loader-wrapper.fullscreen-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(11, 18, 13, 0.78); /* Ink Green translucent backdrop */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  animation: fadeInOverlay 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Very clean, slightly translucent dark overlay */
+  background: rgba(11, 18, 13, 0.85); 
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: minimalFadeIn 0.4s ease-out;
 }
 
-.wool-cloud-loader-wrapper.inline-loader {
-  padding: 30px;
+.minimal-loader-wrapper.inline-loader {
+  padding: 40px;
   background: transparent;
 }
 
-@keyframes fadeInOverlay {
+@keyframes minimalFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-/* Container for rotating cloud & orbit */
-.wool-cloud-container {
+.minimal-loader-container {
   position: relative;
-  width: 160px;
-  height: 160px;
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 24px;
 }
 
-/* Outer Trace Line Orbit */
-.wool-trace-orbit {
+/* Elegant sleek spinner */
+.minimal-spinner {
   position: absolute;
-  width: 150px;
-  height: 150px;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  border: 2px dashed rgba(221, 255, 134, 0.4); /* Soft Lime low opacity */
-  animation: rotateOrbit 8s linear infinite;
+  border: 2px solid rgba(221, 255, 134, 0.1); /* Subtle lime background track */
+  border-top-color: #DDFF86; /* Sharp lime accent */
+  animation: elegantSpin 1s cubic-bezier(0.6, 0.2, 0.4, 0.8) infinite;
 }
 
-.orbit-dot {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  box-shadow: 0 0 10px rgba(221, 255, 134, 0.8);
-}
-
-.farm-dot {
-  top: -4px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #DDFF86; /* Soft Lime */
-}
-
-.quality-dot {
-  right: -4px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: #BED5E5; /* Sky Blue */
-}
-
-.market-dot {
-  bottom: -4px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #EDEDCE; /* Warm Ivory */
-}
-
-.processing-dot {
-  left: -4px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: #FFAAA4; /* Soft Coral */
-}
-
-@keyframes rotateOrbit {
+@keyframes elegantSpin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-/* Rotating Cloud Core */
-.wool-cloud-core {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: floatCloud 3s ease-in-out infinite alternate;
-}
-
-.wool-cloud-svg {
-  width: 120px;
-  height: 120px;
-  filter: drop-shadow(0 8px 24px rgba(221, 255, 134, 0.25));
-  animation: rotateWoolCloud 10s ease-in-out infinite alternate;
-}
-
-@keyframes rotateWoolCloud {
-  0% { transform: rotate(-8deg) scale(0.98); }
-  50% { transform: rotate(12deg) scale(1.04); }
-  100% { transform: rotate(-8deg) scale(0.98); }
-}
-
-@keyframes floatCloud {
-  0% { transform: translateY(-4px); }
-  100% { transform: translateY(6px); }
-}
-
-/* Layer Animations inside SVG */
-.layer-back {
-  animation: pulseBackLayer 2.5s ease-in-out infinite alternate;
-}
-
-.layer-mid {
-  animation: pulseMidLayer 3s ease-in-out infinite alternate;
-}
-
-.layer-front {
-  animation: pulseFrontLayer 2s ease-in-out infinite alternate;
-}
-
-@keyframes pulseBackLayer {
-  0% { opacity: 0.7; transform: scale(0.96); transform-origin: center; }
-  100% { opacity: 1; transform: scale(1.04); transform-origin: center; }
-}
-
-@keyframes pulseMidLayer {
-  0% { opacity: 0.85; transform: scale(1.02); transform-origin: center; }
-  100% { opacity: 0.6; transform: scale(0.95); transform-origin: center; }
-}
-
-@keyframes pulseFrontLayer {
-  0% { opacity: 0.6; }
-  100% { opacity: 0.95; }
-}
-
-.wool-fiber-path, .wool-fiber-path-2 {
-  stroke-dasharray: 6 3;
-  animation: dashMove 4s linear infinite;
-}
-
-@keyframes dashMove {
-  to { stroke-dashoffset: -36; }
-}
-
-/* Center Monogram Badge */
-.wool-center-badge {
-  position: absolute;
-  width: 44px;
-  height: 44px;
-  background: #0B120D;
-  border: 2px solid #DDFF86;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  z-index: 10;
-}
-
-.wool-badge-wt {
+/* Minimalist center logo */
+.minimal-center-logo {
   font-size: 14px;
-  font-weight: 900;
-  color: #DDFF86;
-  letter-spacing: -0.05em;
-}
-
-/* Loader Caption Typography */
-.wool-loader-caption {
-  margin-top: 24px;
-  text-align: center;
+  font-weight: 800;
   color: #FFFFFF;
-}
-
-.wool-loader-caption .brand-title {
-  font-size: 18px;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-  color: #FFFFFF;
-}
-
-.wool-loader-caption .brand-title span {
-  color: #DDFF86;
-}
-
-.wool-loader-caption .status-text {
-  font-size: 13px;
-  font-weight: 600;
-  color: #BED5E5; /* Light Sky Blue */
-  margin: 6px 0 10px 0;
-  letter-spacing: 0.02em;
-}
-
-.trace-line-indicator {
-  font-size: 11px;
-  color: rgba(237, 237, 206, 0.6); /* Warm Ivory low opacity */
   letter-spacing: 0.05em;
+  z-index: 2;
+  animation: subtlePulse 2s ease-in-out infinite alternate;
 }
 
-.trace-line-indicator span {
-  font-weight: 600;
+@keyframes subtlePulse {
+  0% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* Clean typography */
+.minimal-loader-text {
+  text-align: center;
+}
+
+.minimal-brand {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #FFFFFF;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.minimal-brand span {
+  color: #DDFF86;
+}
+
+.minimal-status {
+  font-size: 13px;
+  font-weight: 400;
+  color: #A1A1AA; /* Soft neutral gray */
+  letter-spacing: 0.02em;
 }

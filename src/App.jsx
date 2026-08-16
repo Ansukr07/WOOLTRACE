@@ -62,6 +62,18 @@ const ProcessingLayout = React.lazy(() => import('./layouts/ProcessingLayout'));
 const ProcessingDashboard = React.lazy(() => import('./pages/processing/ProcessingDashboard'));
 const ProcessingBatchDetail = React.lazy(() => import('./pages/processing/ProcessingBatchDetail'));
 
+// Transport Module
+const TransportLayout = React.lazy(() => import('./layouts/TransportLayout'));
+const TransportDashboard = React.lazy(() => import('./pages/transport/TransportDashboard'));
+const TransportRequests = React.lazy(() => import('./pages/transport/TransportRequests'));
+const RequestDetail = React.lazy(() => import('./pages/transport/RequestDetail'));
+const ActiveShipments = React.lazy(() => import('./pages/transport/ActiveShipments'));
+const ShipmentDetail = React.lazy(() => import('./pages/transport/ShipmentDetail'));
+const TransportHistory = React.lazy(() => import('./pages/transport/TransportHistory'));
+const Vehicles = React.lazy(() => import('./pages/transport/Vehicles'));
+const TransportEarnings = React.lazy(() => import('./pages/transport/TransportEarnings'));
+const TransportProfile = React.lazy(() => import('./pages/transport/TransportProfile'));
+
 // Public
 const VerifyCertificate = React.lazy(() => import('./pages/public/VerifyCertificate'));
 const PublicTrackBatch = React.lazy(() => import('./pages/public/PublicTrackBatch'));
@@ -147,8 +159,18 @@ function App() {
                   <Route path="batches/:batchId" element={<ProcessingBatchDetail />} />
                 </Route>
 
-                {/* Transport MVP */}
-                <Route path="/transport" element={<ProtectedRoute allowedRoles={['TRANSPORT']}><DummyDashboard name="Transport" /></ProtectedRoute>} />
+                {/* Transport Module */}
+                <Route path="/transport" element={<ProtectedRoute allowedRoles={['TRANSPORT']}><TransportLayout /></ProtectedRoute>}>
+                  <Route index element={<TransportDashboard />} />
+                  <Route path="requests" element={<TransportRequests />} />
+                  <Route path="requests/:id" element={<RequestDetail />} />
+                  <Route path="active" element={<ActiveShipments />} />
+                  <Route path="shipment/:id" element={<ShipmentDetail />} />
+                  <Route path="history" element={<TransportHistory />} />
+                  <Route path="vehicles" element={<Vehicles />} />
+                  <Route path="earnings" element={<TransportEarnings />} />
+                  <Route path="profile" element={<TransportProfile />} />
+                </Route>
                 <Route path="/teacher" element={<ProtectedRoute allowedRoles={['EDUCATOR']}><ResourceLibrary /></ProtectedRoute>} />
                 <Route path="/educator" element={<Navigate to="/teacher" replace />} />
 
