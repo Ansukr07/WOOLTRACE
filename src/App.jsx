@@ -174,9 +174,6 @@ function App() {
                   <Route path="earnings" element={<TransportEarnings />} />
                   <Route path="profile" element={<TransportProfile />} />
                 </Route>
-                <Route path="/teacher" element={<ProtectedRoute allowedRoles={['EDUCATOR']}><ResourceLibrary /></ProtectedRoute>} />
-                <Route path="/educator" element={<Navigate to="/teacher" replace />} />
-                <Route path="/teacher" element={<ProtectedRoute allowedRoles={['EDUCATOR']}><ResourceLibrary /></ProtectedRoute>} />
                 <Route path="/educator" element={<Navigate to="/teacher" replace />} />
 
                 {/* Public Verification & Tracking */}
