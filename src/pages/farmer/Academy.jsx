@@ -8,7 +8,6 @@ import {
   ClipboardList,
   Download,
   Factory,
-  FileText,
   Globe2,
   GraduationCap,
   Handshake,
@@ -27,7 +26,6 @@ import {
   TrendingUp,
   Truck,
   Users,
-  Video,
   Warehouse,
   X,
   Phone,
@@ -36,7 +34,18 @@ import {
   Star,
 } from 'lucide-react';
 import { moduleData } from './components/moduleData';
+import { useAuth } from '../../context/AuthContext';
+import {
+  RESOURCE_CATEGORIES,
+  RESOURCE_REGIONS,
+  RESOURCE_TYPES,
+  fetchLearningResources,
+  filterLearningResources,
+  getRecommendedLearningResources,
+  incrementLearningResourceViews,
+} from '../../services/learningResources';
 import './Academy.css';
+import { jsPDF } from 'jspdf';
 
 /* ─── Languages ─────────────────────────────────────────────────────────── */
 const languages = [
@@ -74,6 +83,8 @@ const copy = {
     cohortsSubtitle: 'Join a nearby farmer training group. Learn together, improve wool quality, and access better markets.',
     guidesTitle: 'Practical Guides',
     guidesSubtitle: 'Quick-reference guides you can download and use in the field.',
+    resourcesTitle: 'Official Learning Resources',
+    resourcesSubtitle: 'Recommended official resources based on your state, with All India resources included.',
     schemesTitle: 'Government Schemes & Support',
     schemesSubtitle: 'Know the wool-related schemes that can help you earn more and access support.',
     startLesson: 'Start Lesson',
@@ -948,6 +959,7 @@ const toneAccent = { ivory: '#EDEDCE', blue: '#BED5E5', lime: '#DDFF86', coral: 
 /* ─── Academy Component ──────────────────────────────────────────────────── */
 const Academy = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const modulesRef = useRef(null);
 
   const [activeLanguage, setActiveLanguage] = useState(
@@ -955,6 +967,11 @@ const Academy = () => {
   );
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [resourceCategory, setResourceCategory] = useState('All');
+  const [resourceRegion, setResourceRegion] = useState('Recommended');
+  const [resourceType, setResourceType] = useState('All');
+  const [resourceDetail, setResourceDetail] = useState(null);
+  const [resources, setResources] = useState([]);
 
   // Modal states
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -967,6 +984,15 @@ const Academy = () => {
 
   const t = copy[activeLanguage] || copy.en;
   const filters = ['All', 'Beginner', 'Intermediate', 'Advanced'];
+  const recommendedResources = useMemo(() => getRecommendedLearningResources(user?.state, resources), [resources, user?.state]);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchLearningResources({ active: true }).then((items) => {
+      if (mounted) setResources(items);
+    });
+    return () => { mounted = false; };
+  }, []);
 
   // Persist language choice
   const switchLanguage = (code) => {
@@ -995,30 +1021,84 @@ const Academy = () => {
       );
     }
     return mods;
-  }, [activeFilter, searchQuery]);
+  }, [activeFilter, searchLower, searchQuery]);
 
   const visibleGuides = useMemo(() => {
     if (!searchQuery) return guides;
     return guides.filter((g) => g.title.toLowerCase().includes(searchLower) || g.desc.toLowerCase().includes(searchLower));
-  }, [searchQuery]);
+  }, [searchLower, searchQuery]);
 
   const visibleCohorts = useMemo(() => {
     if (!searchQuery) return cohorts;
     return cohorts.filter((c) => c.village.toLowerCase().includes(searchLower) || c.state.toLowerCase().includes(searchLower));
-  }, [searchQuery]);
+  }, [searchLower, searchQuery]);
 
-  // Download guide (creates a simple text blob)
+  const visibleResources = useMemo(() => {
+    const baseResources = resourceRegion === 'Recommended'
+      ? recommendedResources
+      : resources;
+
+    return filterLearningResources(baseResources, {
+      query: searchQuery,
+      category: resourceCategory,
+      region: resourceRegion === 'Recommended' ? 'All' : resourceRegion,
+      type: resourceType,
+    });
+  }, [recommendedResources, resourceCategory, resourceRegion, resourceType, resources, searchQuery]);
+
+  // Download guide (creates a PDF using jsPDF)
   const downloadGuide = (guide) => {
-    const content = `WoolTrace Farmer Academy\n\n${guide.title}\n\n${guide.desc}\n\nPages: ${guide.pages}\n\nThis guide is provided by WoolTrace — From Farm to Fabric.\nVisit: https://wooltrace.in`;
-    const blob = new Blob([content], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = guide.file;
-    a.click();
-    URL.revokeObjectURL(url);
-    setDownloadToast(guide.title);
-    setTimeout(() => setDownloadToast(null), 3000);
+    try {
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.text("WoolTrace Farmer Academy", 20, 20);
+      doc.setFontSize(14);
+      doc.text(guide.title, 20, 40);
+      doc.setFontSize(12);
+      
+      // Handle potentially long descriptions
+      const splitDesc = doc.splitTextToSize(guide.desc, 170);
+      doc.text(splitDesc, 20, 50);
+      
+      let currentY = 50 + (splitDesc.length * 7) + 10;
+      
+      doc.setFontSize(10);
+      // Generate some dummy content based on the title to make it look like a real guide
+      let content = "";
+      if (guide.title.includes("Shearing")) {
+        content = "1. Spring Shearing (March-April): Ideal for most regions.\n2. Autumn Shearing (Sept-Oct): Secondary shearing season.\n\nBest Practices:\n- Keep the shearing floor clean.\n- Avoid second cuts to maintain staple length.\n- Separate stained wool immediately.\n- Ensure sheep are dry before shearing.";
+      } else if (guide.title.includes("Grading")) {
+        content = "BIS Wool Grades:\n- Fine Wool: < 25 microns. Used for apparel.\n- Medium Wool: 25-35 microns. Used for blankets and knitwear.\n- Coarse Wool: > 35 microns. Used for carpets.\n\nColor Grading:\n- White: Premium value.\n- Yellow/Tinged: Lower value due to dyeing difficulty.\n- Black/Grey: Naturally colored, niche market.";
+      } else if (guide.title.includes("QR")) {
+        content = "Step 1: Open the WoolTrace Farmer App.\nStep 2: Go to 'My Wool' and select 'Create Batch'.\nStep 3: Enter the shearing details, weight, and breed.\nStep 4: Click 'Generate QR'.\nStep 5: Print the QR code and attach it to the wool bale.\nStep 6: When buyers scan it, they will see the full history.";
+      } else if (guide.title.includes("Feed")) {
+        content = "Summer Nutrition:\n- Ensure constant access to clean water.\n- Supplement with mineral blocks.\n\nWinter Nutrition:\n- Provide high-quality hay or silage.\n- Increase energy intake with grains like maize or oats.\n- Protein supplements (e.g., soybean meal) improve wool growth.";
+      } else if (guide.title.includes("Price")) {
+        content = "Understanding Mandi Prices:\n- Prices fluctuate based on global demand and local supply.\n- Check the WoolTrace 'Market' tab for real-time rates.\n- Premium prices are paid for well-skirted, clean, white wool.\n- Negotiate based on your wool's micron count and yield percentage.";
+      } else if (guide.title.includes("Storage")) {
+        content = "Storage Guidelines:\n1. Keep it Dry: Moisture ruins wool and causes rotting.\n2. Off the Ground: Store bales on pallets to prevent dampness.\n3. Pest Control: Keep the storage area free of rodents and moths.\n4. Avoid Contamination: Do not store near chemicals, fuels, or strong odors.\n5. Ventilation: Ensure good airflow in the warehouse.";
+      } else {
+        content = "1. Introduction to the topic.\n2. Step-by-step instructions.\n3. Best practices for farmers.\n4. Common mistakes to avoid.\n5. Resources and helpline numbers.";
+      }
+      
+      const splitContent = doc.splitTextToSize(content, 170);
+      doc.text(splitContent, 20, currentY);
+      
+      currentY += (splitContent.length * 5) + 20;
+      
+      doc.setFontSize(10);
+      doc.text(`Pages: ${guide.pages}`, 20, currentY);
+      doc.text("This guide is provided by WoolTrace — From Farm to Fabric.", 20, currentY + 10);
+      doc.text("Visit: https://wooltrace.in", 20, currentY + 15);
+      
+      const fileName = guide.file.endsWith('.pdf') ? guide.file : guide.file.replace('.txt', '.pdf');
+      doc.save(fileName);
+      
+      setDownloadToast(guide.title);
+      setTimeout(() => setDownloadToast(null), 3000);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    }
   };
 
   // Scroll to modules
@@ -1028,6 +1108,16 @@ const Academy = () => {
 
   // Check if any module has progress (for CTA label)
   const hasProgress = moduleData.some((m) => getProgress(m.id) > 0);
+
+  const openResource = async (resource) => {
+    try {
+      const updated = await incrementLearningResourceViews(resource.id);
+      setResources((current) => current.map((item) => item.id === updated.id ? updated : item));
+    } catch (error) {
+      console.warn('Unable to update resource views:', error);
+    }
+    window.open(resource.url, '_blank', 'noopener');
+  };
 
   return (
     <div className="academy-page">
@@ -1115,7 +1205,7 @@ const Academy = () => {
       </section>
 
       {/* ── Search empty state ── */}
-      {searchQuery && visibleModules.length === 0 && visibleGuides.length === 0 && visibleCohorts.length === 0 && (
+      {searchQuery && visibleModules.length === 0 && visibleGuides.length === 0 && visibleCohorts.length === 0 && visibleResources.length === 0 && (
         <div className="academy-no-results">
           <Search size={36} />
           <p>{t.noResults} "<strong>{searchQuery}</strong>"</p>
@@ -1281,6 +1371,50 @@ const Academy = () => {
         </section>
       )}
 
+      {/* Official Learning Resources */}
+      <section className="resources-section">
+        <div className="section-heading">
+          <div>
+            <h2>{t.resourcesTitle || copy.en.resourcesTitle}</h2>
+            <p>{t.resourcesSubtitle || copy.en.resourcesSubtitle}</p>
+          </div>
+          <div className="resource-filters">
+            <select value={resourceCategory} onChange={(event) => setResourceCategory(event.target.value)} aria-label="Filter resources by category">
+              <option>All</option>
+              {RESOURCE_CATEGORIES.map((item) => <option key={item}>{item}</option>)}
+            </select>
+            <select value={resourceRegion} onChange={(event) => setResourceRegion(event.target.value)} aria-label="Filter resources by region">
+              <option>Recommended</option>
+              <option>All</option>
+              {RESOURCE_REGIONS.map((item) => <option key={item}>{item}</option>)}
+            </select>
+            <select value={resourceType} onChange={(event) => setResourceType(event.target.value)} aria-label="Filter resources by type">
+              <option>All</option>
+              {RESOURCE_TYPES.map((item) => <option key={item}>{item}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="resources-grid">
+          {visibleResources.map((resource) => (
+            <article key={resource.id} className="resource-card">
+              <div className="resource-meta">
+                <span>{resource.type}</span>
+                <span>{resource.region}</span>
+              </div>
+              <h3>{resource.title}</h3>
+              <p>{resource.description}</p>
+              <strong>{resource.source}</strong>
+              <div className="resource-actions">
+                <button onClick={() => setResourceDetail(resource)}>Details</button>
+                <button onClick={() => openResource(resource)}>
+                  Open <ExternalLink size={13} />
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
       {/* ── Government Schemes ── */}
       {!searchQuery && (
         <section className="schemes-section">
@@ -1337,9 +1471,38 @@ const Academy = () => {
       )}
       {joinCohort && <CohortJoinModal cohort={joinCohort} onClose={() => setJoinCohort(null)} t={t} />}
       {schemeDetail && <SchemeDetailModal scheme={schemeDetail} onClose={() => setSchemeDetail(null)} t={t} />}
+      {resourceDetail && <ResourceDetailModal resource={resourceDetail} onOpen={openResource} onClose={() => setResourceDetail(null)} />}
     </div>
   );
 };
+
+const ResourceDetailModal = ({ resource, onOpen, onClose }) => (
+  <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-panel resource-detail-modal" onClick={(event) => event.stopPropagation()}>
+      <div className="modal-header">
+        <div>
+          <div className="scheme-status">{resource.category}</div>
+          <h2>{resource.title}</h2>
+          <p>{resource.source}</p>
+        </div>
+        <button className="modal-close" onClick={onClose}><X size={20} /></button>
+      </div>
+      <div className="resource-detail-body">
+        <p>{resource.description}</p>
+        <div className="resource-detail-grid">
+          <span><strong>Type</strong>{resource.type}</span>
+          <span><strong>Region</strong>{resource.region}</span>
+          <span><strong>Language</strong>{resource.language}</span>
+        </div>
+      </div>
+      <div className="modal-footer">
+        <button className="scheme-apply-btn-full" onClick={() => onOpen(resource)}>
+          Open official resource <ExternalLink size={15} />
+        </button>
+      </div>
+    </div>
+  </div>
+);
 
 /* ─── Inline lightweight ScheduleModal ──────────────────────────────────── */
 const scheduleSessions = [
@@ -1356,7 +1519,11 @@ const ScheduleModal = ({ onClose, t }) => {
   const toggle = (idx) => {
     setRsvpd((prev) => {
       const next = new Set(prev);
-      next.has(idx) ? next.delete(idx) : next.add(idx);
+      if (next.has(idx)) {
+        next.delete(idx);
+      } else {
+        next.add(idx);
+      }
       return next;
     });
   };

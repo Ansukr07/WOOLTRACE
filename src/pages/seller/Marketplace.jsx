@@ -128,7 +128,7 @@ export default function Marketplace() {
       </div>
 
       {/* Product Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
         {filteredListings.map(listing => {
           const cert = certificates.find(c => c.batchId === listing.batchId);
           

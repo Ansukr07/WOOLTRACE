@@ -203,6 +203,12 @@
   margin-top: 24px;
 }
 
+@media (max-width: 768px) {
+  .qa-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .qa-form-group {
   display: flex;
   flex-direction: column;
@@ -259,3 +265,5 @@
   font-size: 15px;
   cursor: pointer;
 }
+
+

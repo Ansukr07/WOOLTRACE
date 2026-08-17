@@ -1,0 +1,50 @@
+
+.resource-history-container {
+  background: #FFFFFF;
+  border-radius: 14px;
+  border: 1px solid rgba(11, 18, 13, 0.10);
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  margin-bottom: 24px;
+}
+.panel-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.panel-header-row h3 { font-size: 18px; font-weight: 700; color: #0B120D; display: flex; align-items: center; gap: 8px; }
+.panel-sub { font-size: 13px; color: #64748B; margin-top: 2px; }
+.table-header-actions { display: flex; gap: 10px; }
+.table-toolbar { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.search-box {
+  background: #F8F8F3;
+  border: 1px solid rgba(11, 18, 13, 0.12);
+  border-radius: 8px;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 400px;
+}
+.search-box input { border: none; background: transparent; width: 100%; font-family: inherit; font-size: 13px; outline: none; }
+.filter-dropdowns { display: flex; gap: 10px; }
+.filter-dropdowns select {
+  background: #F8F8F3;
+  border: 1px solid rgba(11, 18, 13, 0.12);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+}
+.table-responsive { overflow-x: auto; }
+.resource-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.resource-table th {
+  background: #F8F8F3; color: #475569; font-weight: 700; text-align: left; padding: 12px 14px;
+  border-bottom: 1px solid #E2E8F0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;
+}
+.resource-table td { padding: 14px; border-bottom: 1px solid #F1F5F9; color: #0B120D; vertical-align: middle; }
+.log-date { font-size: 11px; color: #64748B; font-weight: 500; }
+.batch-pill { background: #F1F5F9; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 12px; }
+.sub-text { font-size: 11px; color: #64748B; }
+.text-red { color: #DC2626; }
+.text-blue { color: #0284C7; }
+.badge-yield { background: #FEF3C7; color: #92400E; font-weight: 700; padding: 3px 8px; border-radius: 12px; font-size: 12px; }
+.btn-sm { padding: 8px 14px; font-size: 12px; }

@@ -1,24 +1,90 @@
-import React, { useState } from 'react';
-import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ClipboardList, CheckSquare, User, Bell, Menu, X, LogOut, Factory } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Outlet, NavLink, Link } from 'react-router-dom';
+import { Leaf,  LayoutDashboard, Bell, Menu, X, LogOut, Factory, Truck, AlertTriangle, CheckCircle, Package } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './ProcessingLayout.css';
 
+const INITIAL_NOTIFICATIONS = [
+  {
+    id: 'NOTIF-01',
+    title: 'Incoming Shipment Approaching',
+    message: 'Batch WT-KA-2026-00124 (428 KG) is in transit from Mysuru Warehouse. ETA: 42 min.',
+    time: '12 mins ago',
+    type: 'TRANSPORT',
+    icon: <Truck size={16} className="text-orange" />,
+    unread: true
+  },
+  {
+    id: 'NOTIF-02',
+    title: 'Processing Delay Alert',
+    message: 'Batch WT-KA-2026-00121 (Carding) delayed by 2h 40m due to equipment calibration.',
+    time: '45 mins ago',
+    type: 'DELAY',
+    icon: <AlertTriangle size={16} className="text-amber" />,
+    unread: true
+  },
+  {
+    id: 'NOTIF-03',
+    title: 'Warehouse Release Approved',
+    message: 'Storage release approved for 500 KG raw fleece from Mysuru Storage Centre.',
+    time: '2 hours ago',
+    type: 'WAREHOUSE',
+    icon: <Package size={16} className="text-blue" />,
+    unread: true
+  },
+  {
+    id: 'NOTIF-04',
+    title: 'Outbound Delivery Confirmed',
+    message: 'Output batch WT-KA-2026-00098-P02 (380 KG) delivered to Bengaluru Apparel Ltd.',
+    time: '4 hours ago',
+    type: 'DELIVERY',
+    icon: <CheckCircle size={16} className="text-green" />,
+    unread: false
+  }
+];
+
 const ProcessingLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const notifRef = useRef(null);
+
+  const unreadCount = notifications.filter(n => n.unread).length;
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
   };
 
+  const toggleNotifications = () => {
+    setShowNotifications(prev => !prev);
+  };
+
+  const markAllAsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+  };
+
+  const markAsRead = (id) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const navItems = [
-    { name: 'DASHBOARD', path: '/processing', icon: <LayoutDashboard size={20} />, end: true }
+    { name: 'DASHBOARD', path: '/processing', icon: <LayoutDashboard size={20} />, end: true },
+    { name: 'RESOURCE & SUSTAINABILITY', path: '/processing/sustainability', icon: <Leaf size={20} /> }
   ];
 
-  const initials = user ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) : 'PU';
+  const initials = user ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'PU';
 
   return (
     <div className="processing-layout">
@@ -61,10 +127,60 @@ const ProcessingLayout = () => {
           </div>
           
           <div className="processing-header-right">
-            <button className="processing-icon-btn">
-              <Bell size={20} />
-              <span className="processing-badge">3</span>
-            </button>
+            {/* Interactive Notification Bell */}
+            <div className="notif-wrapper" ref={notifRef}>
+              <button 
+                className={`processing-icon-btn ${showNotifications ? 'active' : ''}`} 
+                onClick={toggleNotifications}
+                title="Notifications"
+              >
+                <Bell size={20} />
+                {unreadCount > 0 && <span className="processing-badge">{unreadCount}</span>}
+              </button>
+
+              {/* Notification Popover Dropdown */}
+              {showNotifications && (
+                <div className="notif-popover">
+                  <div className="notif-header">
+                    <div className="notif-title">
+                      <strong>Notifications</strong>
+                      {unreadCount > 0 && <span className="unread-pill">{unreadCount} new</span>}
+                    </div>
+                    {unreadCount > 0 && (
+                      <button className="mark-read-btn" onClick={markAllAsRead}>
+                        Mark all as read
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="notif-list">
+                    {notifications.length === 0 ? (
+                      <div className="notif-empty">No notifications</div>
+                    ) : (
+                      notifications.map((item) => (
+                        <div 
+                          key={item.id} 
+                          className={`notif-item ${item.unread ? 'unread' : ''}`}
+                          onClick={() => markAsRead(item.id)}
+                        >
+                          <div className="notif-item-icon">
+                            {item.icon}
+                          </div>
+                          <div className="notif-item-content">
+                            <div className="notif-item-title">{item.title}</div>
+                            <div className="notif-item-msg">{item.message}</div>
+                            <div className="notif-item-time">{item.time}</div>
+                          </div>
+                          {item.unread && <span className="unread-dot"></span>}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Profile */}
             <div className="processing-user-profile-menu">
               <div className="processing-avatar">
                 {initials}

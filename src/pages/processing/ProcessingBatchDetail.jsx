@@ -361,7 +361,7 @@ const ProcessingBatchDetail = () => {
               <h3>Accept Processing Request</h3>
             </div>
             <div className="modal-body" style={{ padding: '20px' }}>
-              <p>Are you sure you want to accept this request to process batch <strong>{batchId}</strong>?</p>
+              <p>Are you sure you want to accept this request to process batch <strong>{batchId}</strong>₹</p>
               <div className="requested-list-box">
                 <strong>Requested Operations:</strong>
                 <ul>

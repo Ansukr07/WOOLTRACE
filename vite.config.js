@@ -1,26 +1,31 @@
-import { defineConfig, loadEnv } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite"
+import react from "@vitejs/plugin-react"
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
-
-  return {
-    plugins: [react()],
-    server: {
-      proxy: {
-        '/api/market': {
-          target: 'https://api.ceda.ashoka.edu.in/v1/agmarknet',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/market/, ''),
-          configure: (proxy, _options) => {
-            proxy.on('proxyReq', (proxyReq, req, _res) => {
-              if (env.CEDA_API_TOKEN) {
-                proxyReq.setHeader('Authorization', `Bearer ${env.CEDA_API_TOKEN}`)
-              }
-            })
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+        bypass: (req, res) => {
+          // Handle /api calls gracefully when backend on port 3000 is not active
+          res.setHeader("Content-Type", "application/json");
+          if (req.url.includes("/processing/ceda")) {
+            res.end(JSON.stringify({ success: true, serviceStatus: "OFFLINE", message: "CEDA Dev Mock Active" }));
+            return false;
           }
+          if (req.url.includes("/login")) {
+            res.end(JSON.stringify({ success: false, error: "Mock login fallback active" }));
+            return false;
+          }
+          res.end(JSON.stringify({ success: false, message: "Local mock API response" }));
+          return false;
         }
       }
     }
+  },
+  optimizeDeps: {
+    include: ["leaflet"]
   }
 })

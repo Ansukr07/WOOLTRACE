@@ -377,6 +377,7 @@
 .module-section,
 .cohort-section,
 .guides-section,
+.resources-section,
 .schemes-section {
   display: grid;
   gap: 18px;
@@ -618,6 +619,145 @@
 }
 
 /* ── Government Schemes Section ── */
+
+/* Official Learning Resources */
+
+.resource-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.resource-filters select {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid rgba(11, 18, 13, 0.12);
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: #0B120D;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.resources-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.resource-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 230px;
+  padding: 18px;
+  border: 1px solid rgba(11, 18, 13, 0.1);
+  border-radius: 8px;
+  background: #FFFFFF;
+  box-shadow: 0 10px 30px rgba(11, 18, 13, 0.04);
+}
+
+.resource-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.resource-meta span {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(11, 18, 13, 0.07);
+  color: #0B120D;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.resource-card h3 {
+  margin: 14px 0 8px;
+  font-size: 17px;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.resource-card p {
+  margin: 0 0 12px;
+  color: rgba(11, 18, 13, 0.64);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.resource-card strong {
+  margin-top: auto;
+  font-size: 12px;
+}
+
+.resource-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.resource-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(11, 18, 13, 0.12);
+  background: #F8F8F3;
+  color: #0B120D;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.resource-actions button:last-child {
+  background: #0B120D;
+  color: #DDFF86;
+  border-color: #0B120D;
+}
+
+.resource-detail-modal {
+  max-width: 560px;
+}
+
+.resource-detail-body {
+  display: grid;
+  gap: 16px;
+  padding: 16px 24px 0;
+}
+
+.resource-detail-body p {
+  margin: 0;
+  color: rgba(11, 18, 13, 0.72);
+  line-height: 1.6;
+}
+
+.resource-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.resource-detail-grid span {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #F8F8F3;
+  color: rgba(11, 18, 13, 0.68);
+  font-size: 13px;
+}
+
+.resource-detail-grid strong {
+  color: #0B120D;
+  font-size: 11px;
+  text-transform: uppercase;
+}
 
 .schemes-grid {
   display: grid;
@@ -1484,5 +1624,23 @@
 
   .journey-node p {
     display: none;
+  }
+}
+
+@media (max-width: 1180px) {
+  .resources-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .resources-grid,
+  .resource-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .resource-filters,
+  .resource-filters select {
+    width: 100%;
   }
 }

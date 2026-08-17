@@ -140,6 +140,11 @@
 .text-bl { grid-column: 1; grid-row: 2; text-align: left; align-self: end; justify-self: end; margin-bottom: 20px; margin-right: 20px; }
 .text-br { grid-column: 3; grid-row: 2; text-align: left; align-self: end; justify-self: start; margin-bottom: 20px; margin-left: 20px; }
 
+/* Hide mobile accordion by default */
+.profile-mobile-accordion {
+  display: none;
+}
+
 /* Subtle connecting lines */
 .connection-lines {
   position: absolute;
@@ -184,37 +189,63 @@
   .profile-subtitle {
     font-size: 32px;
   }
-  .profile-content {
-    display: flex;
-    flex-direction: column;
-    gap: 32px;
+  .profile-desktop-grid {
+    display: none !important;
   }
-  .center-stage {
-    order: -1;
-    flex-direction: column;
-    align-items: center;
+  .profile-mobile-accordion {
+    display: block;
     width: 100%;
-    margin-bottom: 24px;
-    gap: 16px;
+  }
+  .profile-mobile-accordion .center-stage {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 32px;
   }
   .farmer-img {
-    margin-bottom: 24px;
-  }
-  .floating-card {
-    position: relative;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
-    bottom: auto !important;
     width: 100%;
-    margin: 0;
+    max-width: 320px;
+    height: auto;
+    border-radius: 16px;
   }
-  .connection-lines {
-    display: none;
+  .profile-mobile-accordion .accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
-  .text-block {
-    margin: 0 !important;
-    max-width: 100%;
-    width: 100%;
+  .profile-mobile-accordion .accordion-item {
+    background-color: #FFFFFF;
+    border: 1px solid rgba(11, 18, 13, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .profile-mobile-accordion .accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    cursor: pointer;
+    background-color: #F8F8F3;
+  }
+  .profile-mobile-accordion .toggle-btn {
+    background: none;
+    border: none;
+    color: var(--color-ink-green);
+    cursor: pointer;
+  }
+  .profile-mobile-accordion .accordion-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out;
+    background-color: #FFFFFF;
+  }
+  .profile-mobile-accordion .accordion-item.open .accordion-body {
+    max-height: 300px;
+  }
+  .profile-mobile-accordion .accordion-content {
+    padding: 20px;
+    color: #3F4942;
+    font-size: 15px;
+    line-height: 1.6;
+    border-top: 1px solid rgba(11, 18, 13, 0.05);
   }
 }

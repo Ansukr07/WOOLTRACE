@@ -1,0 +1,94 @@
+.public-track-page {
+  min-height: 100vh;
+  background-color: #F8F8F3;
+  padding: 40px 20px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #0B120D;
+}
+
+.public-track-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.public-brand-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.public-logo {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0B120D;
+  text-decoration: none;
+  letter-spacing: -0.03em;
+}
+
+.public-logo span {
+  color: #16A34A;
+}
+
+.public-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #0B120D;
+  color: #DDFF86;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 100px;
+}
+
+.public-main-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(11, 18, 13, 0.10);
+  border-radius: 18px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+}
+
+.public-cert-header {
+  text-align: center;
+  padding-bottom: 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid rgba(11, 18, 13, 0.08);
+}
+
+.public-batch-pill {
+  display: inline-block;
+  background: #EDEDCE;
+  color: #0B120D;
+  font-size: 18px;
+  font-weight: 800;
+  padding: 6px 16px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.public-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+  background: #F8F8F3;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.public-info-item label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #777;
+  margin-bottom: 4px;
+}
+
+.public-info-item .val {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0B120D;
+}

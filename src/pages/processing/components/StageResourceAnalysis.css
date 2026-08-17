@@ -1,0 +1,39 @@
+
+.stage-analysis-container { background: #FFFFFF; border-radius: 14px; border: 1px solid rgba(11, 18, 13, 0.10); padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03); }
+.panel-header-custom { margin-bottom: 20px; }
+.panel-header-custom h3 { font-size: 18px; font-weight: 700; color: #0B120D; display: flex; align-items: center; gap: 8px; }
+.panel-sub { font-size: 13px; color: #64748B; margin-top: 4px; }
+.stage-tabs-row { display: flex; gap: 8px; border-bottom: 1px solid #E2E8F0; padding-bottom: 12px; margin-bottom: 20px; overflow-x: auto; }
+.stage-tab-btn { background: #F8F8F3; border: 1px solid rgba(11, 18, 13, 0.08); border-radius: 8px; padding: 10px 16px; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 10px; white-space: nowrap; transition: all 0.2s; }
+.stage-tab-btn:hover { background: #EDEDCE; }
+.stage-tab-btn.active { background: #0B120D; color: #FFFFFF; border-color: #0B120D; }
+.stage-tab-name { font-size: 13px; font-weight: 600; }
+.stage-status-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 12px; text-transform: uppercase; }
+.stage-tab-btn.active .stage-status-badge { background: #DDFF86; color: #0B120D; }
+.status-optimal { background: #DCFCE7; color: #15803D; }
+.status-warning { background: #FEF3C7; color: #D97706; }
+.status-anomaly { background: #FEE2E2; color: #DC2626; }
+.stage-detail-card { background: #F8F8F3; border-radius: 12px; padding: 20px; border: 1px solid rgba(11, 18, 13, 0.06); }
+.stage-detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.stage-title-group h4 { font-size: 17px; font-weight: 700; color: #0B120D; }
+.stage-title-group p { font-size: 13px; color: #64748B; margin: 4px 0 8px; }
+.stage-equipment-tag { font-size: 12px; color: #334155; }
+.stage-score-box { background: #FFFFFF; border: 1px solid rgba(11, 18, 13, 0.10); border-radius: 10px; padding: 12px 18px; text-align: center; }
+.score-number { font-size: 24px; font-weight: 800; color: #0B120D; }
+.score-number span { font-size: 13px; color: #94A3B8; font-weight: 500; }
+.score-label { font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; }
+.stage-metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 20px; }
+.stage-metric-box { background: #FFFFFF; border-radius: 10px; padding: 16px; border: 1px solid rgba(11, 18, 13, 0.08); }
+.metric-box-title { font-size: 12px; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; text-transform: uppercase; }
+.metric-box-value { font-size: 22px; font-weight: 800; color: #0B120D; margin-bottom: 4px; }
+.metric-box-sub { font-size: 12px; color: #334155; margin-bottom: 8px; }
+.benchmark-text { font-size: 11px; color: #94A3B8; }
+.progress-bar-wrapper { background: #E2E8F0; height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+.progress-fill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+.progress-fill.good { background: #0284C7; }
+.progress-fill.over { background: #DC2626; }
+.metric-box-footer { font-size: 11px; color: #64748B; }
+.stage-recommendation-alert { border-radius: 10px; padding: 14px; display: flex; gap: 12px; align-items: flex-start; font-size: 13px; }
+.alert-optimal { background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; }
+.alert-warning { background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; }
+.alert-anomaly { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; }

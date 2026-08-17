@@ -27,6 +27,7 @@ export default async function handler(req, res) {
       if (identifier.includes('warehouse')) role = 'WAREHOUSE';
       if (identifier.includes('transport')) role = 'TRANSPORT';
       if (identifier.includes('processing')) role = 'PROCESSING_UNIT';
+      if (identifier.includes('educator') || identifier.includes('teacher')) role = 'EDUCATOR';
 
       user = await User.create({
         name: identifier.split('@')[0].toUpperCase(),
