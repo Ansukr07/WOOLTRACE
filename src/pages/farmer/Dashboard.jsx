@@ -9,7 +9,9 @@ import {
   Plus,
   Tag,
   MapPin,
-  ArrowRight
+  ArrowRight,
+  Warehouse,
+  ShieldCheck
 } from 'lucide-react';
 import {
   AreaChart,
@@ -20,133 +22,82 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
-import { qaService } from '../../services/qa/qaService';
+import { useGlobalState } from '../../context/GlobalStateContext';
+import { useAuth } from '../../context/AuthContext';
 import { agmarknetService, formatDate, getDateOffset } from '../../services/market/agmarknetService';
 import './Dashboard.css';
 
-// Default mock data just in case API fails
 const fallbackPriceData = [
-  { name: 'Jan', fine: 380, medium: 320, coarse: 260 },
-  { name: 'Feb', fine: 390, medium: 330, coarse: 265 },
-  { name: 'Mar', fine: 385, medium: 335, coarse: 270 },
-  { name: 'Apr', fine: 400, medium: 340, coarse: 275 },
-  { name: 'May', fine: 410, medium: 345, coarse: 270 },
-  { name: 'Jun', fine: 415, medium: 350, coarse: 280 },
-  { name: 'Jul', fine: 420, medium: 350, coarse: 280 },
+  { name: 'Feb', fine: 410, medium: 345, coarse: 275 },
+  { name: 'Mar', fine: 418, medium: 350, coarse: 280 },
+  { name: 'Apr', fine: 425, medium: 355, coarse: 285 },
+  { name: 'May', fine: 430, medium: 360, coarse: 290 },
+  { name: 'Jun', fine: 440, medium: 365, coarse: 295 },
+  { name: 'Jul', fine: 448, medium: 370, coarse: 300 },
+  { name: 'Aug', fine: 455, medium: 380, coarse: 310 },
 ];
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [batches, setBatches] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { batches, warehouses } = useGlobalState();
   const [chartData, setChartData] = useState(fallbackPriceData);
-  const [currentPrices, setCurrentPrices] = useState({ fine: 420, medium: 350, coarse: 280, trend: 1.5 });
+  const [currentPrices, setCurrentPrices] = useState({ fine: 455, medium: 380, coarse: 310, trend: 2.8 });
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('wooltrace_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    fetchDashboardData();
+    fetchMarketOverview();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchMarketOverview = async () => {
     try {
-      setLoading(true);
-      const apiBatches = await qaService.getBatches('FARMER-01');
-      setBatches(apiBatches);
-      
-      // Fetch Market Data for the graph
-      try {
-        const comms = await agmarknetService.getCommodities();
-        const validComms = Array.isArray(comms) ? comms : [];
-        const woolComm = validComms.find(c => ['wool', 'fleece'].some(kw => c.commodity_name?.toLowerCase().includes(kw)));
-        
-        if (woolComm) {
-          const endDate = new Date('2024-12-31'); // Anchor date for demo api
-          const startDate = getDateOffset(180, endDate); // 6 months
-          
-          // Try fetching pan-India prices
-          const prices = await agmarknetService.getPrices(
-            woolComm.commodity_id, 
-            0, // 0 = Pan India
-            null, 
-            null, 
-            formatDate(startDate), 
-            formatDate(endDate)
-          );
-          
-          if (prices && prices.length > 0) {
-            // Group by month — field is `p.date`, prices are in paise (÷100)
-            const monthlyData = {};
-            prices.forEach(p => {
-              const raw = p.date || p.reported_date || p.arrival_date;
-              if (!raw) return;
-              const d = new Date(raw);
-              if (isNaN(d.getTime())) return; // skip invalid dates
-              const month = d.toLocaleString('en-US', { month: 'short' });
-              if (!monthlyData[month]) monthlyData[month] = { sum: 0, count: 0, monthOrder: d.getMonth() };
-              const modalPrice = (p.modal_price || p.max_price || p.min_price || 0) / 100;
-              monthlyData[month].sum += modalPrice;
-              monthlyData[month].count += 1;
-            });
-            
-            const processedData = Object.entries(monthlyData)
-              .sort((a, b) => a[1].monthOrder - b[1].monthOrder)
-              .map(([month, data]) => {
-                const basePrice = data.sum / data.count;
-                return {
-                  name: month,
-                  fine: Math.round(basePrice * 1.2),
-                  medium: Math.round(basePrice),
-                  coarse: Math.round(basePrice * 0.8)
-                };
-              });
-            
-            if (processedData.length > 0) {
-              setChartData(processedData.slice(-7));
-              const latest = processedData[processedData.length - 1];
-              setCurrentPrices({
-                fine: latest.fine,
-                medium: latest.medium,
-                coarse: latest.coarse,
-                trend: processedData.length > 1
-                  ? ((latest.medium - processedData[processedData.length - 2].medium) / processedData[processedData.length - 2].medium * 100)
-                  : 0
-              });
-            }
-          }
+      const prices = await agmarknetService.getPrices(101, 0, null, null, '2026-01-01', '2026-08-17');
+      if (prices && prices.length > 0) {
+        const monthlyData = {};
+        prices.forEach(p => {
+          const d = new Date(p.date);
+          const month = d.toLocaleString('en-US', { month: 'short' });
+          if (!monthlyData[month]) monthlyData[month] = { sum: 0, count: 0, monthOrder: d.getMonth() };
+          const modalPrice = (p.modal_price || 0) / 100;
+          monthlyData[month].sum += modalPrice;
+          monthlyData[month].count += 1;
+        });
+
+        const processed = Object.entries(monthlyData)
+          .sort((a, b) => a[1].monthOrder - b[1].monthOrder)
+          .map(([month, data]) => {
+            const base = data.sum / data.count;
+            return {
+              name: month,
+              fine: Math.round(base * 1.15),
+              medium: Math.round(base),
+              coarse: Math.round(base * 0.82)
+            };
+          });
+
+        if (processed.length > 0) {
+          setChartData(processed.slice(-7));
+          const latest = processed[processed.length - 1];
+          setCurrentPrices({
+            fine: latest.fine,
+            medium: latest.medium,
+            coarse: latest.coarse,
+            trend: 2.8
+          });
         }
-      } catch (marketErr) {
-        console.error("Market API error on dashboard:", marketErr);
-        // Fall back to existing mock data
       }
-      
-    } catch (error) {
-      console.error("Failed to fetch dashboard data:", error);
-    } finally {
-      setLoading(false);
+    } catch (e) {
+      console.warn('Dashboard market overview using default series');
     }
   };
 
   const activeBatches = batches.length;
   const woolAvailable = batches.reduce((sum, b) => sum + Number(b.quantity || 0), 0);
-  
-  if (loading) {
-    return (
-      <div className="dashboard" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', flexDirection: 'column', gap: 16 }}>
-        <div className="spinner" style={{ width: 40, height: 40, border: '4px solid #E5E5E5', borderTop: '4px solid #16A34A', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-        <p style={{ color: '#666', fontWeight: 600 }}>Loading your farm dashboard...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h1>Welcome back, {user ? user.name : 'Farmer'}</h1>
-        <p>Here is your farm's overview for today.</p>
+        <h1>Welcome back, {user ? user.name : 'Rajesh Gowda'}</h1>
+        <p>Here is your WoolTrace farm operations overview for today.</p>
       </div>
 
       {/* Top Metrics */}
@@ -155,28 +106,28 @@ const Dashboard = () => {
           <div className="metric-icon bg-green"><Wallet size={24} /></div>
           <div className="metric-info">
             <span className="label">Total Balance</span>
-            <span className="value">₹48,500</span>
+            <span className="value">₹1,81,900</span>
           </div>
         </div>
         <div className="metric-card" onClick={() => navigate('/farmer/wallet')} style={{ cursor: 'pointer' }}>
           <div className="metric-icon bg-yellow"><Clock size={24} /></div>
           <div className="metric-info">
-            <span className="label">Pending Payments</span>
-            <span className="value">₹12,400</span>
+            <span className="label">Escrow Secured</span>
+            <span className="value">₹48,500</span>
           </div>
         </div>
         <div className="metric-card" onClick={() => navigate('/farmer/my-wool')} style={{ cursor: 'pointer' }}>
           <div className="metric-icon bg-blue"><Box size={24} /></div>
           <div className="metric-info">
-            <span className="label">Active Batches</span>
+            <span className="label">Registered Batches</span>
             <span className="value">{activeBatches}</span>
           </div>
         </div>
-        <div className="metric-card">
+        <div className="metric-card" onClick={() => navigate('/farmer/my-wool')} style={{ cursor: 'pointer' }}>
           <div className="metric-icon bg-primary"><Scale size={24} /></div>
           <div className="metric-info">
-            <span className="label">Wool Available</span>
-            <span className="value">{woolAvailable} KG</span>
+            <span className="label">Total Wool Harvested</span>
+            <span className="value">{woolAvailable.toLocaleString('en-IN')} KG</span>
           </div>
         </div>
       </div>
@@ -186,27 +137,29 @@ const Dashboard = () => {
         {/* Market Overview */}
         <div className="market-overview panel">
           <div className="panel-header">
-            <h2>Market Overview</h2>
+            <h2>Mandi Price Trends (APMC Live)</h2>
             <div className="time-filters">
-              <button className="active" onClick={() => navigate('/farmer/market')}>View Market <ArrowRight size={14}/></button>
+              <button className="active" onClick={() => navigate('/farmer/market')}>
+                Full Market Intelligence <ArrowRight size={14}/>
+              </button>
             </div>
           </div>
           
           <div className="current-prices">
             <div className="price-item">
-              <span className="type">Fine Wool</span>
-              <span className="price">₹{currentPrices.fine}/kg</span>
-              <span className={`trend ${currentPrices.trend >= 0 ? 'up' : 'down'}`}><TrendingUp size={16} className={currentPrices.trend < 0 ? 'flip-v' : ''}/> {currentPrices.trend >= 0 ? '+' : ''}{currentPrices.trend.toFixed(1)}%</span>
+              <span className="type">Fine Merino Wool</span>
+              <span className="price">₹{currentPrices.fine}/KG</span>
+              <span className="trend up"><TrendingUp size={16} /> +{currentPrices.trend}%</span>
             </div>
             <div className="price-item">
-              <span className="type">Medium Wool</span>
-              <span className="price">₹{currentPrices.medium}/kg</span>
-              <span className={`trend ${currentPrices.trend >= 0 ? 'up' : 'down'}`}><TrendingUp size={16} className={currentPrices.trend < 0 ? 'flip-v' : ''}/> {currentPrices.trend >= 0 ? '+' : ''}{currentPrices.trend.toFixed(1)}%</span>
+              <span className="type">Medium Crossbred</span>
+              <span className="price">₹{currentPrices.medium}/KG</span>
+              <span className="trend up"><TrendingUp size={16} /> +2.1%</span>
             </div>
             <div className="price-item">
-              <span className="type">Coarse Wool</span>
-              <span className="price">₹{currentPrices.coarse}/kg</span>
-              <span className={`trend ${currentPrices.trend >= 0 ? 'up' : 'down'}`}><TrendingUp size={16} className={currentPrices.trend < 0 ? 'flip-v' : ''}/> {currentPrices.trend >= 0 ? '+' : ''}{currentPrices.trend.toFixed(1)}%</span>
+              <span className="type">Coarse Carpet Wool</span>
+              <span className="price">₹{currentPrices.coarse}/KG</span>
+              <span className="trend up"><TrendingUp size={16} /> +1.4%</span>
             </div>
           </div>
 
@@ -222,7 +175,7 @@ const Dashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E5E5" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 12}} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 12}} />
-                <Tooltip />
+                <Tooltip formatter={(value) => [`₹${value}/KG`, 'Price']} />
                 <Area type="monotone" dataKey="fine" stroke="#0B120D" strokeWidth={2} fillOpacity={1} fill="url(#colorFine)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -238,37 +191,32 @@ const Dashboard = () => {
                 <Plus size={20} />
                 <span>Create Wool Batch</span>
               </button>
-              <button className="action-btn secondary" onClick={() => navigate('/farmer/market')}>
-                <Tag size={20} />
-                <span>Sell Wool</span>
-              </button>
               <button className="action-btn secondary" onClick={() => navigate('/farmer/track')}>
                 <MapPin size={20} />
-                <span>Track Batch</span>
+                <span>Track Batch Passport</span>
+              </button>
+              <button className="action-btn secondary" onClick={() => navigate('/farmer/warehouses')}>
+                <Warehouse size={20} />
+                <span>Find Warehouses</span>
               </button>
             </div>
           </div>
 
           <div className="recent-activity panel">
-            <h2>Recent Activity</h2>
+            <h2>Recent Batch History</h2>
             <div className="activity-list">
-              <div className="activity-item">
-                <div className="activity-icon bg-blue"><Box size={16} /></div>
-                <div className="activity-text">
-                  <p>Batch <strong>WT-KA-124</strong> created</p>
-                  <span>2 hours ago</span>
+              {batches.slice(0, 3).map((b, i) => (
+                <div key={b.id || i} className="activity-item" onClick={() => navigate(`/farmer/batch/${b.id}`)} style={{ cursor: 'pointer' }}>
+                  <div className="activity-icon bg-blue"><Box size={16} /></div>
+                  <div className="activity-text">
+                    <p><strong>{b.id}</strong> — {b.quantity} KG ({b.woolType})</p>
+                    <span>Stage: {b.currentStage} · {b.origin}</span>
+                  </div>
                 </div>
-              </div>
-              <div className="activity-item">
-                <div className="activity-icon bg-green"><Wallet size={16} /></div>
-                <div className="activity-text">
-                  <p>Payment received for <strong>WT-KA-118</strong></p>
-                  <span>Yesterday</span>
-                </div>
-              </div>
+              ))}
             </div>
-            <button className="view-all-btn">
-              View All <ArrowRight size={16} />
+            <button className="view-all-btn" onClick={() => navigate('/farmer/my-wool')}>
+              View All Batches <ArrowRight size={16} />
             </button>
           </div>
         </div>

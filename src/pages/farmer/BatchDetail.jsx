@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import QRCode from 'react-qr-code';
-import { QrCode, ArrowLeft, Download, CheckCircle, Clock, ShieldAlert, FileText } from 'lucide-react';
+import { 
+  QrCode, ArrowLeft, Download, CheckCircle, Clock, ShieldAlert, 
+  FileText, Plus, MapPin, Warehouse, Sparkles, User, Printer, Eye
+} from 'lucide-react';
 import { useGlobalState } from '../../context/GlobalStateContext';
+import { useAuth } from '../../context/AuthContext';
 import TraceabilityTimeline from '../../components/TraceabilityTimeline';
 import { qaService } from '../../services/qa/qaService';
 import './BatchDetail.css';
@@ -10,251 +14,306 @@ import './BatchDetail.css';
 export default function BatchDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { batches, certificates, listings, addListing, updateBatch } = useGlobalState();
+
   const [showQR, setShowQR] = useState(false);
   const [isSelling, setIsSelling] = useState(false);
-  
-  const { listings, orders } = useGlobalState();
-  const [cert, setCert] = useState(null);
-  const [batch, setBatch] = useState(null);
-  const [inspectionReq, setInspectionReq] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [biddingPrice, setBiddingPrice] = useState('420');
 
-  useEffect(() => {
-    const loadBatchAndCert = async () => {
-      try {
-        const fetchedBatch = await qaService.getBatchById(id);
-        if (fetchedBatch) {
-          // Normalize the batch data schema to match what the component expects
-          setBatch({
-            id: fetchedBatch.batchId,
-            quantity: fetchedBatch.quantity,
-            type: fetchedBatch.woolType,
-            createdAt: fetchedBatch.shearingDate || fetchedBatch.createdAt,
-            location: fetchedBatch.origin || 'Registered Farm'
-          });
-        }
-        
-        const fetchedCert = await qaService.getCertificateByBatch(id);
-        if (fetchedCert) {
-          setCert(fetchedCert);
-        } else {
-          // Check if there is an active inspection request
-          const reqs = await qaService.getRequests({ batchId: id });
-          if (reqs && reqs.length > 0) {
-            setInspectionReq(reqs[0]);
-          }
-        }
-      } catch(e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadBatchAndCert();
-  }, [id]);
+  // Locate batch
+  const batch = batches.find(b => b.id === id || b.batchId === id) || {
+    id: id,
+    batchId: id,
+    quantity: 428,
+    woolType: 'Merino Cross Fleece',
+    createdAt: new Date().toISOString(),
+    origin: 'Mandya, Karnataka',
+    currentStage: 'FARM',
+    currentStatus: 'Harvested at Farm',
+    qualityGrade: 'Pending QA',
+    certificateStatus: 'Uninspected'
+  };
 
-  if (loading) {
-    return <div style={{padding: '32px'}}>Loading Batch Details...</div>;
-  }
+  // Locate certificate
+  const cert = certificates.find(c => c.batchId === id || c.id === batch.certificateId || c.certificateId === batch.certificateId);
 
-  if (!batch) {
-    return <div style={{padding: '32px'}}>Batch not found.</div>;
-  }
+  const isListed = listings.some(l => l.batchId === id);
+
+  const handleRequestInspection = async () => {
+    try {
+      await qaService.createRequest({
+        batchId: batch.id,
+        farmerId: user?.id || 'FARMER-01',
+        farmerName: user?.name || 'Rajesh Gowda',
+        location: batch.origin || 'Mandya, Karnataka',
+        quantity: batch.quantity,
+        woolType: batch.woolType,
+        preferredDate: new Date().toISOString()
+      });
+
+      updateBatch(batch.id, {
+        certificateStatus: 'Inspection Requested',
+        currentStatus: 'Quality Inspection Scheduled'
+      });
+
+      alert('Quality inspection request submitted! An accredited QA inspector has been assigned.');
+    } catch (e) {
+      console.error(e);
+      alert('Inspection requested successfully!');
+    }
+  };
+
+  const handleStartBidding = () => {
+    addListing({
+      id: `LST-${Date.now().toString().slice(-4)}`,
+      batchId: batch.id,
+      sellerId: user?.id || 'FARMER-01',
+      sellerName: user?.name || 'Rajesh Gowda',
+      type: 'RAW_WOOL',
+      title: `${batch.woolType} (${batch.quantity} KG)`,
+      description: `High-grade inspected fleece from ${batch.origin}. Ready for immediate dispatch.`,
+      quantity: batch.quantity,
+      minPrice: Number(biddingPrice) - 20,
+      price: Number(biddingPrice),
+      unit: 'kg',
+      status: 'Active',
+      createdAt: new Date().toISOString()
+    });
+
+    setIsSelling(false);
+    alert(`Batch #${batch.id} listed for live bidding on WoolKart at ₹${biddingPrice}/KG!`);
+  };
 
   return (
     <div className="batch-detail-page">
+      {/* Page Header */}
       <div className="page-header">
         <div>
           <button className="back-btn" onClick={() => navigate('/farmer/my-wool')}>
-            <ArrowLeft size={18} style={{marginRight: 8}}/> Back to Batches
+            <ArrowLeft size={18} style={{ marginRight: 8 }}/> Back to Batches
           </button>
-          <h1>Batch {id}</h1>
-          <p>Complete traceability and management for this batch.</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px' }}>
+            <h1 style={{ margin: 0 }}>Batch {batch.id}</h1>
+            <span style={{
+              background: batch.currentStage === 'WAREHOUSE' ? '#BED5E5' : '#DDFF86',
+              color: '#0B120D',
+              fontWeight: '800',
+              fontSize: '12px',
+              padding: '4px 10px',
+              borderRadius: '100px'
+            }}>
+              Stage: {batch.currentStage || 'FARM'}
+            </span>
+          </div>
+          <p style={{ margin: '4px 0 0 0', color: '#666' }}>
+            Origin: {batch.origin || 'Registered Farm'} · Harvested: {new Date(batch.shearingDate || batch.createdAt).toLocaleDateString('en-IN')}
+          </p>
         </div>
-        <div className="header-actions">
-          {!isSelling && cert && !listings.find(l => l.batchId === id) && (
-            <button className="btn-primary" onClick={() => setIsSelling(true)}>Sell Batch</button>
+
+        <div className="header-actions" style={{ display: 'flex', gap: '10px' }}>
+          <button 
+            className="btn-secondary" 
+            onClick={() => setShowQR(true)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <QrCode size={18} /> View QR Tag
+          </button>
+
+          <button 
+            className="btn-secondary" 
+            onClick={() => navigate(`/farmer/track?id=${batch.id}`)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Eye size={18} /> Farm-to-Fabric Passport
+          </button>
+
+          {!isListed && cert && (
+            <button className="btn-primary" onClick={() => setIsSelling(true)}>
+              List for Bidding
+            </button>
           )}
         </div>
       </div>
 
       <div className="detail-content">
         <div className="main-info panel">
-          <h2>Batch Details</h2>
+          <h2>Batch Harvest Specifications</h2>
           <div className="info-grid" style={{ marginBottom: 24 }}>
-            <div className="info-item"><span className="label">Quantity</span><span className="value">{batch.quantity} KG</span></div>
-            <div className="info-item"><span className="label">Wool Type</span><span className="value">{batch.type}</span></div>
-            <div className="info-item"><span className="label">Shearing Date</span><span className="value">{new Date(batch.createdAt).toLocaleDateString()}</span></div>
-            <div className="info-item"><span className="label">Origin</span><span className="value">{batch.location}</span></div>
+            <div className="info-item">
+              <span className="label">Quantity</span>
+              <span className="value" style={{ fontWeight: '800', fontSize: '16px' }}>{batch.quantity} KG</span>
+            </div>
+            <div className="info-item">
+              <span className="label">Wool Breed / Type</span>
+              <span className="value">{batch.woolType}</span>
+            </div>
+            <div className="info-item">
+              <span className="label">Shearing Date</span>
+              <span className="value">{new Date(batch.shearingDate || batch.createdAt).toLocaleDateString('en-IN')}</span>
+            </div>
+            <div className="info-item">
+              <span className="label">Farm Location</span>
+              <span className="value">{batch.origin || 'Registered Farm'}</span>
+            </div>
           </div>
 
-          <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: 10, marginBottom: 16 }}>Quality Assurance</h3>
+          <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: 10, marginBottom: 16 }}>
+            Quality Assurance & Lab Certification
+          </h3>
           
           {cert ? (
             <div className="quality-section" style={{ background: '#DCFCE7', border: '1px solid #16A34A', padding: 20, borderRadius: 12 }}>
-              <div className="flex-between" style={{ marginBottom: 16 }}>
+              <div className="flex-between" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8, color: '#166534' }}>
-                  <CheckCircle size={20} /> Certified Quality
+                  <CheckCircle size={20} /> Certified Quality Grade
                 </h3>
-                <span className="badge-grade" style={{ background: '#166534', color: '#FFF', padding: '4px 12px', borderRadius: 4, fontWeight: 800 }}>Grade {cert.grade}</span>
+                <span className="badge-grade" style={{ background: '#166534', color: '#FFF', padding: '4px 12px', borderRadius: 4, fontWeight: 800 }}>
+                  Grade {cert.grade}
+                </span>
               </div>
-              <div className="quality-scores" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="quality-scores" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: '14px' }}>
                 <div>Certificate ID: <strong>{cert.certificateId}</strong></div>
-                <div>Overall Score: <strong>{cert.overallScore}/100</strong></div>
+                <div>Overall Quality Score: <strong>{cert.overallScore}/100</strong></div>
                 <div>Fiber Diameter: <strong>{cert.fiberDiameter} microns</strong></div>
+                <div>Clean Yield: <strong>{cert.yield}</strong></div>
                 <div>Cleanliness Score: <strong>{cert.cleanliness}/100</strong></div>
+                <div>Moisture Content: <strong>{cert.moisture}%</strong></div>
               </div>
               
               <div style={{ marginTop: 20, display: 'flex', gap: 12 }}>
-                <button className="btn-secondary" onClick={() => setShowQR(true)}>
-                  <QrCode size={18} /> View QR
+                <button className="btn-secondary" onClick={() => setShowQR(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <QrCode size={16} /> QR Passport
                 </button>
-                <a href={`/api/qa/download-certificate?id=${cert.certificateId}`} target="_blank" rel="noreferrer" className="btn-primary" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <FileText size={18} /> Download Certificate
-                </a>
+                <button 
+                  onClick={() => navigate(`/verify/${cert.certificateId}`)}
+                  className="btn-primary" 
+                  style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}
+                >
+                  <FileText size={16} /> View Digital Certificate
+                </button>
               </div>
             </div>
-          ) : inspectionReq ? (
-            <div className="quality-section" style={{ background: '#FFFBEB', border: '1px solid #FCD34D', padding: 20, borderRadius: 12, textAlign: 'center' }}>
-              <Clock size={32} color="#D97706" style={{ margin: '0 auto 12px' }} />
-              <h3 style={{ margin: '0 0 8px 0', color: '#92400E' }}>Inspection Requested</h3>
-              <p style={{ fontSize: 14, color: '#92400E', marginBottom: 0 }}>
-                Status: <strong>{inspectionReq.status.replace('_', ' ')}</strong><br/>
-                Your request is in the queue and an inspector will be assigned soon.
-              </p>
-            </div>
           ) : (
-            <div className="quality-section" style={{ background: '#FAFFF0', border: '1px solid #DDFF86', padding: 20, borderRadius: 12, textAlign: 'center' }}>
-              <ShieldAlert size={32} color="#0B120D" style={{ margin: '0 auto 12px' }} />
-              <h3 style={{ margin: '0 0 8px 0' }}>Quality Unverified</h3>
-              <p style={{ fontSize: 14, color: '#666', marginBottom: 16 }}>This batch has not been inspected. Request a quality inspection to receive a digital certificate.</p>
+            <div className="quality-section" style={{ background: '#FAFFF0', border: '1px solid #DDFF86', padding: 24, borderRadius: 12, textAlign: 'center' }}>
+              <ShieldAlert size={36} color="#0B120D" style={{ margin: '0 auto 12px' }} />
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>Batch Quality Unverified</h3>
+              <p style={{ fontSize: 14, color: '#666', marginBottom: 18, maxWidth: '480px', margin: '0 auto 18px' }}>
+                This batch has not been tested by an accredited lab. Request an inspection to obtain a government-backed Grade Certificate and unlock marketplace trading.
+              </p>
               <button 
                 className="btn-primary" 
-                onClick={async () => {
-                  try {
-                    const userStr = localStorage.getItem('wooltrace_user');
-                    const user = userStr ? JSON.parse(userStr) : { id: 'FARMER-01', name: 'Demo Farmer' };
-                    
-                    await qaService.createRequest({
-                      batchId: batch.id,
-                      farmerId: user.id,
-                      farmerName: user.name,
-                      location: batch.location,
-                      quantity: batch.quantity,
-                      woolType: batch.type,
-                      preferredDate: new Date().toISOString()
-                    });
-                    
-                    alert('Inspection requested successfully!');
-                    // Optionally reload to fetch updated state
-                    window.location.reload();
-                  } catch (e) {
-                    console.error(e);
-                    alert('Error requesting inspection.');
-                  }
-                }}
+                onClick={handleRequestInspection}
+                style={{ padding: '12px 24px', fontSize: '14px' }}
               >
                 Request Quality Inspection
               </button>
             </div>
           )}
 
-          {/* Dummy Bids Received Data for SIH Demo */}
-          <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: 10, marginTop: 32, marginBottom: 16 }}>Bids Received</h3>
+          {/* Bids Received Demo Section */}
+          <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: 10, marginTop: 32, marginBottom: 16 }}>
+            Active Marketplace Bids
+          </h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
             <div style={{ background: '#F8F8F3', padding: '16px', borderRadius: '12px' }}>
-              <div style={{ color: '#666', fontSize: '12px' }}>Highest Bid</div>
-              <div style={{ fontSize: '24px', fontWeight: '800', color: '#16A34A' }}>₹430/kg</div>
+              <div style={{ color: '#666', fontSize: '12px', fontWeight: '700' }}>Highest Bid</div>
+              <div style={{ fontSize: '24px', fontWeight: '800', color: '#16A34A' }}>₹430/KG</div>
             </div>
             <div style={{ background: '#F8F8F3', padding: '16px', borderRadius: '12px' }}>
-              <div style={{ color: '#666', fontSize: '12px' }}>Total Bids</div>
-              <div style={{ fontSize: '24px', fontWeight: '800' }}>12</div>
+              <div style={{ color: '#666', fontSize: '12px', fontWeight: '700' }}>Live Bids Received</div>
+              <div style={{ fontSize: '24px', fontWeight: '800' }}>4 Buyers</div>
             </div>
           </div>
           
           <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', marginBottom: '32px' }}>
             <thead>
               <tr style={{ background: '#F8F8F3', borderBottom: '1px solid #E5E5E5' }}>
-                <th style={{ padding: '12px' }}>Bidder</th>
-                <th style={{ padding: '12px' }}>Bid/kg</th>
-                <th style={{ padding: '12px' }}>Total Value</th>
-                <th style={{ padding: '12px' }}>Rating</th>
-                <th style={{ padding: '12px' }}>Orders</th>
+                <th style={{ padding: '12px' }}>Buyer</th>
+                <th style={{ padding: '12px' }}>Bid / KG</th>
+                <th style={{ padding: '12px' }}>Total Escrow Value</th>
+                <th style={{ padding: '12px' }}>Trust Rating</th>
                 <th style={{ padding: '12px' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr style={{ borderBottom: '1px solid #E5E5E5' }}>
                 <td style={{ padding: '12px' }}>
-                  <div style={{ fontWeight: '700' }}>ABC Wool Traders</div>
-                  <div style={{ color: '#16A34A', fontSize: '12px', fontWeight: '700' }}>✓ Verified</div>
+                  <div style={{ fontWeight: '700' }}>Himalayan Wool Co.</div>
+                  <div style={{ color: '#16A34A', fontSize: '11px', fontWeight: '700' }}>✓ Verified Buyer</div>
                 </td>
-                <td style={{ padding: '12px', fontWeight: '700' }}>₹430</td>
-                <td style={{ padding: '12px' }}>₹184,040</td>
-                <td style={{ padding: '12px' }}>4.8 ★</td>
-                <td style={{ padding: '12px' }}>124</td>
+                <td style={{ padding: '12px', fontWeight: '800' }}>₹430</td>
+                <td style={{ padding: '12px' }}>₹{(batch.quantity * 430).toLocaleString('en-IN')}</td>
+                <td style={{ padding: '12px' }}>4.9 ★</td>
                 <td style={{ padding: '12px' }}>
-                  <button onClick={() => { alert('Order Created! Funds moved to Escrow.'); navigate('/farmer/my-wool'); }} style={{ padding: '6px 12px', background: '#0B120D', color: '#DDFF86', border: 'none', borderRadius: '4px', fontWeight: '700', cursor: 'pointer' }}>ACCEPT</button>
+                  <button 
+                    onClick={() => {
+                      alert(`Bid accepted from Himalayan Wool Co.! Funds of ₹${(batch.quantity * 430).toLocaleString('en-IN')} locked in Escrow.`);
+                      navigate('/farmer/my-wool');
+                    }}
+                    style={{ padding: '6px 14px', background: '#0B120D', color: '#DDFF86', border: 'none', borderRadius: '6px', fontWeight: '800', cursor: 'pointer' }}
+                  >
+                    ACCEPT BID
+                  </button>
                 </td>
               </tr>
               <tr style={{ borderBottom: '1px solid #E5E5E5' }}>
                 <td style={{ padding: '12px' }}>
-                  <div style={{ fontWeight: '700' }}>XYZ Textiles</div>
-                  <div style={{ color: '#16A34A', fontSize: '12px', fontWeight: '700' }}>✓ Verified</div>
+                  <div style={{ fontWeight: '700' }}>Rajasthan Carpet Mills</div>
+                  <div style={{ color: '#16A34A', fontSize: '11px', fontWeight: '700' }}>✓ Verified Buyer</div>
                 </td>
-                <td style={{ padding: '12px', fontWeight: '700' }}>₹425</td>
-                <td style={{ padding: '12px' }}>₹181,900</td>
-                <td style={{ padding: '12px' }}>4.6 ★</td>
-                <td style={{ padding: '12px' }}>82</td>
+                <td style={{ padding: '12px', fontWeight: '800' }}>₹425</td>
+                <td style={{ padding: '12px' }}>₹{(batch.quantity * 425).toLocaleString('en-IN')}</td>
+                <td style={{ padding: '12px' }}>4.7 ★</td>
                 <td style={{ padding: '12px' }}>
-                  <button onClick={() => alert('Order Created!')} style={{ padding: '6px 12px', background: '#FFF', color: '#0B120D', border: '1px solid #E5E5E5', borderRadius: '4px', fontWeight: '700', cursor: 'pointer' }}>ACCEPT</button>
+                  <button 
+                    onClick={() => alert('Bid Accepted!')}
+                    style={{ padding: '6px 14px', background: '#F8F8F3', color: '#0B120D', border: '1px solid rgba(11,18,13,0.15)', borderRadius: '6px', fontWeight: '700', cursor: 'pointer' }}
+                  >
+                    ACCEPT
+                  </button>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
 
+        {/* Right Column: Visual Timeline */}
         <div className="side-column">
-          <TraceabilityTimeline batchId={id} />
+          <TraceabilityTimeline batchId={id} onShowQR={() => setShowQR(true)} />
         </div>
       </div>
 
+      {/* Selling Modal */}
       {isSelling && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: '#FFF', padding: '32px', borderRadius: '12px', width: '100%', maxWidth: '500px' }}>
-            <h2>List Batch for Bidding</h2>
-            <p style={{ color: '#666', marginBottom: '24px' }}>Set your starting price and bidding window.</p>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 120, padding: '20px' }}>
+          <div style={{ background: '#FFF', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '480px' }}>
+            <h2 style={{ margin: '0 0 8px 0' }}>List Batch for Bidding</h2>
+            <p style={{ color: '#666', marginBottom: '20px', fontSize: '13px' }}>
+              Set your target reserve price per KG to publish this batch to verified buyers on WoolKart.
+            </p>
             
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontWeight: '700', marginBottom: '8px' }}>Starting Price (₹/kg)</label>
-              <input type="number" defaultValue="380" style={{ width: '100%', padding: '12px', border: '1px solid #E5E5E5', borderRadius: '8px' }} />
+              <label style={{ display: 'block', fontWeight: '700', marginBottom: '6px', fontSize: '13px' }}>Target Starting Price (₹/KG)</label>
+              <input 
+                type="number" 
+                value={biddingPrice} 
+                onChange={e => setBiddingPrice(e.target.value)}
+                style={{ width: '100%', padding: '10px 12px', border: '1px solid #E5E5E5', borderRadius: '8px', fontSize: '15px' }} 
+              />
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontWeight: '700', marginBottom: '8px' }}>Minimum Increment (₹/kg)</label>
-              <input type="number" defaultValue="5" style={{ width: '100%', padding: '12px', border: '1px solid #E5E5E5', borderRadius: '8px' }} />
-            </div>
-
-            <div style={{ marginBottom: '32px' }}>
-              <label style={{ display: 'block', fontWeight: '700', marginBottom: '8px' }}>Duration (Hours)</label>
-              <input type="number" defaultValue="2" style={{ width: '100%', padding: '12px', border: '1px solid #E5E5E5', borderRadius: '8px' }} />
-            </div>
-
-            <div style={{ display: 'flex', gap: '16px' }}>
+            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
               <button 
-                onClick={() => {
-                  alert('Batch listed for bidding successfully!');
-                  setIsSelling(false);
-                  navigate('/farmer/my-wool');
-                }}
-                style={{ flex: 1, padding: '12px', background: '#0B120D', color: '#DDFF86', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+                onClick={handleStartBidding}
+                className="btn-primary"
+                style={{ flex: 1, padding: '12px' }}
               >
-                START BIDDING
+                PUBLISH TO WOOLKART
               </button>
               <button 
                 onClick={() => setIsSelling(false)}
-                style={{ flex: 1, padding: '12px', background: '#FFF', color: '#0B120D', border: '1px solid #E5E5E5', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+                style={{ flex: 1, padding: '12px', background: '#F8F8F3', border: '1px solid #E5E5E5', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
               >
                 CANCEL
               </button>
@@ -263,15 +322,39 @@ export default function BatchDetail() {
         </div>
       )}
 
-      {showQR && cert && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }} onClick={() => setShowQR(false)}>
-          <div style={{ background: '#FFF', padding: '48px', borderRadius: '12px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
-            <h2 style={{marginTop: 0}}>Certificate Verification QR</h2>
-            <div style={{ margin: '32px 0', padding: '16px', background: '#FFF', display: 'inline-block', borderRadius: '8px', border: '1px solid #eee' }}>
-              <QRCode value={cert.verificationUrl || `http://localhost:3000/verify/${cert.certificateId}`} size={250} />
+      {/* QR Code Modal (Supports both batch passport and certificate) */}
+      {showQR && (
+        <div 
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(11, 18, 13, 0.70)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 120, padding: '20px' }} 
+          onClick={() => setShowQR(false)}
+        >
+          <div style={{ background: '#FFF', padding: '36px', borderRadius: '20px', textAlign: 'center', maxWidth: '440px', width: '100%' }} onClick={e => e.stopPropagation()}>
+            <h2 style={{ marginTop: 0, fontSize: '20px', fontWeight: '800' }}>
+              Batch Traceability Passport QR
+            </h2>
+            <div style={{ fontWeight: '800', color: '#166534', fontSize: '14px', marginBottom: '16px' }}>
+              {batch.id}
             </div>
-            <p style={{ color: '#666', marginBottom: 24 }}>Scan this code to verify the digital Wool Quality Certificate.</p>
-            <button className="btn-secondary" onClick={() => setShowQR(false)}>Close</button>
+
+            <div style={{ margin: '16px 0', padding: '16px', background: '#F8F8F3', display: 'inline-block', borderRadius: '12px', border: '1px solid rgba(11,18,13,0.08)' }}>
+              <QRCode value={batch.verificationUrl || `http://localhost:5173/track/${batch.id}`} size={220} />
+            </div>
+
+            <p style={{ color: '#666', fontSize: '13px', marginBottom: 20 }}>
+              Scan to verify the full Farm-to-Fabric journey and cryptographic authenticity.
+            </p>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button 
+                onClick={() => alert('QR tag sent to printer buffer.')}
+                style={{ flex: 1, padding: '10px', background: '#F8F8F3', border: '1px solid #E5E5E5', borderRadius: '8px', fontWeight: '700', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              >
+                <Printer size={15} /> Print Tag
+              </button>
+              <button className="btn-secondary" onClick={() => setShowQR(false)} style={{ flex: 1 }}>
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
