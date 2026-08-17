@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Outlet, NavLink, Link } from 'react-router-dom';
-import { Leaf,  LayoutDashboard, Bell, Menu, X, LogOut, Factory, Truck, AlertTriangle, CheckCircle, Package } from 'lucide-react';
+import { Leaf, LayoutDashboard, Bell, Menu, X, LogOut, Factory, Truck, AlertTriangle, CheckCircle, Package } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import UserRoleDropdown from '../components/UserRoleDropdown';
 import './ProcessingLayout.css';
 
 const INITIAL_NOTIFICATIONS = [
@@ -48,14 +49,10 @@ const ProcessingLayout = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
 
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const notifRef = useRef(null);
 
   const unreadCount = notifications.filter(n => n.unread).length;
-
-  const handleLogout = () => {
-    logout();
-  };
 
   const toggleNotifications = () => {
     setShowNotifications(prev => !prev);
@@ -84,8 +81,6 @@ const ProcessingLayout = () => {
     { name: 'RESOURCE & SUSTAINABILITY', path: '/processing/sustainability', icon: <Leaf size={20} /> }
   ];
 
-  const initials = user ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'PU';
-
   return (
     <div className="processing-layout">
       {/* Sidebar for Desktop */}
@@ -111,7 +106,7 @@ const ProcessingLayout = () => {
               <span>{item.name}</span>
             </NavLink>
           ))}
-          <button className="processing-nav-item logout-btn" onClick={handleLogout} style={{ marginTop: 'auto', border: 'none', background: 'none', width: '100%', textAlign: 'left' }}>
+          <button className="processing-nav-item logout-btn" onClick={logout} style={{ marginTop: 'auto', border: 'none', background: 'none', width: '100%', textAlign: 'left' }}>
             <LogOut size={20} />
             <span>LOGOUT</span>
           </button>
@@ -126,7 +121,7 @@ const ProcessingLayout = () => {
             <Menu size={24} />
           </div>
           
-          <div className="processing-header-right">
+          <div className="processing-header-right" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             {/* Interactive Notification Bell */}
             <div className="notif-wrapper" ref={notifRef}>
               <button 
@@ -180,16 +175,8 @@ const ProcessingLayout = () => {
               )}
             </div>
 
-            {/* Profile */}
-            <div className="processing-user-profile-menu">
-              <div className="processing-avatar">
-                {initials}
-              </div>
-              <div className="processing-user-info">
-                <span className="processing-name">{user ? user.name : 'Processing Unit'}</span>
-                <span className="processing-role">Verified Processing Unit ✓</span>
-              </div>
-            </div>
+            {/* Profile Dropdown */}
+            <UserRoleDropdown />
           </div>
         </header>
 
@@ -218,7 +205,7 @@ const ProcessingLayout = () => {
                     <span>{item.name}</span>
                   </NavLink>
                 ))}
-                <button className="processing-nav-item logout-btn" onClick={handleLogout} style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left', marginTop: '20px' }}>
+                <button className="processing-nav-item logout-btn" onClick={logout} style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left', marginTop: '20px' }}>
                   <LogOut size={20} />
                   <span>LOGOUT</span>
                 </button>

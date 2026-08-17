@@ -2,25 +2,20 @@ import React, { useState } from 'react';
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, QrCode, Boxes, Inbox, ArrowUpRight, 
-  LogOut, RefreshCw, Warehouse, Menu, X
+  LogOut, Warehouse, Menu, X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useGlobalState } from '../context/GlobalStateContext';
+import UserRoleDropdown from '../components/UserRoleDropdown';
 import './WarehouseLayout.css';
 
 export default function WarehouseLayout() {
-  const { user, logout, switchRole } = useAuth();
+  const { logout } = useAuth();
   const { warehouseRequests, releaseRequests } = useGlobalState();
-  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const pendingStorageCount = warehouseRequests.filter(r => r.status === 'Pending').length;
   const pendingReleaseCount = releaseRequests.filter(r => r.status === 'Pending').length;
-
-  const handleRoleSwitch = () => {
-    switchRole('FARMER');
-    navigate('/farmer');
-  };
 
   const navItems = [
     { name: 'Dashboard', path: '/warehouse', icon: <LayoutDashboard size={18} />, end: true },
@@ -80,15 +75,6 @@ export default function WarehouseLayout() {
 
           <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '16px', borderTop: '1px solid rgba(11,18,13,0.08)' }}>
             <button
-              onClick={handleRoleSwitch}
-              className="warehouse-nav-item"
-              style={{ background: 'none', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
-            >
-              <RefreshCw size={18} />
-              <span>Switch to Farmer</span>
-            </button>
-
-            <button
               onClick={() => { logout(); }}
               className="warehouse-nav-item"
               style={{ background: 'none', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left', color: '#DC2626' }}
@@ -140,14 +126,6 @@ export default function WarehouseLayout() {
 
               <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '16px', borderTop: '1px solid #E5E5E5' }}>
                 <button
-                  onClick={() => { handleRoleSwitch(); setIsMobileMenuOpen(false); }}
-                  className="nav-item"
-                  style={{ background: 'none', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
-                >
-                  <RefreshCw size={18} />
-                  <span>Switch to Farmer</span>
-                </button>
-                <button
                   onClick={() => { logout(); setIsMobileMenuOpen(false); }}
                   className="nav-item"
                   style={{ background: 'none', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left', color: '#DC2626' }}
@@ -179,15 +157,7 @@ export default function WarehouseLayout() {
           </div>
 
           <div className="warehouse-header-actions">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#F8F8F3', padding: '6px 14px', borderRadius: '100px', border: '1px solid rgba(11,18,13,0.08)' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#0B120D', color: '#DDFF86', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '800' }}>
-                WH
-              </div>
-              <div style={{ fontSize: '13px' }}>
-                <strong>K. Somanna</strong>
-                <span style={{ display: 'block', fontSize: '11px', color: '#666' }}>Superintendent</span>
-              </div>
-            </div>
+            <UserRoleDropdown />
           </div>
         </header>
 

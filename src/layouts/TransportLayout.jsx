@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, Link } from 'react-router-dom';
 import { 
   Home, 
   List, 
   Truck, 
   History, 
   Wallet,
-  User,
   LogOut,
   Bell,
   Menu,
@@ -14,15 +13,12 @@ import {
   MapPin
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import UserRoleDropdown from '../components/UserRoleDropdown';
 import './TransportLayout.css';
 
 const TransportLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, logout } = useAuth();
-
-  const handleLogout = () => {
-    logout();
-  };
+  const { logout } = useAuth();
 
   const navItems = [
     { name: 'DASHBOARD', path: '/transport', icon: <Home size={20} /> },
@@ -31,7 +27,7 @@ const TransportLayout = () => {
     { name: 'HISTORY', path: '/transport/history', icon: <History size={20} /> },
     { name: 'VEHICLES', path: '/transport/vehicles', icon: <Truck size={20} /> },
     { name: 'EARNINGS', path: '/transport/earnings', icon: <Wallet size={20} /> },
-    { name: 'PROFILE', path: '/transport/profile', icon: <User size={20} /> },
+    { name: 'PROFILE', path: '/transport/profile', icon: <UserRoleDropdown /> },
   ];
 
   return (
@@ -45,7 +41,7 @@ const TransportLayout = () => {
           <div className="role-badge">TRANSPORT</div>
         </div>
         <nav className="sidebar-nav">
-          {navItems.map((item) => (
+          {navItems.filter(item => item.name !== 'PROFILE').map((item) => (
             <NavLink
               key={item.name}
               to={item.path}
@@ -59,7 +55,7 @@ const TransportLayout = () => {
           ))}
           
           <div style={{marginTop: 'auto', borderTop: '1px solid #E5E5E5', paddingTop: '16px'}}>
-            <button className="nav-item logout-btn" onClick={handleLogout} style={{border: 'none', background: 'none', width: '100%', textAlign: 'left', color: '#DC2626'}}>
+            <button className="nav-item logout-btn" onClick={logout} style={{border: 'none', background: 'none', width: '100%', textAlign: 'left', color: '#DC2626'}}>
               <LogOut size={20} />
               <span>Logout</span>
             </button>
@@ -75,19 +71,11 @@ const TransportLayout = () => {
             <Menu size={24} />
           </div>
           
-          <div className="header-right">
+          <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <button className="icon-btn">
               <Bell size={20} />
             </button>
-            <div className="user-profile-menu">
-              <div className="avatar">
-                <Truck size={20} />
-              </div>
-              <div className="user-info">
-                <span className="name">{user?.name || 'Transport Partner'}</span>
-                <span className="role">Verified Transporter ✓</span>
-              </div>
-            </div>
+            <UserRoleDropdown />
           </div>
         </header>
 
@@ -104,7 +92,7 @@ const TransportLayout = () => {
                 </button>
               </div>
               <nav className="mobile-nav-links">
-                {navItems.map((item) => (
+                {navItems.filter(item => item.name !== 'PROFILE').map((item) => (
                   <NavLink
                     key={item.name}
                     to={item.path}

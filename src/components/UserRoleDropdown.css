@@ -1,0 +1,267 @@
+/* UserRoleDropdown.css */
+
+.user-role-dropdown-container {
+  position: relative;
+  display: inline-block;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.profile-trigger-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #FFFFFF;
+  border: 1px solid rgba(11, 18, 13, 0.12);
+  padding: 6px 12px 6px 6px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.profile-trigger-btn:hover {
+  border-color: rgba(11, 18, 13, 0.25);
+  background: #FDFDFB;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+.profile-text-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  line-height: 1.2;
+}
+
+.profile-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0B120D;
+}
+
+.profile-role-badge {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dropdown-chevron {
+  color: #666;
+  transition: transform 0.2s ease;
+  margin-left: 2px;
+}
+
+.dropdown-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* Menu Container */
+.role-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 310px;
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid rgba(11, 18, 13, 0.12);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 12px;
+  z-index: 1000;
+  animation: dropdownFadeIn 0.18s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-user-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 6px 10px 6px;
+}
+
+.avatar-large {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0B120D;
+}
+
+.user-email {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.active-pill {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 100px;
+  text-transform: uppercase;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: rgba(11, 18, 13, 0.08);
+  margin: 8px 0;
+}
+
+.role-section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #666;
+  letter-spacing: 0.05em;
+  padding: 4px 6px 8px 6px;
+}
+
+.roles-list-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.role-option-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.role-option-item:hover {
+  background: #F8F8F3;
+  border-color: rgba(11, 18, 13, 0.08);
+}
+
+.role-option-item.active-role {
+  background: #F4F6EE;
+  border-color: rgba(11, 18, 13, 0.14);
+}
+
+.role-icon-box {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.role-item-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.role-item-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0B120D;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.current-indicator {
+  font-size: 9px;
+  font-weight: 800;
+  background: #0B120D;
+  color: #DDFF86;
+  padding: 1px 5px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.role-item-sub {
+  font-size: 11px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.check-icon {
+  color: #166534;
+  flex-shrink: 0;
+}
+
+/* Footer Actions */
+.dropdown-footer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 4px;
+}
+
+.footer-link-btn {
+  display: flex;
+  justifyContent: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0B120D;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.footer-link-btn:hover {
+  background: #F8F8F3;
+}
+
+.footer-link-btn.logout {
+  color: #DC2626;
+}
+
+.footer-link-btn.logout:hover {
+  background: #FEE2E2;
+}

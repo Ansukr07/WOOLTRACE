@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
 import { 
   Home, 
@@ -9,31 +9,19 @@ import {
   Bell, 
   Menu, 
   X, 
-  User, 
   LogOut, 
   ShoppingCart,
   QrCode,
   Warehouse,
-  RefreshCw,
-  Compass,
   Wallet
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import UserRoleDropdown from '../components/UserRoleDropdown';
 import './FarmerLayout.css';
 
 const FarmerLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, logout, switchRole } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-  };
-
-  const handleRoleSwitch = (newRole, path) => {
-    switchRole(newRole);
-    navigate(path);
-  };
+  const { logout } = useAuth();
 
   const navItems = [
     { name: 'HOME', path: '/farmer', icon: <Home size={18} /> },
@@ -74,17 +62,8 @@ const FarmerLayout = () => {
 
           <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '6px', paddingTop: '12px', borderTop: '1px solid rgba(11,18,13,0.08)' }}>
             <button 
-              className="nav-item" 
-              onClick={() => handleRoleSwitch('WAREHOUSE', '/warehouse')} 
-              style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', color: '#0B120D' }}
-            >
-              <RefreshCw size={18} />
-              <span>Warehouse Portal</span>
-            </button>
-
-            <button 
               className="nav-item logout-btn" 
-              onClick={handleLogout} 
+              onClick={logout} 
               style={{ border: 'none', background: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}
             >
               <LogOut size={18} />
@@ -102,20 +81,12 @@ const FarmerLayout = () => {
             <Menu size={24} />
           </div>
           
-          <div className="header-right">
+          <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <button className="icon-btn">
               <Bell size={20} />
               <span className="badge">3</span>
             </button>
-            <div className="user-profile-menu">
-              <div className="avatar">
-                <User size={20} />
-              </div>
-              <div className="user-info">
-                <span className="name">{user ? user.name : 'Rajesh Gowda'}</span>
-                <span className="role">Verified Farmer ✓</span>
-              </div>
-            </div>
+            <UserRoleDropdown />
           </div>
         </header>
 

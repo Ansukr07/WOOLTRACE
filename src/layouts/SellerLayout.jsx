@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, Link } from 'react-router-dom';
 import { 
   Home, 
   Store, 
@@ -12,20 +12,15 @@ import {
   LogOut,
   Bell,
   Menu,
-  X,
-  Repeat
+  X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import UserRoleDropdown from '../components/UserRoleDropdown';
 import './SellerLayout.css';
 
 const SellerLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, logout, switchRole } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-  };
+  const { logout } = useAuth();
 
   const navItems = [
     { name: 'HOME', path: '/seller', icon: <Home size={20} /> },
@@ -69,7 +64,7 @@ const SellerLayout = () => {
           ))}
           
           <div style={{marginTop: 'auto', borderTop: '1px solid #E5E5E5', paddingTop: '16px'}}>
-            <button className="nav-item logout-btn" onClick={handleLogout} style={{border: 'none', background: 'none', width: '100%', textAlign: 'left', color: '#DC2626'}}>
+            <button className="nav-item logout-btn" onClick={logout} style={{border: 'none', background: 'none', width: '100%', textAlign: 'left', color: '#DC2626'}}>
               <LogOut size={20} />
               <span>Logout</span>
             </button>
@@ -85,20 +80,12 @@ const SellerLayout = () => {
             <Menu size={24} />
           </div>
           
-          <div className="header-right">
+          <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <button className="icon-btn">
               <Bell size={20} />
               <span className="badge">5</span>
             </button>
-            <div className="user-profile-menu">
-              <div className="avatar">
-                <Store size={20} />
-              </div>
-              <div className="user-info">
-                <span className="name">{user?.name || 'Seller'}</span>
-                <span className="role">Verified Seller ✓</span>
-              </div>
-            </div>
+            <UserRoleDropdown />
           </div>
         </header>
 
