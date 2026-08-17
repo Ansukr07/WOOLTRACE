@@ -2,7 +2,7 @@ import { useGlobalState } from '../../context/GlobalStateContext';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ShieldCheck, Warehouse, Truck, Scissors, Star, MapPin,
-  ClipboardList, Navigation, Locate, Search, X
+  ClipboardList, Navigation, Locate, Search, X, Sparkles, CheckCircle2, ChevronDown
 } from 'lucide-react';
 import './Services.css';
 import RealServiceMap from './components/ServiceMap';
@@ -23,222 +23,235 @@ function haversine(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// ── Provider templates — NO hardcoded lat/lng.
-// Offsets (in degrees) are applied at runtime relative to the user's actual location.
-// ~0.01° ≈ 1.1 km, so these spread providers 2–15 km around the user.
+// ── Regional Preset Locations ──────────────────────────────────────────────
+const REGION_PRESETS = [
+  { id: 'mandya', name: 'Mandya & Mysuru, KA', lat: 12.5218, lng: 76.8951 },
+  { id: 'bikaner', name: 'Bikaner Hub, RJ', lat: 28.0229, lng: 73.3119 },
+  { id: 'kullu', name: 'Kullu Valley, HP', lat: 31.9579, lng: 77.1095 },
+  { id: 'ludhiana', name: 'Ludhiana Exchange, PB', lat: 30.9010, lng: 75.8573 },
+  { id: 'jamnagar', name: 'Jamnagar Port, GJ', lat: 22.4707, lng: 70.0577 }
+];
+
+const DEFAULT_LOCATION = REGION_PRESETS[0];
+
+// ── Provider templates ─────────────────────────────────────────────────────
 const BASE_PROVIDERS = [
   {
     id: 1,
-    name: 'WoolTrace Grading Centre',
+    name: 'WoolTrace Central Testing & QA Lab',
     category: 'GRADING',
-    categoryLabel: 'Wool Grading',
+    categoryLabel: 'Wool Grading & Lab QA',
     owner: 'Dr. Anita Desai',
-    rating: 4.8, reviews: 124,
+    rating: 4.9, reviews: 142,
     dLat: 0.022,  dLng: 0.018,   // ~2.4 km NE
     price: '₹800 / batch',
-    services: ['Quality Grading', 'Certification', 'Fiber Testing'],
+    services: ['Quality Grading', 'Digital Certificate', 'Fiber Micron Analysis', 'Yield Testing'],
     verified: true,
-    hours: '9:00 AM – 6:00 PM',
+    hours: '8:30 AM – 6:30 PM',
     phone: '+91 98765 43210',
-    email: 'labs@wooltrace.in',
-    experience: '12 years',
-    description: 'Certified laboratory for comprehensive wool testing and grading. Digital certificates issued to WoolTrace network.',
+    email: 'qa.lab@wooltrace.in',
+    experience: '14 years',
+    description: 'Accredited testing laboratory for comprehensive wool testing and micron grading. Verifiable digital certificates issued directly to the WoolTrace blockchain ledger.',
   },
   {
     id: 2,
     name: 'State Wool Warehousing Corp.',
     category: 'WAREHOUSE',
     categoryLabel: 'Warehouse Storage',
-    owner: 'State Government',
-    rating: 4.5, reviews: 89,
+    owner: 'K. Somanna',
+    rating: 4.8, reviews: 98,
     dLat: -0.025, dLng: 0.020,   // ~3.2 km SE
-    price: '₹120 / sq.ft / month',
-    services: ['Secure Storage', 'Climate Control', 'Pest Control'],
+    price: '₹4.5 / KG / month',
+    services: ['Climate-Controlled Storage', 'Moisture-Lock Sealed Bays', 'Pest Protection', 'Pallet Barcoding'],
     verified: true,
-    hours: '24 / 7',
-    phone: '+91 80222 33333',
-    email: 'warehouse@wooltrace.in',
-    experience: '30+ years',
-    description: 'Secure, climate-controlled warehousing for long-term wool storage before processing.',
+    hours: '24 / 7 Operations',
+    phone: '+91 821 245 8899',
+    email: 'mysuru.hub@wooltrace.in',
+    experience: '22 years',
+    description: 'Secure, ISO-certified warehousing with cold dehumidification and 24/7 CCTV surveillance for raw fleece.',
   },
   {
     id: 3,
-    name: 'Rapid Farm Logistics',
+    name: 'Rapid Farm Logistics Fleet',
     category: 'TRANSPORT',
-    categoryLabel: 'Transportation',
+    categoryLabel: 'Transportation & Haulage',
     owner: 'Ramesh Singh',
-    rating: 4.9, reviews: 210,
+    rating: 4.9, reviews: 215,
     dLat: 0.040,  dLng: -0.030,  // ~5.1 km NW
-    price: '₹15 / km',
-    services: ['Batch Pickup', 'Warehouse Delivery', 'Interstate Haul'],
+    price: '₹14 / km',
+    services: ['Farm Gate Pickup', 'Warehouse Delivery', 'Interstate Mill Freight', 'GPS Live Tracking'],
     verified: true,
     hours: '6:00 AM – 10:00 PM',
     phone: '+91 99887 77665',
     email: 'dispatch@rapidfarm.in',
-    experience: '8 years',
-    description: 'Specialized wool-transport fleet with moisture-free transit from farm to warehouse.',
+    experience: '9 years',
+    description: 'Specialized wool-transport fleet equipped with humidity-sealed tarpaulins and instant GPS telemetry.',
   },
   {
     id: 4,
-    name: 'Expert Shearing Services',
+    name: 'Expert Shearing Collective',
     category: 'SHEARING',
-    categoryLabel: 'Shearing',
+    categoryLabel: 'Professional Shearing',
     owner: 'Prakash Mooligere',
-    rating: 4.6, reviews: 56,
-    dLat: -0.060, dLng: -0.045,  // ~7.6 km SW
-    price: '₹50 / sheep',
-    services: ['Professional Shearing', 'Fleece Skirting', 'Fleece Rolling'],
+    rating: 4.7, reviews: 68,
+    dLat: -0.050, dLng: -0.040,  // ~6.8 km SW
+    price: '₹55 / sheep',
+    services: ['Machine Shearing', 'Fleece Skirting', 'Belly Separation', 'Baling Assistance'],
     verified: true,
-    hours: '7:00 AM – 4:00 PM',
+    hours: '6:30 AM – 4:00 PM',
     phone: '+91 99445 55666',
     email: 'book@expertshearing.in',
-    experience: '15 years',
-    description: 'Expert shearers trained in modern techniques to maximize yield with zero second-cuts.',
+    experience: '16 years',
+    description: 'Certified shearers trained in modern Australian/New Zealand continuous flow techniques with zero second-cuts.',
   },
   {
     id: 5,
-    name: 'Veda Wool Sorting Hub',
+    name: 'Veda Wool Sorting & Blending Hub',
     category: 'SORTING',
-    categoryLabel: 'Wool Sorting',
+    categoryLabel: 'Wool Sorting & Scouring',
     owner: 'Veda Enterprises',
-    rating: 4.7, reviews: 97,
-    dLat: 0.055,  dLng: 0.060,   // ~8.2 km NE
-    price: '₹600 / batch',
-    services: ['Fleece Sorting', 'Scouring', 'Blending'],
+    rating: 4.8, reviews: 104,
+    dLat: 0.055,  dLng: 0.050,   // ~7.8 km NE
+    price: '₹650 / batch',
+    services: ['Fleece Sorting', 'Vegetable Matter Removal', 'Fiber Grading', 'Sample Blending'],
     verified: true,
     hours: '8:00 AM – 7:00 PM',
     phone: '+91 98001 22334',
     email: 'info@vedawool.in',
-    experience: '10 years',
-    description: 'Full-service wool sorting facility with modern equipment and trained staff.',
+    experience: '11 years',
+    description: 'Industrial sorting facility with multi-stage optical inspection and skilled fleece sorters.',
   },
   {
     id: 6,
-    name: 'Green Pastures Veterinary',
+    name: 'Green Pastures Veterinary Clinic',
     category: 'VETERINARY',
-    categoryLabel: 'Veterinary',
+    categoryLabel: 'Flock Health & Veterinary',
     owner: 'Dr. Kavitha Nair',
-    rating: 4.9, reviews: 145,
-    dLat: -0.080, dLng: 0.050,   // ~9.8 km SE
-    price: '₹200 / visit',
-    services: ['Flock Health Check', 'Vaccination', 'Parasite Control'],
+    rating: 4.9, reviews: 160,
+    dLat: -0.070, dLng: 0.045,   // ~8.6 km SE
+    price: '₹250 / flock visit',
+    services: ['Flock Health Audit', 'Parasite Dip & Vaccination', 'Nutritional Advisory', 'Pre-Shearing Check'],
     verified: true,
     hours: '8:00 AM – 6:00 PM',
     phone: '+91 94488 12345',
     email: 'vet@greenpastures.in',
-    experience: '18 years',
-    description: 'Mobile veterinary services for sheep flocks. Pre-shearing health audits improve fleece quality.',
+    experience: '19 years',
+    description: 'Mobile veterinary team for sheep and goat flocks. Regular health audits prevent fiber thinning and breaks.',
   },
   {
     id: 7,
-    name: 'Rural Wool Processing Mill',
+    name: 'WoolCraft Processing Centre',
     category: 'PROCESSING',
-    categoryLabel: 'Wool Processing',
+    categoryLabel: 'Wool Processing Mill',
     owner: 'Suresh Yadav',
-    rating: 4.6, reviews: 78,
-    dLat: 0.090,  dLng: -0.070,  // ~11.6 km NW
-    price: '₹1,500 / batch',
-    services: ['Scouring', 'Carding', 'Spinning'],
-    verified: false,
-    hours: '8:00 AM – 5:00 PM',
+    rating: 4.7, reviews: 88,
+    dLat: 0.080,  dLng: -0.060,  // ~10.4 km NW
+    price: '₹1,400 / batch',
+    services: ['Scouring', 'Carding', 'Spinning to Worsted Yarn', 'Custom Dyeing'],
+    verified: true,
+    hours: '8:00 AM – 6:00 PM',
     phone: '+91 93333 44455',
     email: 'mill@ruralwool.in',
-    experience: '5 years',
-    description: 'Small-scale processing mill handling all stages from raw fleece to yarn.',
+    experience: '8 years',
+    description: 'Full-service processing unit transforming raw greasy fleece into clean carded sliver and high-count yarn.',
   },
 ];
 
 const CATEGORIES = [
-  { id: 'ALL',        label: 'All',          icon: null },
-  { id: 'SORTING',   label: 'Sorting',       icon: <ShieldCheck size={14}/> },
-  { id: 'GRADING',   label: 'Grading',       icon: <ShieldCheck size={14}/> },
-  { id: 'SHEARING',  label: 'Shearing',      icon: <Scissors size={14}/> },
-  { id: 'VETERINARY',label: 'Veterinary',    icon: <ShieldCheck size={14}/> },
-  { id: 'WAREHOUSE', label: 'Warehouse',     icon: <Warehouse size={14}/> },
-  { id: 'TRANSPORT', label: 'Transport',     icon: <Truck size={14}/> },
-  { id: 'PROCESSING',label: 'Processing',    icon: <ShieldCheck size={14}/> },
+  { id: 'ALL',        label: 'All Services', icon: null },
+  { id: 'GRADING',    label: 'Grading & QA', icon: <ShieldCheck size={14}/> },
+  { id: 'WAREHOUSE',  label: 'Warehouse',    icon: <Warehouse size={14}/> },
+  { id: 'TRANSPORT',  label: 'Transport',    icon: <Truck size={14}/> },
+  { id: 'SHEARING',   label: 'Shearing',     icon: <Scissors size={14}/> },
+  { id: 'SORTING',    label: 'Sorting',      icon: <ShieldCheck size={14}/> },
+  { id: 'PROCESSING', label: 'Processing',   icon: <ShieldCheck size={14}/> },
+  { id: 'VETERINARY', label: 'Veterinary',   icon: <ShieldCheck size={14}/> },
 ];
-
-
 
 export default function Services() {
   const { addProcessingRequest } = useGlobalState() || {};
-  const [userLocation, setUserLocation] = useState(null);
-  const [locationLabel, setLocationLabel] = useState('');
+  const [userLocation, setUserLocation] = useState({ lat: DEFAULT_LOCATION.lat, lng: DEFAULT_LOCATION.lng });
+  const [locationLabel, setLocationLabel] = useState(DEFAULT_LOCATION.name);
   const [locating, setLocating] = useState(false);
-  const [locationError, setLocationError] = useState(false);
   const [activeCategory, setActiveCategory] = useState('ALL');
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [showMyRequests, setShowMyRequests] = useState(false);
-  const [serviceRequests, setServiceRequests] = useState([]);
+  const [serviceRequests, setServiceRequests] = useState(() => {
+    try {
+      const stored = localStorage.getItem('wt_service_requests_v2');
+      return stored ? JSON.parse(stored) : [
+        {
+          id: 'SRQ-104',
+          provider: BASE_PROVIDERS[0],
+          formData: {
+            name: 'Rajesh Gowda',
+            phone: '+91 98450 12345',
+            serviceType: 'Quality Grading & Lab QA',
+            batch: 'WT-KA-2026-00124',
+            notes: '428 KG Merino Cross inspection requested.'
+          },
+          status: 'Confirmed',
+          dateCreated: new Date().toISOString()
+        }
+      ];
+    } catch {
+      return [];
+    }
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const mapRef = useRef(null);
 
-  // Build provider list by placing each provider relative to the user's actual location.
-  // dLat/dLng offsets spread providers realistically around wherever the user is.
-  const enriched = userLocation
-    ? BASE_PROVIDERS.map(p => {
-        const lat = userLocation.lat + p.dLat;
-        const lng = userLocation.lng + p.dLng;
-        const dist = haversine(userLocation.lat, userLocation.lng, lat, lng);
-        return { ...p, lat, lng, distKm: dist, distance: `${dist.toFixed(1)} km` };
-      }).sort((a, b) => a.distKm - b.distKm)
-    : [];
+  useEffect(() => {
+    localStorage.setItem('wt_service_requests_v2', JSON.stringify(serviceRequests));
+  }, [serviceRequests]);
+
+  // Build provider list relative to selected location
+  const enriched = BASE_PROVIDERS.map(p => {
+    const lat = userLocation.lat + p.dLat;
+    const lng = userLocation.lng + p.dLng;
+    const dist = haversine(userLocation.lat, userLocation.lng, lat, lng);
+    return { ...p, lat, lng, distKm: dist, distance: `${dist.toFixed(1)} km` };
+  }).sort((a, b) => a.distKm - b.distKm);
 
   // Filter by category + search
   const filtered = enriched.filter(p => {
     const catMatch = activeCategory === 'ALL' || p.category === activeCategory;
     const searchMatch = !searchQuery ||
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.categoryLabel.toLowerCase().includes(searchQuery.toLowerCase());
+      p.categoryLabel.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.services || []).some(s => s.toLowerCase().includes(searchQuery.toLowerCase()));
     return catMatch && searchMatch;
   });
 
-  // Reverse-geocode via Nominatim
-  const reverseGeocode = useCallback(async (lat, lng) => {
-    try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
-      );
-      const data = await res.json();
-      const city = data.address?.city || data.address?.town || data.address?.village || '';
-      const state = data.address?.state || '';
-      setLocationLabel(city ? `${city}, ${state}` : 'Your Location');
-    } catch {
-      setLocationLabel('Your Location');
-    }
-  }, []);
-
-  // Auto-locate on mount
-  useEffect(() => {
-    requestLocation();
-  }, []);
-
   const requestLocation = () => {
     if (!navigator.geolocation) {
-      setLocationError(true);
-      setLocationLabel('Location unavailable');
+      alert('Geolocation is not supported by your browser. Using selected region.');
       return;
     }
     setLocating(true);
-    setLocationError(false);
     navigator.geolocation.getCurrentPosition(
       pos => {
         const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setUserLocation(loc);
-        setLocationError(false);
-        reverseGeocode(loc.lat, loc.lng);
+        setLocationLabel('Current GPS Location');
         setLocating(false);
       },
       () => {
-        // Do NOT fall back to Mysuru — show an error and let the user retry.
-        setLocationError(true);
-        setLocationLabel('');
         setLocating(false);
+        setLocationLabel(DEFAULT_LOCATION.name);
       },
-      { timeout: 10000, enableHighAccuracy: true }
+      { timeout: 8000, enableHighAccuracy: true }
     );
+  };
+
+  const handleRegionChange = (e) => {
+    const found = REGION_PRESETS.find(r => r.id === e.target.value);
+    if (found) {
+      setUserLocation({ lat: found.lat, lng: found.lng });
+      setLocationLabel(found.name);
+      mapRef.current?.flyTo(found.lat, found.lng, 13);
+    }
   };
 
   const handleMarkerClick = (provider) => setSelectedProvider(provider);
@@ -249,25 +262,30 @@ export default function Services() {
   };
 
   const handleRequestSubmit = (formData, provider) => {
-    setServiceRequests(prev => [
-      { id: Date.now(), formData, provider, status: 'Pending', dateCreated: new Date().toISOString() },
-      ...prev,
-    ]);
+    const newReq = {
+      id: `SRQ-${Math.floor(100 + Math.random() * 900)}`,
+      formData,
+      provider,
+      status: 'Pending',
+      dateCreated: new Date().toISOString()
+    };
+
+    setServiceRequests(prev => [newReq, ...prev]);
 
     if (provider && (provider.category === 'PROCESSING' || provider.category === 'SORTING')) {
       const newProcReq = {
         id: `PR-2026-${String(Date.now()).slice(-5)}`,
         batchId: formData.batch || 'WT-KA-2026-00124',
         farmerId: 'FARMER-01',
-        farmerName: formData.name || 'Rajesh Kumar',
+        farmerName: formData.name || 'Rajesh Gowda',
         processingUnitId: 'PU-01',
-        processingUnitName: provider.name || 'WoolCraft Processing Centre',
+        processingUnitName: provider.name,
         requestedOperations: ['Sorting', 'Washing', 'Spinning'],
         quantity: 428,
         woolType: 'Medium Wool',
         grade: 'Grade A',
-        qualityScore: 87,
-        origin: 'Mysuru, Karnataka',
+        qualityScore: 88,
+        origin: locationLabel,
         message: formData.message || 'Processing service request from Farmer map.',
         priority: 'NORMAL',
         status: 'REQUESTED',
@@ -288,51 +306,42 @@ export default function Services() {
     return <MyRequests requests={serviceRequests} onBack={() => setShowMyRequests(false)} />;
   }
 
-  // ── Loading / Error state ────────────────────────────────────────────
-  if (locating) {
-    return (
-      <div className="services-page">
-        <div className="location-prompt panel">
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📡</div>
-          <h3>Getting your location…</h3>
-          <p>Please allow location access when prompted by your browser.</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!userLocation || locationError) {
-    return (
-      <div className="services-page">
-        <div className="location-prompt panel">
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📍</div>
-          <h3>Location Required</h3>
-          <p>To find nearby wool services, WoolTrace needs your location.<br/>Please allow location access or try again.</p>
-          <button className="btn-primary" style={{ marginTop: 20 }} onClick={requestLocation}>
-            <Locate size={16} /> Use My Location
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="services-page">
       {/* ── Location Header ── */}
       <div className="location-header">
         <div className="location-left">
-          <span className="text-small text-gray">Services near you</span>
+          <span className="text-small text-gray" style={{ fontWeight: '700' }}>Verified Wool Service Network</span>
           <h2 className="location-title">
-            <MapPin size={20} color="#16A34A" />
-            {locating ? 'Getting your location…' : locationLabel}
+            <MapPin size={22} color="#166534" />
+            <span>{locating ? 'Detecting GPS location…' : locationLabel}</span>
           </h2>
         </div>
-        <div className="location-actions">
-          <button className="icon-text-btn" onClick={requestLocation} disabled={locating}>
-            <Locate size={16} /> {locating ? '…' : 'Use My Location'}
+        <div className="location-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Region Switcher */}
+          <select 
+            onChange={handleRegionChange}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '8px',
+              border: '1px solid rgba(11,18,13,0.15)',
+              background: '#FFFFFF',
+              fontSize: '13px',
+              fontWeight: '700',
+              cursor: 'pointer'
+            }}
+          >
+            {REGION_PRESETS.map(r => (
+              <option key={r.id} value={r.id}>{r.name}</option>
+            ))}
+          </select>
+
+          <button className="icon-text-btn" onClick={requestLocation} disabled={locating} title="Auto-detect via GPS">
+            <Locate size={16} /> {locating ? 'Locating…' : 'GPS'}
           </button>
+
           <button className="btn-secondary" onClick={() => setShowMyRequests(true)}>
-            <ClipboardList size={16} /> My Requests
+            <ClipboardList size={16} /> My Bookings
             {serviceRequests.length > 0 && (
               <span className="badge-count">{serviceRequests.length}</span>
             )}
@@ -341,12 +350,12 @@ export default function Services() {
       </div>
 
       {/* ── Search bar ── */}
-      <div className="search-row">
-        <div className="search-bar">
-          <Search size={16} color="#999" />
+      <div className="search-row" style={{ marginBottom: '16px' }}>
+        <div className="search-bar" style={{ width: '100%', maxWidth: '100%' }}>
+          <Search size={18} color="#999" />
           <input
             type="text"
-            placeholder="Search service providers…"
+            placeholder="Search wool testing labs, shearing teams, climate warehouses, transport trucks, sorting hubs..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
           />
@@ -368,7 +377,7 @@ export default function Services() {
       />
 
       {/* ── Category Filters ── */}
-      <div className="category-tabs">
+      <div className="category-tabs" style={{ marginTop: '20px' }}>
         {CATEGORIES.map(cat => (
           <button
             key={cat.id}
@@ -381,13 +390,19 @@ export default function Services() {
       </div>
 
       {/* ── Nearby Services List ── */}
-      <div>
-        <h3 className="section-title">
-          Nearby Services <span className="count-badge">{filtered.length}</span>
-        </h3>
+      <div style={{ marginTop: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h3 className="section-title" style={{ margin: 0 }}>
+            Available Service Providers <span className="count-badge">{filtered.length}</span>
+          </h3>
+          <span style={{ fontSize: '12px', color: '#666' }}>
+            Sorted by proximity to {locationLabel}
+          </span>
+        </div>
+
         {filtered.length === 0 ? (
           <div className="panel empty-state">
-            <p>No service providers found for this filter.</p>
+            <p>No service providers found for this category or search term.</p>
           </div>
         ) : (
           <div className="providers-list">
@@ -402,13 +417,13 @@ export default function Services() {
                     <h4>{provider.name}</h4>
                     {provider.verified && <span className="verified-pill">✓ Verified</span>}
                   </div>
-                  <div className="provider-sub">{provider.categoryLabel}</div>
+                  <div className="provider-sub">{provider.categoryLabel} · {provider.experience} exp</div>
                   <div className="provider-meta">
                     <span className="dist-badge">
                       <Navigation size={12} /> {provider.distance}
                     </span>
                     <span className="rating-pill">
-                      <Star size={12} fill="#EAB308" color="#EAB308" /> {provider.rating}
+                      <Star size={12} fill="#EAB308" color="#EAB308" /> {provider.rating} ({provider.reviews})
                     </span>
                     <span className="price-pill">{provider.price}</span>
                   </div>
@@ -417,7 +432,7 @@ export default function Services() {
                   className="btn-view"
                   onClick={e => { e.stopPropagation(); handleProviderCardClick(provider); }}
                 >
-                  View Details
+                  View Details & Book
                 </button>
               </div>
             ))}
