@@ -1,4 +1,9 @@
 {
+  "framework": "vite",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev -- --host 127.0.0.1 --port %PORT%",
+  "outputDirectory": "dist",
   "rewrites": [
     { "source": "/api/bidding/(.*)", "destination": "/api/bidding" },
     { "source": "/api/market/(.*)",  "destination": "/api/market"  },

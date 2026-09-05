@@ -51,7 +51,19 @@ export function normalizeLearningResource(resource) {
   };
 }
 
-export const learningResources = resources.map(normalizeLearningResource);
+export function isUsefulLearningResource(resource) {
+  const normalized = normalizeLearningResource(resource);
+  const hasReadableTitle = String(normalized.title || '').trim().length >= 8;
+  const hasUsefulDescription = String(normalized.description || '').trim().length >= 24;
+  const hasOfficialSource = String(normalized.source || '').trim().length >= 3;
+  const hasLiveUrl = /^https?:\/\//i.test(String(normalized.url || '').trim());
+
+  return hasReadableTitle && hasUsefulDescription && hasOfficialSource && hasLiveUrl;
+}
+
+export const learningResources = resources
+  .map(normalizeLearningResource)
+  .filter(isUsefulLearningResource);
 
 async function readJsonResponse(response, fallbackMessage) {
   const text = await response.text();
@@ -97,7 +109,9 @@ export async function fetchLearningResources({ active } = {}) {
     const data = await readJsonResponse(response, 'Unable to load learning resources');
     if (!response.ok) throw new Error(data.message || 'Unable to load learning resources');
     if (!data.success) throw new Error(data.message || 'Unable to load learning resources');
-    return (data.data || []).map(normalizeLearningResource);
+    return (data.data || [])
+      .map(normalizeLearningResource)
+      .filter(isUsefulLearningResource);
   } catch (error) {
     console.warn('Using bundled learning resources fallback:', error);
     return active === false ? [] : learningResources;

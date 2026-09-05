@@ -129,19 +129,20 @@ const ModuleDetail = () => {
     }
   };
 
-  const handleQuizComplete = (score, passed) => {
+  const handleQuizComplete = (score, passed, options = {}) => {
+    const { closeQuiz = true, showCertificate = true } = options;
     const result = { score, passed, date: new Date().toISOString() };
     setQuizResult(result);
     localStorage.setItem(quizKey, JSON.stringify(result));
-    setShowQuiz(false);
-    if (passed) setTimeout(() => setShowCert(true), 400);
+    if (closeQuiz) setShowQuiz(false);
+    if (passed && showCertificate) setTimeout(() => setShowCert(true), 400);
   };
 
   const currentLesson = module.lessons[activeLesson] || module.lessons[0];
 
   const getYtId = (lesson) => {
     const ids = lesson.youtubeIds || {};
-    return ids[lang] || ids.en || 'kYJ4u5T0l-I';
+    return ids[lang] || ids.en || 'kxsa7zATRWQ';
   };
 
   const ytSrc = `https://www.youtube.com/embed/${getYtId(currentLesson)}?autoplay=0&rel=0&modestbranding=1&color=white&controls=1`;
@@ -472,9 +473,17 @@ const ModuleDetail = () => {
             })}
 
             {/* Quiz Row at the bottom of playlist */}
-            <button
+            <div
               className={`md-playlist-quiz-row ${quizResult?.passed ? 'quiz-passed' : ''}`}
               onClick={() => setShowQuiz(true)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setShowQuiz(true);
+                }
+              }}
+              role="button"
+              tabIndex={0}
               style={{ cursor: 'pointer' }}
             >
               <div className="md-quiz-row-icon">
@@ -498,7 +507,7 @@ const ModuleDetail = () => {
                   <Award size={14} />
                 </button>
               )}
-            </button>
+            </div>
           </div>
 
           {/* About Section */}

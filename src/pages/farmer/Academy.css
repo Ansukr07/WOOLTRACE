@@ -895,6 +895,12 @@
 
 .cohort-join-btn:hover { background: #c8ee60; }
 
+.cohort-join-btn.joined {
+  background: rgba(11, 18, 13, 0.08);
+  color: rgba(11, 18, 13, 0.68);
+  border: 1px solid rgba(11, 18, 13, 0.12);
+}
+
 /* Update cohort table to accommodate join button */
 .cohort-table article {
   grid-template-columns: 1.3fr 0.55fr 0.65fr 1.1fr 0.9fr auto;
@@ -1069,6 +1075,59 @@
 }
 
 .modal-close-btn:hover { background: rgba(11, 18, 13, 0.1); }
+
+/* ── Action Notice Modal ── */
+.action-notice-modal {
+  max-width: 430px;
+  align-items: center;
+  gap: 14px;
+  padding: 28px;
+  text-align: center;
+}
+
+.action-notice-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: rgba(221, 255, 134, 0.35);
+  color: #0B120D;
+}
+
+.action-notice-modal h2 {
+  margin: 0;
+  color: #0B120D;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.action-notice-modal p {
+  margin: 0;
+  color: rgba(11, 18, 13, 0.68);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.action-notice-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 44px;
+  border-radius: 10px;
+  background: #0B120D;
+  color: #DDFF86;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.action-notice-modal .modal-close-btn {
+  width: 100%;
+}
 
 /* ── Schedule Modal ── */
 .schedule-modal { max-width: 640px; }

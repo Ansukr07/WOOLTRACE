@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, CheckCircle2, XCircle, Star, RotateCcw, Trophy, ChevronRight } from 'lucide-react';
 import './QuizModal.css';
 
@@ -67,6 +67,7 @@ const QuizModal = ({ module, lang = 'en', onClose, onComplete }) => {
   const [selected, setSelected] = useState(null);
   const [checked, setChecked] = useState(false);
   const [answers, setAnswers] = useState([]);
+  const [reportedResult, setReportedResult] = useState(false);
 
   const q = questions[currentQ];
   const isLast = currentQ === questions.length - 1;
@@ -100,6 +101,7 @@ const QuizModal = ({ module, lang = 'en', onClose, onComplete }) => {
     setSelected(null);
     setChecked(false);
     setAnswers([]);
+    setReportedResult(false);
   };
 
   const correctCount = answers.filter((a) => a.isCorrect).length;
@@ -107,6 +109,13 @@ const QuizModal = ({ module, lang = 'en', onClose, onComplete }) => {
   const passed = score >= PASS_SCORE;
 
   const progressPct = ((currentQ) / questions.length) * 100;
+
+  useEffect(() => {
+    if (step === 'result' && !reportedResult) {
+      onComplete?.(score, passed, { closeQuiz: false, showCertificate: false });
+      setReportedResult(true);
+    }
+  }, [step, reportedResult, score, passed, onComplete]);
 
   return (
     <div className="quiz-backdrop" onClick={onClose}>

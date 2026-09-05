@@ -911,11 +911,11 @@ const copy = {
 
 /* ─── Static Data ─────────────────────────────────────────────────────────── */
 const cohorts = [
-  { village: 'Bikaner Cluster', state: 'Rajasthan', learners: 126, attendance: '91%', focus: 'Pre-shearing hygiene', next: 'Today, 4:00 PM' },
-  { village: 'Kullu Valley Group', state: 'Himachal Pradesh', learners: 84, attendance: '87%', focus: 'Fiber sorting & grading', next: 'Tomorrow, 10:30 AM' },
-  { village: 'Mandya Shepherd Circle', state: 'Karnataka', learners: 112, attendance: '94%', focus: 'Batch QR creation', next: '16 Aug, 9:00 AM' },
-  { village: 'Jodhpur Wool Collective', state: 'Rajasthan', learners: 98, attendance: '89%', focus: 'Market price analysis', next: '17 Aug, 3:00 PM' },
-  { village: 'Leh Pashmina Farmers', state: 'Ladakh', learners: 67, attendance: '92%', focus: 'Sustainable grazing', next: '18 Aug, 11:00 AM' },
+  { village: 'Bikaner Cluster', state: 'Rajasthan', learners: 126, attendance: '91%', focus: 'Pre-shearing hygiene', next: '5 Sep, 4:00 PM' },
+  { village: 'Kullu Valley Group', state: 'Himachal Pradesh', learners: 84, attendance: '87%', focus: 'Fiber sorting & grading', next: '6 Sep, 10:30 AM' },
+  { village: 'Mandya Shepherd Circle', state: 'Karnataka', learners: 112, attendance: '94%', focus: 'Batch QR creation', next: '7 Sep, 9:00 AM' },
+  { village: 'Jodhpur Wool Collective', state: 'Rajasthan', learners: 98, attendance: '89%', focus: 'Market price analysis', next: '8 Sep, 3:00 PM' },
+  { village: 'Leh Pashmina Farmers', state: 'Ladakh', learners: 67, attendance: '92%', focus: 'Sustainable grazing', next: '9 Sep, 11:00 AM' },
 ];
 
 const woolJourney = [
@@ -978,6 +978,11 @@ const Academy = () => {
   const [guidesOpen, setGuidesOpen] = useState(false);
   const [joinCohort, setJoinCohort] = useState(null);
   const [schemeDetail, setSchemeDetail] = useState(null);
+  const [actionNotice, setActionNotice] = useState(null);
+  const [joinedCohorts, setJoinedCohorts] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('wt_joined_learning_groups')) || []; }
+    catch { return []; }
+  });
 
   // Download toast state
   const [downloadToast, setDownloadToast] = useState(null);
@@ -985,6 +990,37 @@ const Academy = () => {
   const t = copy[activeLanguage] || copy.en;
   const filters = ['All', 'Beginner', 'Intermediate', 'Advanced'];
   const recommendedResources = useMemo(() => getRecommendedLearningResources(user?.state, resources), [resources, user?.state]);
+
+  const showNotice = (title, body, actionUrl = '') => {
+    setActionNotice({ title, body, actionUrl });
+  };
+
+  const openExternalLink = (url, label) => {
+    if (!url) {
+      showNotice(
+        `${label} is not available`,
+        'This item does not have a live link yet. The detail card is available here for the demo.'
+      );
+      return;
+    }
+    const opened = window.open(url, '_blank', 'noopener');
+    showNotice(
+      `${label} opened`,
+      opened
+        ? 'The official page has been opened in a new tab. If your browser blocks pop-ups, use the link below.'
+        : 'Your browser blocked the new tab. Use the link below to continue.',
+      url
+    );
+  };
+
+  const handleCohortJoined = (cohort, form) => {
+    const next = [
+      ...joinedCohorts.filter((item) => item.village !== cohort.village),
+      { ...cohort, joinedAt: new Date().toISOString(), learner: form },
+    ];
+    setJoinedCohorts(next);
+    localStorage.setItem('wt_joined_learning_groups', JSON.stringify(next));
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -1095,9 +1131,17 @@ const Academy = () => {
       doc.save(fileName);
       
       setDownloadToast(guide.title);
+      showNotice(
+        'PDF guide generated',
+        `${guide.title} has been generated as ${fileName}. Check your browser downloads if it does not open automatically.`
+      );
       setTimeout(() => setDownloadToast(null), 3000);
     } catch (error) {
       console.error("Error generating PDF:", error);
+      showNotice(
+        'PDF could not be generated',
+        'The browser could not create this PDF. Please try again after refreshing the page.'
+      );
     }
   };
 
@@ -1116,7 +1160,7 @@ const Academy = () => {
     } catch (error) {
       console.warn('Unable to update resource views:', error);
     }
-    window.open(resource.url, '_blank', 'noopener');
+    openExternalLink(resource.url, resource.title);
   };
 
   return (
@@ -1315,24 +1359,27 @@ const Academy = () => {
             </div>
           </div>
           <div className="cohort-table">
-            {visibleCohorts.map((cohort) => (
-              <article key={cohort.village}>
-                <div>
-                  <strong>{cohort.village}</strong>
-                  <span>{cohort.state}</span>
-                </div>
-                <div><strong>{cohort.learners}</strong><span>{t.farmersLabel}</span></div>
-                <div><strong>{cohort.attendance}</strong><span>{t.attendanceLabel}</span></div>
-                <div><strong>{cohort.focus}</strong><span>{t.currentFocusLabel}</span></div>
-                <div><strong>{cohort.next}</strong><span>{t.nextSessionLabel}</span></div>
-                <button
-                  className="cohort-join-btn"
-                  onClick={() => setJoinCohort(cohort)}
-                >
-                  {t.joinGroup}
-                </button>
-              </article>
-            ))}
+            {visibleCohorts.map((cohort) => {
+              const isJoined = joinedCohorts.some((item) => item.village === cohort.village);
+              return (
+                <article key={cohort.village}>
+                  <div>
+                    <strong>{cohort.village}</strong>
+                    <span>{cohort.state}</span>
+                  </div>
+                  <div><strong>{cohort.learners + (isJoined ? 1 : 0)}</strong><span>{t.farmersLabel}</span></div>
+                  <div><strong>{cohort.attendance}</strong><span>{t.attendanceLabel}</span></div>
+                  <div><strong>{cohort.focus}</strong><span>{t.currentFocusLabel}</span></div>
+                  <div><strong>{cohort.next}</strong><span>{t.nextSessionLabel}</span></div>
+                  <button
+                    className={`cohort-join-btn ${isJoined ? 'joined' : ''}`}
+                    onClick={() => setJoinCohort(cohort)}
+                  >
+                    {isJoined ? 'Joined' : t.joinGroup}
+                  </button>
+                </article>
+              );
+            })}
           </div>
         </section>
       )}
@@ -1440,7 +1487,7 @@ const Academy = () => {
                   </button>
                   <button
                     className="scheme-apply-btn"
-                    onClick={() => window.open(scheme.url, '_blank', 'noopener')}
+                    onClick={() => openExternalLink(scheme.url, scheme.name)}
                   >
                     {t.applyNow} <ExternalLink size={13} />
                   </button>
@@ -1460,7 +1507,7 @@ const Academy = () => {
       )}
 
       {/* ── Modals (lazy-loaded when needed) ── */}
-      {scheduleOpen && <ScheduleModal onClose={() => setScheduleOpen(false)} t={t} />}
+      {scheduleOpen && <ScheduleModal onClose={() => setScheduleOpen(false)} t={t} onNotice={showNotice} />}
       {guidesOpen && (
         <GuidesModal
           guides={guides}
@@ -1469,12 +1516,45 @@ const Academy = () => {
           t={t}
         />
       )}
-      {joinCohort && <CohortJoinModal cohort={joinCohort} onClose={() => setJoinCohort(null)} t={t} />}
-      {schemeDetail && <SchemeDetailModal scheme={schemeDetail} onClose={() => setSchemeDetail(null)} t={t} />}
+      {joinCohort && (
+        <CohortJoinModal
+          cohort={joinCohort}
+          user={user}
+          onJoined={handleCohortJoined}
+          onClose={() => setJoinCohort(null)}
+          t={t}
+        />
+      )}
+      {schemeDetail && (
+        <SchemeDetailModal
+          scheme={schemeDetail}
+          onClose={() => setSchemeDetail(null)}
+          onOpenExternal={openExternalLink}
+          onNotice={showNotice}
+          t={t}
+        />
+      )}
       {resourceDetail && <ResourceDetailModal resource={resourceDetail} onOpen={openResource} onClose={() => setResourceDetail(null)} />}
+      {actionNotice && <ActionNoticeModal notice={actionNotice} onClose={() => setActionNotice(null)} />}
     </div>
   );
 };
+
+const ActionNoticeModal = ({ notice, onClose }) => (
+  <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-panel action-notice-modal" onClick={(event) => event.stopPropagation()}>
+      <div className="action-notice-icon"><CheckCircle2 size={28} /></div>
+      <h2>{notice.title}</h2>
+      <p>{notice.body}</p>
+      {notice.actionUrl && (
+        <a className="action-notice-link" href={notice.actionUrl} target="_blank" rel="noreferrer">
+          Open link <ExternalLink size={14} />
+        </a>
+      )}
+      <button className="modal-close-btn" onClick={onClose}>Done</button>
+    </div>
+  </div>
+);
 
 const ResourceDetailModal = ({ resource, onOpen, onClose }) => (
   <div className="modal-backdrop" onClick={onClose}>
@@ -1506,26 +1586,28 @@ const ResourceDetailModal = ({ resource, onOpen, onClose }) => (
 
 /* ─── Inline lightweight ScheduleModal ──────────────────────────────────── */
 const scheduleSessions = [
-  { date: 'Today', time: '4:00 PM', group: 'Bikaner Cluster', state: 'Rajasthan', topic: 'Pre-shearing hygiene & blade care', facilitator: 'Ramesh Kumar Sharma', seats: 20 },
-  { date: 'Tomorrow', time: '10:30 AM', group: 'Kullu Valley Group', state: 'Himachal Pradesh', topic: 'Fiber sorting & BIS grading basics', facilitator: 'Priya Thakur', seats: 15 },
-  { date: '16 Aug', time: '9:00 AM', group: 'Mandya Shepherd Circle', state: 'Karnataka', topic: 'Batch QR creation on WoolTrace', facilitator: 'Suresh Gowda', seats: 10 },
-  { date: '17 Aug', time: '3:00 PM', group: 'Jodhpur Wool Collective', state: 'Rajasthan', topic: 'Market price analysis & reverse bidding', facilitator: 'Fatima Begum', seats: 25 },
-  { date: '18 Aug', time: '11:00 AM', group: 'Leh Pashmina Farmers', state: 'Ladakh', topic: 'Sustainable grazing & water conservation', facilitator: 'Dorje Namgyal', seats: 12 },
-  { date: '20 Aug', time: '2:00 PM', group: 'Barmer Wool Circle', state: 'Rajasthan', topic: 'Wool storage best practices', facilitator: 'Bhura Ram Joshi', seats: 18 },
+  { date: '5 Sep', time: '4:00 PM', group: 'Bikaner Cluster', state: 'Rajasthan', topic: 'Pre-shearing hygiene & blade care', facilitator: 'Ramesh Kumar Sharma', seats: 20 },
+  { date: '6 Sep', time: '10:30 AM', group: 'Kullu Valley Group', state: 'Himachal Pradesh', topic: 'Fiber sorting & BIS grading basics', facilitator: 'Priya Thakur', seats: 15 },
+  { date: '7 Sep', time: '9:00 AM', group: 'Mandya Shepherd Circle', state: 'Karnataka', topic: 'Batch QR creation on WoolTrace', facilitator: 'Suresh Gowda', seats: 10 },
+  { date: '8 Sep', time: '3:00 PM', group: 'Jodhpur Wool Collective', state: 'Rajasthan', topic: 'Market price analysis & reverse bidding', facilitator: 'Fatima Begum', seats: 25 },
+  { date: '9 Sep', time: '11:00 AM', group: 'Leh Pashmina Farmers', state: 'Ladakh', topic: 'Sustainable grazing & water conservation', facilitator: 'Dorje Namgyal', seats: 12 },
+  { date: '10 Sep', time: '2:00 PM', group: 'Barmer Wool Circle', state: 'Rajasthan', topic: 'Wool storage best practices', facilitator: 'Bhura Ram Joshi', seats: 18 },
 ];
 
-const ScheduleModal = ({ onClose, t }) => {
+const ScheduleModal = ({ onClose, t, onNotice }) => {
   const [rsvpd, setRsvpd] = useState(new Set());
   const toggle = (idx) => {
-    setRsvpd((prev) => {
-      const next = new Set(prev);
-      if (next.has(idx)) {
-        next.delete(idx);
-      } else {
-        next.add(idx);
-      }
-      return next;
-    });
+    const session = scheduleSessions[idx];
+    const alreadyRsvpd = rsvpd.has(idx);
+    const next = new Set(rsvpd);
+    if (alreadyRsvpd) {
+      next.delete(idx);
+      onNotice?.('RSVP removed', `You have been removed from ${session.group}.`);
+    } else {
+      next.add(idx);
+      onNotice?.('RSVP confirmed', `You are registered for ${session.group} at ${session.time}.`);
+    }
+    setRsvpd(next);
   };
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -1604,8 +1686,13 @@ const GuidesModal = ({ guides, onDownload, onClose, t }) => (
 );
 
 /* ─── Inline CohortJoinModal ─────────────────────────────────────────────── */
-const CohortJoinModal = ({ cohort, onClose, t }) => {
-  const [form, setForm] = useState({ name: '', phone: '', language: 'English', village: '' });
+const CohortJoinModal = ({ cohort, user, onJoined, onClose, t }) => {
+  const [form, setForm] = useState({
+    name: user?.name || 'Rajesh Gowda',
+    phone: user?.mobile || '9845012345',
+    language: languages.find((item) => item.code === user?.preferredLanguage)?.label || 'English',
+    village: user?.village || user?.district || user?.state || 'Karnataka',
+  });
   const [step, setStep] = useState('form');
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
@@ -1661,7 +1748,12 @@ const CohortJoinModal = ({ cohort, onClose, t }) => {
         <div className="modal-footer">
           <button
             className="cohort-submit-btn"
-            onClick={() => { if (form.name && form.phone) setStep('success'); }}
+            onClick={() => {
+              if (form.name && form.phone) {
+                onJoined?.(cohort, form);
+                setStep('success');
+              }
+            }}
             disabled={!form.name || !form.phone}
           >
             {t.joinGroup2}
@@ -1708,7 +1800,7 @@ const schemeInfo = {
   },
 };
 
-const SchemeDetailModal = ({ scheme, onClose, t }) => {
+const SchemeDetailModal = ({ scheme, onClose, onOpenExternal, onNotice, t }) => {
   const info = schemeInfo[scheme.name] || {};
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -1757,10 +1849,16 @@ const SchemeDetailModal = ({ scheme, onClose, t }) => {
           </div>
         </div>
         <div className="modal-footer scheme-modal-footer">
-          <button className="scheme-apply-btn-full" onClick={() => window.open(scheme.url, '_blank', 'noopener')}>
+          <button className="scheme-apply-btn-full" onClick={() => onOpenExternal(scheme.url, scheme.name)}>
             {t.applyOnline} <ExternalLink size={15} />
           </button>
-          <button className="scheme-call-btn" onClick={() => window.open(`tel:${info.helpline}`, '_self')}>
+          <button
+            className="scheme-call-btn"
+            onClick={() => {
+              onNotice?.('Helpline ready', `Dial ${info.helpline} for ${scheme.name} support.`);
+              window.location.href = `tel:${info.helpline}`;
+            }}
+          >
             <Phone size={15} /> {t.callHelpline}
           </button>
         </div>
