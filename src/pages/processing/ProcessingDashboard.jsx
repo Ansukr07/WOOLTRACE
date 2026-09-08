@@ -324,7 +324,7 @@ const ProcessingDashboard = () => {
             <Search size={18} />
             <input 
               type="text" 
-              placeholder="Search Batch ID, Farmer, or Origin..." 
+              placeholder="Search Batch ID, Crop, Farmer, or Origin..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -344,7 +344,7 @@ const ProcessingDashboard = () => {
                 <th>Batch ID</th>
                 <th>Origin / Farmer</th>
                 <th>Quantity</th>
-                <th>Wool Type</th>
+                <th>Produce & Variety</th>
                 <th>Status / Progress</th>
                 <th>Location / ETA</th>
                 <th>Priority</th>

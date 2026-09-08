@@ -13,7 +13,7 @@ const Footer = () => {
           {/* Brand Column */}
           <div className="footer-col brand-col">
             <h3 className="footer-logo">WoolTrace</h3>
-            <p>WoolTrace is a connected digital ecosystem for India's wool industry, tracking every step from farm to fabric.</p>
+            <p>WoolTrace is an agricultural market intelligence and transaction enablement platform connecting farmers, FPOs, and buyers across India.</p>
             <div className="social-links">
               <a href="#" className="social-icon">FB</a>
               <a href="#" className="social-icon">IG</a>
@@ -53,7 +53,7 @@ const Footer = () => {
           {/* Newsletter Column */}
           <div className="footer-col newsletter-col">
             <h4>NEWSLETTER</h4>
-            <p>Sign up to get updates & news on the wool industry.</p>
+            <p>Sign up to get real-time price updates and market intelligence.</p>
             <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
               <input type="email" placeholder="Email Address" required />
               <button type="submit">SUBSCRIBE NOW</button>

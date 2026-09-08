@@ -69,7 +69,7 @@ export default function VerifyCertificate() {
               <div className="val">{cert.farmerName}<br/>{cert.origin}</div>
             </div>
             <div className="cert-item">
-              <label>Wool Type & Quantity</label>
+              <label>Produce & Variety · Quantity</label>
               <div className="val">{cert.quantity} KG • {cert.woolType}</div>
             </div>
             <div className="cert-item">

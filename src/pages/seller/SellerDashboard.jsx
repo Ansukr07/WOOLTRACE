@@ -57,7 +57,7 @@ const SellerDashboard = () => {
         <h1 style={{fontSize: '28px', fontWeight: '800', marginBottom: '8px', color: '#0B120D'}}>
           Good afternoon, {user?.name || 'Seller'}
         </h1>
-        <p style={{color: '#666', fontSize: '16px'}}>Manage your wool business from one place.</p>
+        <p style={{color: '#666', fontSize: '16px'}}>Manage your agricultural produce, grain lots & trading orders from one place.</p>
       </div>
 
       {/* Top Metrics */}
@@ -142,7 +142,7 @@ const SellerDashboard = () => {
                 onClick={() => navigate('/seller/list-wool')}
                 style={{display: 'flex', alignItems: 'center', gap: '12px', width: '100%', padding: '16px', backgroundColor: '#0B120D', color: '#DDFF86', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', transition: 'opacity 0.2s'}}
               >
-                <Plus size={20} /> LIST WOOL
+                <Plus size={20} /> LIST PRODUCE LOT
               </button>
               <button 
                 onClick={() => navigate('/seller/list-product')}

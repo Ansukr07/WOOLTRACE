@@ -48,10 +48,10 @@ export default function TrackWool() {
       <div className="track-wool-header">
         <div>
           <h1 className="track-wool-title">
-            <Sparkles size={28} color="#0B120D" /> Track Wool Batch
+            <Sparkles size={28} color="#0B120D" /> Track Produce Batch Passport
           </h1>
           <p className="track-wool-subtitle">
-            Every wool batch has a verified digital identity from farm to fabric.
+            Every harvest batch has a verified digital identity from farm to market.
           </p>
         </div>
       </div>
@@ -101,7 +101,7 @@ export default function TrackWool() {
           <Box size={48} color="#999" style={{ margin: '0 auto 16px' }} />
           <h3 style={{ fontSize: '18px', color: '#0B120D', margin: '0 0 8px 0' }}>Batch Not Found</h3>
           <p style={{ color: '#666', marginBottom: '20px' }}>
-            No wool batch matched "{selectedBatchId}". Please verify the Batch ID.
+            No produce batch matched "{selectedBatchId}". Please verify the Batch ID.
           </p>
           <button 
             className="quick-chip active"
@@ -144,7 +144,7 @@ export default function TrackWool() {
                   <span className="meta-val">{currentBatch.quantity} KG</span>
                 </div>
                 <div className="meta-item">
-                  <span className="meta-label">Wool Type</span>
+                  <span className="meta-label">Produce & Variety</span>
                   <span className="meta-val">{currentBatch.woolType}</span>
                 </div>
                 <div className="meta-item">
@@ -248,7 +248,7 @@ export default function TrackWool() {
               {currentBatch.id || currentBatch.batchId}
             </div>
             <p style={{ fontSize: '13px', color: '#666', margin: '0 0 20px 0' }}>
-              Anyone scanning this QR code can authenticate the entire wool journey from farm to fabric without exposing private contact info.
+              Anyone scanning this QR code can authenticate the entire produce journey from farm to market without exposing private contact info.
             </p>
 
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>

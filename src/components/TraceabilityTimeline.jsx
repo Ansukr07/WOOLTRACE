@@ -12,10 +12,10 @@ const STAGES = [
   { id: 'TRANSPORT', label: 'Transport', icon: Truck },
   { id: 'WAREHOUSE', label: 'Warehouse', icon: Warehouse },
   { id: 'PROCESSING', label: 'Processing', icon: Cog },
-  { id: 'FABRIC', label: 'Fabric', icon: Shirt },
+  { id: 'DELIVERED', label: 'Delivery', icon: CheckCircle2 },
 ];
 
-const STAGE_ORDER = ['FARM', 'QUALITY', 'MARKET', 'TRANSPORT', 'WAREHOUSE', 'PROCESSING', 'FABRIC'];
+const STAGE_ORDER = ['FARM', 'QUALITY', 'MARKET', 'TRANSPORT', 'WAREHOUSE', 'PROCESSING', 'DELIVERED'];
 
 export default function TraceabilityTimeline({ batchId, hideEvents = false, onShowQR }) {
   const { 
@@ -194,7 +194,7 @@ export default function TraceabilityTimeline({ batchId, hideEvents = false, onSh
                 Warehouse Storage Allocation
               </span>
               <div style={{ fontSize: '13px', fontWeight: '700', color: '#0B120D' }}>
-                {batch.currentLocation || 'Mysuru Wool Storage Centre'}
+                {batch.currentLocation || 'Certified Agri Storage Centre'}
               </div>
             </div>
           </div>

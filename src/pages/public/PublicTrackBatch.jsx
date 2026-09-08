@@ -58,7 +58,7 @@ export default function PublicTrackBatch() {
         <div className="public-main-card">
           <div className="public-cert-header">
             <span style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#666' }}>
-              Official Farm-to-Fabric Passport
+              Official Farm-to-Market Produce Passport
             </span>
             <div className="public-batch-pill">
               Batch {batch.id || batch.batchId}
@@ -71,7 +71,7 @@ export default function PublicTrackBatch() {
           {/* Clean Public Overview (Privacy-Safe) */}
           <div className="public-info-grid">
             <div className="public-info-item">
-              <label>Wool Variety</label>
+              <label>Produce Variety</label>
               <div className="val">{batch.woolType}</div>
             </div>
             <div className="public-info-item">
@@ -103,7 +103,7 @@ export default function PublicTrackBatch() {
 
           {/* Footer Note */}
           <div style={{ textAlign: 'center', marginTop: '28px', paddingTop: '20px', borderTop: '1px solid rgba(11, 18, 13, 0.08)', fontSize: '12px', color: '#888' }}>
-            WoolTrace Digital Identity System · Built for SIH · Every wool batch has a verified digital identity from farm to fabric.
+            WoolTrace Digital Identity System · Built for SIH · Every agricultural harvest has a verified digital identity from farm to market.
           </div>
         </div>
       </div>

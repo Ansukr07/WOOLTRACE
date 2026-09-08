@@ -17,7 +17,7 @@ export const COMMODITY_CATEGORIES = [
 export const COMMODITIES = [
   {
     id: 'WHEAT',
-    name: 'Wheat (गेहूं)',
+    name: 'Wheat',
     category: 'CEREAL',
     hindiName: 'गेहूं',
     defaultUnit: 'KG',
@@ -44,92 +44,91 @@ export const COMMODITIES = [
       tempGuideline: '15 - 25°C, Dry',
       lossRisk: 'Low (with fumigation)'
     },
-    processingStages: ['CLEANING', 'GRADING', 'MILLING_FLOUR', 'PACKAGING'],
-    description: 'High demand from roller flour mills, biscuit manufacturers, and FCI central pool procurement.'
+    processingStages: ['CLEANING', 'DE-STONING', 'GRADING', 'MILLING_FLOUR', 'PACKAGING'],
+    description: 'Direct procurement links to roller flour mills, biscuit manufacturers, and state buffer depots across Punjab, Haryana, MP, and Rajasthan.'
   },
   {
     id: 'RICE',
-    name: 'Paddy / Basmati Rice (धान / चावल)',
+    name: 'Paddy / Basmati Rice',
     category: 'CEREAL',
-    hindiName: 'चावल / धान',
+    hindiName: 'धान / बासमती',
     defaultUnit: 'KG',
     supportedUnits: ['KG', 'Quintal', 'Tonne', 'Bag (50kg)'],
-    basePricePerKg: 42.0,
-    mandiPricePerKg: 39.5,
-    processorQuotePerKg: 44.5,
-    institutionalQuotePerKg: 46.0,
-    priceChange30d: 5.8,
+    basePricePerKg: 38.0,
+    mandiPricePerKg: 36.5,
+    processorQuotePerKg: 41.0,
+    institutionalQuotePerKg: 42.5,
+    priceChange30d: 5.1,
     demandLevel: 'HIGH',
-    demandVolumeKg: 19800,
-    supplyVolumeKg: 9500,
-    varieties: ['Basmati 1121', 'Pusa Basmati', 'Sona Masoori', 'Kolam', 'Ponni'],
+    demandVolumeKg: 32000,
+    supplyVolumeKg: 18500,
+    varieties: ['Pusa 1121', 'Pusa 1509', 'Sugandha', 'Sharbati Rice', 'PR-126'],
     qualitySchema: [
-      { key: 'grainLength', label: 'Average Grain Length', type: 'select', options: ['Extra Long (8.2mm+)', 'Long (7.0 - 8.2mm)', 'Medium (6.0 - 7.0mm)'] },
-      { key: 'brokenPercentage', label: 'Broken Grain %', type: 'select', options: ['< 2% (Super Export)', '2 - 5% (Grade A)', '> 5% (Domestic Standard)'] },
-      { key: 'moisture', label: 'Moisture baseline', type: 'select', options: ['12 - 14% (Optimal)', '< 12% (Dry)', '> 14% (Needs drying)'] },
-      { key: 'millingQuality', label: 'Milling Yield', type: 'select', options: ['Grade A (68%+ Recovery)', 'Grade B (62 - 68%)', 'Grade C (< 62%)'] }
+      { key: 'grainLength', label: 'Average Grain Length (mm)', type: 'select', options: ['Extra Long (8.2mm+)', 'Long (7.5 - 8.2mm)', 'Medium (6.5 - 7.5mm)'] },
+      { key: 'brokenGrain', label: 'Broken Grain %', type: 'select', options: ['< 2% (Export Grade)', '2 - 5% (Grade A)', '> 5% (Commercial)'] },
+      { key: 'moisture', label: 'Paddy Moisture %', type: 'select', options: ['< 12% (Milling Ready)', '12 - 14% (Standard)', '> 14% (High)'] }
     ],
     storageCharacteristics: {
-      type: 'Modern Grain Warehouse / Silo',
+      type: 'Paddy Silo / Covered Shed',
       monthlyRatePerKg: 0.9,
-      shelfLifeDays: 360,
-      tempGuideline: '18 - 22°C',
+      shelfLifeDays: 300,
+      tempGuideline: 'Ambient, well aerated',
       lossRisk: 'Low'
     },
-    processingStages: ['CLEANING', 'DEHUSKING', 'POLISHING', 'GRADING', 'PACKING'],
-    description: 'Strong export demand to Middle East and European retail markets with premium for GI-tagged varieties.'
+    processingStages: ['CLEANING', 'HUSKING', 'POLISHING', 'SORTING_COLOR', 'PACKAGING'],
+    description: 'High export and domestic demand from modern rice shellers in Punjab, Haryana, and Western UP.'
   },
   {
     id: 'TOMATO',
-    name: 'Tomato (टमाटर)',
+    name: 'Tomato',
     category: 'VEGETABLE',
     hindiName: 'टमाटर',
     defaultUnit: 'KG',
     supportedUnits: ['KG', 'Crate (25kg)', 'Quintal'],
     basePricePerKg: 34.0,
-    mandiPricePerKg: 31.0,
-    processorQuotePerKg: 36.5,
-    institutionalQuotePerKg: 38.0,
-    priceChange30d: -1.2,
-    demandLevel: 'MODERATE',
-    demandVolumeKg: 8500,
-    supplyVolumeKg: 8200,
-    varieties: ['Hybrid Roma', 'Pusa Ruby', 'Desi Local', 'Avinash-2', 'Himsona'],
+    mandiPricePerKg: 32.0,
+    processorQuotePerKg: 37.0,
+    institutionalQuotePerKg: 38.5,
+    priceChange30d: -8.2,
+    demandLevel: 'HIGH',
+    demandVolumeKg: 18000,
+    supplyVolumeKg: 22000,
+    varieties: ['Himsona', 'Abhinav', 'Vaishali', 'Pusa Ruby', 'Desi Round'],
     qualitySchema: [
-      { key: 'firmness', label: 'Firmness & Ripeness', type: 'select', options: ['Breaker / Turning (Firm for transport)', 'Firm Red (Immediate consumption)', 'Over-ripe (Processing only)'] },
-      { key: 'damage', label: 'Defects / Blemish %', type: 'select', options: ['< 2% (Grade A Retail)', '2 - 5% (Grade B)', '> 5% (Puree Processing)'] },
-      { key: 'size', label: 'Fruit Diameter', type: 'select', options: ['Large (60mm+)', 'Medium (45 - 60mm)', 'Small (< 45mm)'] }
+      { key: 'firmness', label: 'Fruit Firmness & Ripeness', type: 'select', options: ['Firm Breaker (70% Red - Best Transport)', 'Table Ripe (90% Red)', 'Soft (Processing only)'] },
+      { key: 'diameter', label: 'Fruit Diameter (Grade)', type: 'select', options: ['Large (65mm+)', 'Medium (50 - 65mm)', 'Small (< 50mm)'] },
+      { key: 'blemish', label: 'Skin Blemish & Cracks', type: 'select', options: ['< 2% (Grade A)', '2 - 5% (Grade B)', '> 5% (Grade C)'] }
     ],
     storageCharacteristics: {
-      type: 'Climate-Controlled Cold Storage',
+      type: 'Cold Room (Reefer)',
       monthlyRatePerKg: 2.5,
       shelfLifeDays: 21,
-      tempGuideline: '10 - 12°C, 85% RH',
-      lossRisk: 'High if uncooled'
+      tempGuideline: '10 - 13°C, 85-90% RH',
+      lossRisk: 'High (Perishable)'
     },
-    processingStages: ['SORTING', 'GRADING', 'PACKING_CRATES', 'COLD_CHAIN_DISPATCH'],
-    description: 'High velocity commercial vegetable with direct institutional demand from quick-commerce and ketchup processors.'
+    processingStages: ['WASHING', 'SORTING', 'CRUSHING', 'PASTE_EXTRACTION', 'ASEPTIC_PACKING'],
+    description: 'Fast-moving vegetable connected to tomato puree/ketchup processors, institutional caterers, and wholesale vegetable yards.'
   },
   {
     id: 'ONION',
-    name: 'Onion (प्याज)',
+    name: 'Onion',
     category: 'VEGETABLE',
     hindiName: 'प्याज',
     defaultUnit: 'KG',
     supportedUnits: ['KG', 'Bag (50kg)', 'Quintal'],
     basePricePerKg: 24.5,
-    mandiPricePerKg: 22.8,
-    processorQuotePerKg: 26.0,
-    institutionalQuotePerKg: 27.5,
-    priceChange30d: 3.4,
+    mandiPricePerKg: 23.0,
+    processorQuotePerKg: 26.5,
+    institutionalQuotePerKg: 28.0,
+    priceChange30d: 12.4,
     demandLevel: 'HIGH',
-    demandVolumeKg: 16500,
-    supplyVolumeKg: 11000,
-    varieties: ['Nashik Red', 'Garwa (Rabi)', 'Pol (Kharif)', 'White Onion', 'Bellary Red'],
+    demandVolumeKg: 38000,
+    supplyVolumeKg: 21000,
+    varieties: ['Nashik Red', 'Garwa (Rabi)', 'Pusa Red', 'White Onion (Dehydration)', 'Bhavnagar White'],
     qualitySchema: [
-      { key: 'bulbSize', label: 'Bulb Caliber / Size', type: 'select', options: ['Large (55mm+)', 'Medium (45 - 55mm)', 'Small Golta (35 - 45mm)'] },
-      { key: 'curing', label: 'Skin Curing & Dryness', type: 'select', options: ['Well-Cured 3-layer skin', 'Standard Cured', 'Fresh Harvest (Needs curing)'] },
-      { key: 'sprouting', label: 'Sprouting & Rot %', type: 'select', options: ['0% (Export Grade)', '< 2% (Mandi Grade A)', '> 2% (Immediate sale)'] }
+      { key: 'bulbSize', label: 'Bulb Diameter (mm)', type: 'select', options: ['Big (55mm+)', 'Medium (45 - 55mm)', 'Small (Golta < 45mm)'] },
+      { key: 'neckThickness', label: 'Neck Tightness & Dryness', type: 'select', options: ['Tight Thin Neck (Long Storage)', 'Standard Neck', 'Thick Neck (Consume early)'] },
+      { key: 'sprouting', label: 'Sprouting / Rotting', type: 'select', options: ['0% (Grade A)', '< 2% (Grade B)', '> 2% (Grade C)'] }
     ],
     storageCharacteristics: {
       type: 'Ventilated Chawl / Cold Storage',
@@ -143,7 +142,7 @@ export const COMMODITIES = [
   },
   {
     id: 'MUSTARD',
-    name: 'Mustard / Rapeseed (सरसों)',
+    name: 'Mustard / Rapeseed',
     category: 'OILSEED',
     hindiName: 'सरसों',
     defaultUnit: 'KG',
@@ -174,7 +173,7 @@ export const COMMODITIES = [
   },
   {
     id: 'COTTON',
-    name: 'Raw Cotton (कपास)',
+    name: 'Raw Cotton',
     category: 'COMMERCIAL',
     hindiName: 'कपास',
     defaultUnit: 'KG',
@@ -205,7 +204,7 @@ export const COMMODITIES = [
   },
   {
     id: 'APPLE',
-    name: 'Apple (सेब)',
+    name: 'Apple',
     category: 'FRUIT',
     hindiName: 'सेब',
     defaultUnit: 'KG',
@@ -236,7 +235,7 @@ export const COMMODITIES = [
   },
   {
     id: 'CHICKPEA',
-    name: 'Chickpea / Bengal Gram (चना)',
+    name: 'Chickpea / Bengal Gram',
     category: 'PULSE',
     hindiName: 'चना',
     defaultUnit: 'KG',
@@ -267,7 +266,7 @@ export const COMMODITIES = [
   },
   {
     id: 'WOOL',
-    name: 'Raw Wool & Fleece (कच्ची ऊन)',
+    name: 'Raw Wool & Fleece',
     category: 'FIBER',
     hindiName: 'ऊन',
     defaultUnit: 'KG',

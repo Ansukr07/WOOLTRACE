@@ -50,7 +50,7 @@ export default function InspectorDashboard() {
     <div>
       <div className="inspector-page-header">
         <h1>Inspection Requests</h1>
-        <p>Manage and process wool quality inspection requests.</p>
+        <p>Manage and process agricultural produce quality inspection requests.</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '32px' }}>
