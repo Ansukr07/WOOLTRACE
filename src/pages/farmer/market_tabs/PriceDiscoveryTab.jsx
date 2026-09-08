@@ -1,170 +1,200 @@
 import React from 'react';
-import { Target, Building } from 'lucide-react';
-import { WOOL_TYPES, calculateNetRealization } from '../../../services/market/marketIntelligenceService';
+import { Calculator, ArrowRight, ShieldCheck, Truck, Warehouse, CheckCircle2, ChevronRight } from 'lucide-react';
+import { getCommodityById } from '../../../services/market/cropCommodityRegistry';
 
 export default function PriceDiscoveryTab({
-  batches,
-  selectedBatchId, setSelectedBatchId,
-  customWoolType, setCustomWoolType,
-  customGrade, setCustomGrade,
-  customQuantity, setCustomQuantity,
-  transportDistance, setTransportDistance,
-  storageMonths, setStorageMonths,
-  discoveryChannels,
-  onOpenCreateLot
+  selectedCommodityId = 'WHEAT',
+  selectedBatchId,
+  setSelectedBatchId,
+  batches = [],
+  quantityInput,
+  setQuantityInput,
+  selectedVariety,
+  setSelectedVariety,
+  selectedGrade,
+  setSelectedGrade,
+  distanceKm,
+  setDistanceKm,
+  storageMonths,
+  setStorageMonths,
+  channelsComparison = [],
+  onSelectChannel
 }) {
+  const commodity = getCommodityById(selectedCommodityId);
+
+  const bestChannel = channelsComparison.reduce((prev, curr) => 
+    (curr.netCalc.netRealizationPerKg > (prev?.netCalc?.netRealizationPerKg || 0)) ? curr : prev
+  , channelsComparison[0]);
+
   return (
     <div>
       <div className="discovery-input-panel">
-        <div className="panel-header-row">
+        <div className="panel-header-row" style={{ borderBottom: 'none', paddingBottom: 0 }}>
           <h3 className="panel-title">
-            <Target size={20} />
-            Wool Price Discovery & Net Realization Engine
+            <Calculator size={20} />
+            Produce Batch & Logistics Simulation ({commodity.name})
           </h3>
-          <span style={{ fontSize: '12px', color: '#64748B' }}>Deducts transport, storage, and handling fees</span>
+          <span style={{ fontSize: '12px', color: '#64748B' }}>
+            Transparent Net Farm-Gate Realization
+          </span>
         </div>
 
         <div className="input-fields-row">
           <div className="form-field-group">
             <label>Select Registered Batch</label>
-            <select value={selectedBatchId} onChange={(e) => setSelectedBatchId(e.target.value)}>
+            <select 
+              value={selectedBatchId} 
+              onChange={(e) => {
+                const bId = e.target.value;
+                setSelectedBatchId(bId);
+                const found = batches.find(b => (b.id === bId || b.batchId === bId));
+                if (found) {
+                  setQuantityInput(found.quantity);
+                  setSelectedGrade(found.qualityGrade || 'A');
+                }
+              }}
+            >
+              <option value="">Custom Manual Input</option>
               {batches.map(b => (
                 <option key={b.id || b.batchId} value={b.id || b.batchId}>
-                  {b.id || b.batchId} - {b.quantity} KG ({b.woolType})
+                  {b.id || b.batchId} - {b.quantity} {b.unit || 'KG'} ({b.cropName || b.woolType})
                 </option>
               ))}
             </select>
           </div>
 
           <div className="form-field-group">
-            <label>Wool Variety</label>
-            <select value={customWoolType} onChange={(e) => setCustomWoolType(e.target.value)}>
-              {WOOL_TYPES.map(w => (
-                <option key={w.id} value={w.id}>{w.name}</option>
+            <label>Variety</label>
+            <select value={selectedVariety} onChange={(e) => setSelectedVariety(e.target.value)}>
+              {commodity.varieties.map(v => (
+                <option key={v} value={v}>{v}</option>
               ))}
             </select>
           </div>
 
           <div className="form-field-group">
             <label>Quality Grade</label>
-            <select value={customGrade} onChange={(e) => setCustomGrade(e.target.value)}>
-              <option value="A+">Grade A+ (Superior Fine)</option>
-              <option value="A">Grade A (Certified Clean)</option>
-              <option value="B">Grade B (Standard Crossbred)</option>
-              <option value="C">Grade C (Industrial Rough)</option>
+            <select value={selectedGrade} onChange={(e) => setSelectedGrade(e.target.value)}>
+              <option value="A+">Grade A+ (Premium Export)</option>
+              <option value="A">Grade A (Standard Mill Grade)</option>
+              <option value="B">Grade B (Commercial Fair)</option>
+              <option value="C">Grade C (Standard)</option>
             </select>
           </div>
 
           <div className="form-field-group">
-            <label>Batch Quantity (KG)</label>
-            <input
-              type="number"
-              value={customQuantity}
-              onChange={(e) => setCustomQuantity(Number(e.target.value))}
+            <label>Lot Quantity ({commodity.defaultUnit})</label>
+            <input 
+              type="number" 
+              value={quantityInput} 
+              onChange={(e) => setQuantityInput(Number(e.target.value))}
+              min="50"
             />
           </div>
 
           <div className="form-field-group">
             <label>Transport Distance (KM)</label>
-            <input
-              type="number"
-              value={transportDistance}
-              onChange={(e) => setTransportDistance(Number(e.target.value))}
+            <input 
+              type="number" 
+              value={distanceKm} 
+              onChange={(e) => setDistanceKm(Number(e.target.value))}
+              min="0"
+              max="500"
             />
           </div>
 
           <div className="form-field-group">
-            <label>Storage Duration (Mo.)</label>
-            <select value={storageMonths} onChange={(e) => setStorageMonths(Number(e.target.value))}>
-              <option value="0">0 (Immediate Dispatch)</option>
-              <option value="1">1 Month Storage</option>
-              <option value="2">2 Months Storage</option>
-              <option value="3">3 Months Storage</option>
-              <option value="6">6 Months Storage</option>
-            </select>
+            <label>Storage Duration (Months)</label>
+            <input 
+              type="number" 
+              value={storageMonths} 
+              onChange={(e) => setStorageMonths(Number(e.target.value))}
+              min="0"
+              max="12"
+            />
           </div>
         </div>
       </div>
 
-      <div className="panel-header-row" style={{ marginTop: '16px' }}>
-        <h3 className="panel-title">
-          <Building size={20} />
-          Multi-Channel Price Realization Breakdown
+      <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0B120D', margin: 0 }}>
+          Multi-Channel Price & Net Return Realization Comparison
         </h3>
-        <span style={{ fontSize: '13px', color: '#0B120D', fontWeight: '700' }}>
-          Showing Net Realizable Price after Logistics & Storage
+        <span style={{ fontSize: '13px', color: '#475569' }}>
+          *Net Return = Gross Sale Value - Transport Freight - Storage Carry - Market Cess
         </span>
       </div>
 
       <div className="channel-cards-grid">
-        {discoveryChannels.map((channel, idx) => {
-          const netCalc = calculateNetRealization({
-            pricePerKg: channel.pricePerKg,
-            quantityKg: customQuantity,
-            distanceKm: transportDistance,
-            transportCostPerKm: channel.transportRatePerKm,
-            storageMonths: storageMonths,
-            storageRatePerKgMonth: 4.5,
-            platformFeePercent: channel.channelId === 'APMC_MANDI' ? 1.5 : 1.0
-          });
-
-          const isBest = idx === 2;
+        {channelsComparison.map(ch => {
+          const isBest = bestChannel && bestChannel.channelId === ch.channelId;
+          const net = ch.netCalc;
 
           return (
-            <div key={channel.channelId} className={`channel-card ${isBest ? 'recommended' : ''}`}>
-              {isBest && <div className="recommended-ribbon">⭐ Highest Net Return</div>}
-              
+            <div key={ch.channelId} className={`channel-card ${isBest ? 'recommended' : ''}`}>
+              {isBest && <span className="recommended-ribbon">⭐ Highest Net Return</span>}
+
               <div>
                 <div className="channel-header">
                   <div>
-                    <span className={`channel-badge ${channel.badgeColor}`}>{channel.badge}</span>
-                    <h4 style={{ margin: '8px 0 2px 0', fontSize: '15px', color: '#0B120D' }}>{channel.buyerName}</h4>
-                    <span style={{ fontSize: '12px', color: '#64748B' }}>{channel.channelType}</span>
+                    <span className={`channel-badge ${ch.badgeColor || 'blue'}`}>{ch.badge}</span>
+                    <h4 style={{ fontSize: '16px', fontWeight: '800', color: '#0B120D', margin: '8px 0 2px 0' }}>
+                      {ch.channelType}
+                    </h4>
+                    <div style={{ fontSize: '12px', color: '#64748B' }}>{ch.buyerName}</div>
                   </div>
-                  <span style={{ fontSize: '12px', fontWeight: '700', color: '#0B120D' }}>{channel.trend}</span>
                 </div>
 
-                <div className="channel-price-large">
-                  ₹{channel.pricePerKg} <span style={{ fontSize: '14px', fontWeight: '500', color: '#64748B' }}>/ KG (Gross)</span>
+                <div style={{ margin: '14px 0' }}>
+                  <div style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase', fontWeight: '700' }}>
+                    Gross Quoted Price
+                  </div>
+                  <div className="channel-price-large">
+                    ₹{ch.pricePerKg} <span style={{ fontSize: '14px', fontWeight: '600' }}>/ KG</span>
+                  </div>
                 </div>
 
                 <div className="channel-net-box">
                   <div className="net-row">
-                    <span>Gross Sale Value:</span>
-                    <strong>₹{netCalc.grossSaleValue.toLocaleString('en-IN')}</strong>
+                    <span>Gross Value ({net.quantityKg} KG)</span>
+                    <strong>₹{net.grossSaleValue.toLocaleString('en-IN')}</strong>
                   </div>
-                  <div className="net-row">
-                    <span>Transport ({transportDistance} km):</span>
-                    <span style={{ color: '#0B120D' }}>- ₹{netCalc.transportCost.toLocaleString('en-IN')}</span>
+                  <div className="net-row" style={{ color: '#0B120D' }}>
+                    <span><Truck size={12} style={{ display: 'inline', marginRight: '4px' }} /> Freight ({ch.distanceKm} km)</span>
+                    <span>-₹{net.transportCost.toLocaleString('en-IN')}</span>
                   </div>
-                  <div className="net-row">
-                    <span>Storage ({storageMonths} mo):</span>
-                    <span style={{ color: '#0B120D' }}>- ₹{netCalc.storageCost.toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="net-row">
-                    <span>Platform / Mandi Fee:</span>
-                    <span style={{ color: '#0B120D' }}>- ₹{netCalc.transactionFee.toLocaleString('en-IN')}</span>
+                  {net.storageCost > 0 && (
+                    <div className="net-row" style={{ color: '#0B120D' }}>
+                      <span><Warehouse size={12} style={{ display: 'inline', marginRight: '4px' }} /> Storage ({storageMonths} mo)</span>
+                      <span>-₹{net.storageCost.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+                  <div className="net-row" style={{ color: '#0B120D' }}>
+                    <span>Market / Platform Cess</span>
+                    <span>-₹{net.transactionFee.toLocaleString('en-IN')}</span>
                   </div>
                   <div className="net-row total">
-                    <span>Net Farmer Realization:</span>
-                    <span style={{ color: '#0B120D' }}>₹{netCalc.netRealizationValue.toLocaleString('en-IN')}</span>
+                    <span>Net Realization</span>
+                    <span style={{ fontSize: '16px', color: '#0B120D' }}>₹{net.netRealizationValue.toLocaleString('en-IN')}</span>
                   </div>
-                  <div style={{ textAlign: 'right', fontSize: '12px', color: '#0B120D', fontWeight: '700', marginTop: '4px' }}>
-                    ₹{netCalc.netRealizationPerKg}/KG Net Return
+                  <div style={{ fontSize: '12px', color: '#0B120D', fontWeight: '800', marginTop: '6px', textAlign: 'right' }}>
+                    Net ₹{net.netRealizationPerKg}/KG ({net.deductionRatio}% deductions)
                   </div>
                 </div>
 
-                <p style={{ fontSize: '12px', color: '#64748B', lineHeight: '1.4', margin: '0 0 12px 0' }}>
-                  {channel.description}
-                </p>
+                <div style={{ fontSize: '12px', color: '#475569', marginBottom: '14px', lineHeight: '1.4' }}>
+                  <p style={{ margin: '0 0 6px 0' }}><strong>Payment:</strong> {ch.paymentTerms}</p>
+                  <p style={{ margin: 0, color: '#64748B' }}>{ch.description}</p>
+                </div>
               </div>
 
-              <button
-                className="btn-primary"
-                style={{ width: '100%', marginTop: '8px', fontSize: '13px' }}
-                onClick={() => onOpenCreateLot(channel.pricePerKg)}
+              <button 
+                className={isBest ? 'btn-accent' : 'btn-primary'}
+                style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+                onClick={() => onSelectChannel(ch)}
               >
-                Create Lot at ₹{channel.pricePerKg}/KG
+                <span>Proceed with {ch.badge}</span>
+                <ArrowRight size={14} />
               </button>
             </div>
           );

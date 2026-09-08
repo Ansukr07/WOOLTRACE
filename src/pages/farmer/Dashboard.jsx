@@ -4,18 +4,19 @@ import {
   Wallet, 
   Clock, 
   Box, 
-  Scale, 
   TrendingUp,
   Plus,
-  Tag,
   MapPin,
   ArrowRight,
   Warehouse,
-  ShieldCheck,
+  Target,
+  FileText,
+  Search,
+  CheckCircle2,
   Sparkles,
   Users,
-  Target,
-  FileText
+  Activity,
+  Layers
 } from 'lucide-react';
 import {
   AreaChart,
@@ -28,253 +29,301 @@ import {
 } from 'recharts';
 import { useGlobalState } from '../../context/GlobalStateContext';
 import { useAuth } from '../../context/AuthContext';
+import { COMMODITIES, getCommodityById } from '../../services/market/cropCommodityRegistry';
 import { agmarknetService } from '../../services/market/agmarknetService';
 import './Dashboard.css';
-
-const fallbackPriceData = [
-  { name: 'Feb', fine: 410, medium: 345, coarse: 275 },
-  { name: 'Mar', fine: 418, medium: 350, coarse: 280 },
-  { name: 'Apr', clever: 425, medium: 355, coarse: 285 },
-  { name: 'May', fine: 430, medium: 360, coarse: 290 },
-  { name: 'Jun', fine: 440, medium: 365, coarse: 295 },
-  { name: 'Jul', fine: 448, medium: 370, coarse: 300 },
-  { name: 'Aug', fine: 455, medium: 380, coarse: 310 },
-];
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { batches, buyerDemands, marketOffers, woolLots } = useGlobalState();
-  const [chartData, setChartData] = useState(fallbackPriceData);
-  const [currentPrices, setCurrentPrices] = useState({ fine: 455, medium: 380, coarse: 310, trend: 2.8 });
+  const { batches = [], buyerDemands = [], marketOffers = [] } = useGlobalState();
+  
+  const [selectedCropId, setSelectedCropId] = useState('WHEAT');
+  const [cropSearchQuery, setCropSearchQuery] = useState('');
+  const [chartData, setChartData] = useState([]);
+  
+  const activeBatches = batches.length;
+  const totalProduceQuantity = batches.reduce((acc, b) => acc + (Number(b.quantity) || 0), 0);
+  const pendingOffersCount = marketOffers.filter(o => o.status === 'PENDING').length;
+
+  const currentCommodity = getCommodityById(selectedCropId);
 
   useEffect(() => {
-    fetchMarketOverview();
-  }, []);
-
-  const fetchMarketOverview = async () => {
     try {
-      const prices = await agmarknetService.getPrices(101, 0, null, null, '2026-01-01', '2026-08-17');
-      if (prices && prices.length > 0) {
-        const monthlyData = {};
-        prices.forEach(p => {
-          const d = new Date(p.date);
-          const month = d.toLocaleString('en-US', { month: 'short' });
-          if (!monthlyData[month]) monthlyData[month] = { sum: 0, count: 0, monthOrder: d.getMonth() };
-          const modalPrice = (p.modal_price || 0) / 100;
-          monthlyData[month].sum += modalPrice;
-          monthlyData[month].count += 1;
-        });
-
-        const processed = Object.entries(monthlyData)
-          .sort((a, b) => a[1].monthOrder - b[1].monthOrder)
-          .map(([month, data]) => {
-            const base = data.sum / data.count;
-            return {
-              name: month,
-              fine: Math.round(base * 1.15),
-              medium: Math.round(base),
-              coarse: Math.round(base * 0.82)
-            };
-          });
-
-        if (processed.length > 0) {
-          setChartData(processed.slice(-7));
-          const latest = processed[processed.length - 1];
-          setCurrentPrices({
-            fine: latest.fine,
-            medium: latest.medium,
-            coarse: latest.coarse,
-            trend: 2.8
-          });
-        }
+      const liveData = agmarknetService.getMarketSummary();
+      if (liveData && liveData.length > 0) {
+        const base = currentCommodity.basePricePerKg;
+        const transformed = liveData.map((item, idx) => ({
+          name: item.month,
+          price: Number((base * (0.92 + idx * 0.02)).toFixed(1)),
+          mandi: Number((base * (0.88 + idx * 0.02)).toFixed(1)),
+          processor: Number((base * (0.96 + idx * 0.02)).toFixed(1))
+        }));
+        setChartData(transformed);
       }
-    } catch (e) {
-      console.warn('Dashboard market overview using default series');
+    } catch (_err) {
+      console.warn('Dashboard market overview using fallback series');
     }
-  };
+  }, [selectedCropId]);
 
-  const activeBatches = batches.length;
-  const woolAvailable = batches.reduce((sum, b) => sum + Number(b.quantity || 0), 0);
-  const pendingOffersCount = (marketOffers || []).filter(o => o.status === 'PENDING').length;
+  const filteredCommodities = COMMODITIES.filter(c => 
+    c.name.toLowerCase().includes(cropSearchQuery.toLowerCase()) ||
+    c.hindiName.includes(cropSearchQuery)
+  );
 
   return (
-    <div className="dashboard">
-      <div className="dashboard-header">
-        <h1>Welcome back, {user ? user.name : 'Rajesh Gowda'}</h1>
-        <p>Here is your WoolTrace farm operations overview for today.</p>
+    <div className="farmer-dashboard">
+      {/* Top Welcome Banner */}
+      <div className="welcome-banner" style={{ background: '#FFFFFF', border: '1px solid rgba(11,18,13,0.10)', borderRadius: '16px', padding: '24px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <span style={{ background: '#DDFF86', color: '#0B120D', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              SIH 2026 · Agricultural Market Intelligence
+            </span>
+            <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#0B120D', margin: '8px 0 4px 0' }}>
+              Good morning, {user?.name || 'Ramesh Kumar'}
+            </h1>
+            <p style={{ color: '#475569', fontSize: '14px', margin: 0 }}>
+              Discover real-time mandi prices, buyer procurement demand, and net realization for your agricultural produce.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button 
+              onClick={() => navigate('/farmer/my-wool')}
+              className="btn-primary"
+              style={{ padding: '10px 18px', borderRadius: '8px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <Plus size={16} />
+              <span>Register Produce Batch</span>
+            </button>
+            <button 
+              onClick={() => navigate('/farmer/market')}
+              style={{
+                background: '#DDFF86', color: '#0B120D', border: '1px solid rgba(11,18,13,0.15)',
+                padding: '10px 18px', borderRadius: '8px', fontWeight: '800', fontSize: '13px',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
+              }}
+            >
+              <Target size={16} />
+              <span>Price Discovery Hub</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Top Metrics */}
-      <div className="metrics-grid">
+      {/* ── Section: What Are You Looking to Sell? ── */}
+      <div style={{
+        background: '#FFFFFF', border: '1px solid rgba(11,18,13,0.10)',
+        borderRadius: '16px', padding: '20px 24px', marginBottom: '24px',
+        boxShadow: '0 2px 8px rgba(11,18,13,0.04)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+          <div>
+            <h2 style={{ fontSize: '16px', fontWeight: '800', color: '#0B120D', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles size={18} color="#0B120D" />
+              What are you looking to sell today?
+            </h2>
+            <p style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 0 0' }}>
+              Select your crop to see live modal prices, buyer procurement demand, and net realization comparisons.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#F8F8F3', padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(11,18,13,0.10)' }}>
+            <Search size={14} color="#64748B" />
+            <input 
+              type="text" 
+              placeholder="Search crop or variety..." 
+              value={cropSearchQuery}
+              onChange={(e) => setCropSearchQuery(e.target.value)}
+              style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '12px', width: '160px', color: '#0B120D' }}
+            />
+          </div>
+        </div>
+
+        {/* Commodity Chips Ticker */}
+        <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '6px' }}>
+          {filteredCommodities.map(c => {
+            const isSelected = c.id === selectedCropId;
+            return (
+              <button
+                key={c.id}
+                onClick={() => setSelectedCropId(c.id)}
+                style={{
+                  background: isSelected ? '#0B120D' : '#F8F8F3',
+                  color: isSelected ? '#FFFFFF' : '#0B120D',
+                  border: isSelected ? '1px solid #0B120D' : '1px solid rgba(11,18,13,0.10)',
+                  borderRadius: '10px',
+                  padding: '10px 14px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  minWidth: '140px',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <div style={{ fontSize: '13px', fontWeight: '800' }}>{c.name}</div>
+                <div style={{ fontSize: '14px', fontWeight: '800', marginTop: '4px', color: isSelected ? '#DDFF86' : '#0B120D' }}>
+                  ₹{c.basePricePerKg}/kg
+                </div>
+                <div style={{ fontSize: '11px', color: isSelected ? '#BED5E5' : '#64748B', marginTop: '2px' }}>
+                  {c.demandLevel} Demand
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Metrics Row */}
+      <div className="metrics-row" style={{ marginBottom: '24px' }}>
         <div className="metric-card" onClick={() => navigate('/farmer/wallet')} style={{ cursor: 'pointer' }}>
           <div className="metric-icon bg-green"><Wallet size={24} /></div>
           <div className="metric-info">
-            <span className="label">Total Balance</span>
-            <span className="value">₹1,81,900</span>
+            <span className="label">Total Produce Revenue</span>
+            <span className="value">₹1,48,500</span>
           </div>
         </div>
         <div className="metric-card" onClick={() => navigate('/farmer/wallet')} style={{ cursor: 'pointer' }}>
           <div className="metric-icon bg-yellow"><Clock size={24} /></div>
           <div className="metric-info">
             <span className="label">Escrow Secured</span>
-            <span className="value">₹48,500</span>
+            <span className="value">₹52,000</span>
           </div>
         </div>
         <div className="metric-card" onClick={() => navigate('/farmer/my-wool')} style={{ cursor: 'pointer' }}>
           <div className="metric-icon bg-blue"><Box size={24} /></div>
           <div className="metric-info">
-            <span className="label">Registered Batches</span>
+            <span className="label">Active Registered Batches</span>
             <span className="value">{activeBatches}</span>
           </div>
         </div>
         <div className="metric-card" onClick={() => navigate('/farmer/my-wool')} style={{ cursor: 'pointer' }}>
-          <div className="metric-icon bg-primary"><Scale size={24} /></div>
+          <div className="metric-icon bg-primary"><Layers size={24} /></div>
           <div className="metric-info">
-            <span className="label">Total Wool Harvested</span>
-            <span className="value">{woolAvailable.toLocaleString('en-IN')} KG</span>
+            <span className="label">Total Harvest Volume</span>
+            <span className="value">{totalProduceQuantity.toLocaleString('en-IN')} KG</span>
           </div>
-        </div>
-      </div>
-
-      {/* Flagship Market Linkages Opportunity Banner (SIH 2026 PS 26132) */}
-      <div style={{
-        background: '#FFFFFF', border: '1px solid rgba(11,18,13,0.12)', borderLeft: '5px solid #DDFF86',
-        borderRadius: '14px', padding: '20px 24px', marginBottom: '24px',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px',
-        boxShadow: '0 2px 8px rgba(11,18,13,0.04)'
-      }}>
-        <div style={{ maxWidth: '650px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-            <span style={{ background: '#DDFF86', color: '#0B120D', fontSize: '11px', fontWeight: '800', padding: '3px 8px', borderRadius: '4px', textTransform: 'uppercase' }}>
-              SIH 2026 · Market Intelligence
-            </span>
-            <span style={{ color: '#166534', fontSize: '12px', fontWeight: '700' }}>
-              ✓ {(buyerDemands || []).length} Verified Procurement Buyers Active
-            </span>
-          </div>
-          <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#0B120D', margin: '0 0 6px 0' }}>
-            Your Harvested Wool Has Active Buyer Matches
-          </h2>
-          <p style={{ fontSize: '13px', color: '#475569', margin: 0, lineHeight: '1.5' }}>
-            Grade A Merino prices are currently trending <strong>+6.8% above 30-day benchmarks</strong>. Spinning mills and handloom federations are actively seeking certified lots.
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button 
-            onClick={() => navigate('/farmer/market')}
-            style={{
-              background: '#0B120D', color: '#FFFFFF', border: 'none',
-              padding: '10px 18px', borderRadius: '8px', fontWeight: '700', fontSize: '13px',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
-            }}
-          >
-            <Target size={16} />
-            <span>Discover Net Price</span>
-          </button>
-          {pendingOffersCount > 0 && (
-            <button 
-              onClick={() => navigate('/farmer/market')}
-              style={{
-                background: '#FFAAA4', color: '#0B120D', border: 'none',
-                padding: '10px 16px', borderRadius: '8px', fontWeight: '800', fontSize: '13px',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
-              }}
-            >
-              <FileText size={16} />
-              <span>{pendingOffersCount} New Offers</span>
-            </button>
-          )}
         </div>
       </div>
 
       {/* Main Content Grid */}
       <div className="dashboard-content-grid">
-        {/* Market Overview */}
+        {/* Left: Market Overview & Price Trends for Selected Commodity */}
         <div className="market-overview panel">
           <div className="panel-header">
-            <h2>Mandi Price Trends (APMC Live)</h2>
+            <div>
+              <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>
+                {currentCommodity.name} - Price Intelligence (APMC & Mills)
+              </h2>
+              <span style={{ fontSize: '12px', color: '#64748B' }}>
+                Category: {currentCommodity.category} · Updated Live via CEDA / Mandi
+              </span>
+            </div>
             <div className="time-filters">
-              <button className="active" onClick={() => navigate('/farmer/market')}>
-                Full Market Intelligence <ArrowRight size={14}/>
+              <button className="active" onClick={() => navigate(`/farmer/market?crop=${selectedCropId}`)}>
+                Full Market Hub <ArrowRight size={14}/>
               </button>
             </div>
           </div>
           
-          <div className="current-prices">
+          <div className="current-prices" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
             <div className="price-item">
-              <span className="type">Fine Merino Wool</span>
-              <span className="price">₹{currentPrices.fine}/KG</span>
-              <span className="trend up"><TrendingUp size={16} /> +{currentPrices.trend}%</span>
+              <span className="type">APMC Mandi Yard</span>
+              <span className="price">₹{currentCommodity.mandiPricePerKg}/KG</span>
+              <span className="trend up"><TrendingUp size={14} /> +3.2%</span>
             </div>
             <div className="price-item">
-              <span className="type">Medium Crossbred</span>
-              <span className="price">₹{currentPrices.medium}/KG</span>
-              <span className="trend up"><TrendingUp size={16} /> +2.1%</span>
+              <span className="type">Processor Direct</span>
+              <span className="price">₹{currentCommodity.processorQuotePerKg}/KG</span>
+              <span className="trend up"><TrendingUp size={14} /> +7.8%</span>
             </div>
             <div className="price-item">
-              <span className="type">Coarse Carpet Wool</span>
-              <span className="price">₹{currentPrices.coarse}/KG</span>
-              <span className="trend up"><TrendingUp size={16} /> +1.4%</span>
+              <span className="type">Institutional Co-op</span>
+              <span className="price">₹{currentCommodity.institutionalQuotePerKg}/KG</span>
+              <span className="trend up"><TrendingUp size={14} /> +8.9%</span>
             </div>
           </div>
 
           <div className="chart-container">
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={240}>
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="colorFine" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#DDFF86" stopOpacity={0.8}/>
                     <stop offset="95%" stopColor="#DDFF86" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E5E5" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 12}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 12}} />
-                <Tooltip formatter={(value) => [`₹${value}/KG`, 'Price']} />
-                <Area type="monotone" dataKey="fine" stroke="#0B120D" strokeWidth={2} fillOpacity={1} fill="url(#colorFine)" />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 12}} domain={['auto', 'auto']} />
+                <Tooltip formatter={(value) => [`₹${value}/KG`, 'Benchmark Price']} />
+                <Area type="monotone" dataKey="price" stroke="#0B120D" strokeWidth={2} fillOpacity={1} fill="url(#colorPrice)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Quick Actions & Recent */}
+        {/* Right: Buyer Demands & My Produce Quick Actions */}
         <div className="side-panel">
-          <div className="quick-actions panel">
-            <h2>Quick Actions</h2>
-            <div className="action-buttons">
-              <button className="action-btn primary" onClick={() => navigate('/farmer/my-wool')}>
-                <Plus size={20} />
-                <span>Create Wool Batch</span>
-              </button>
-              <button className="action-btn secondary" onClick={() => navigate('/farmer/track')}>
-                <MapPin size={20} />
-                <span>Track Batch Passport</span>
-              </button>
-              <button className="action-btn secondary" onClick={() => navigate('/farmer/warehouses')}>
-                <Warehouse size={20} />
-                <span>Find Warehouses</span>
-              </button>
+          {/* Live Buyer Demand Opportunities */}
+          <div className="panel" style={{ marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h2 style={{ fontSize: '15px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Users size={16} /> Verified Buyer Demand
+              </h2>
+              <span style={{ fontSize: '11px', fontWeight: '800', background: '#DDFF86', padding: '2px 6px', borderRadius: '4px' }}>
+                {(buyerDemands || []).length} Active
+              </span>
             </div>
-          </div>
-
-          <div className="recent-activity panel">
-            <h2>Recent Batch History</h2>
-            <div className="activity-list">
-              {batches.slice(0, 3).map((b, i) => (
-                <div key={b.id || i} className="activity-item" onClick={() => navigate(`/farmer/batch/${b.id}`)} style={{ cursor: 'pointer' }}>
-                  <div className="activity-icon bg-blue"><Box size={16} /></div>
-                  <div className="activity-text">
-                    <p><strong>{b.id}</strong> - {b.quantity} KG ({b.woolType})</p>
-                    <span>Stage: {b.currentStage} · {b.origin}</span>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {(buyerDemands || []).slice(0, 3).map(bd => (
+                <div key={bd.id} style={{
+                  background: '#F8F8F3', border: '1px solid rgba(11,18,13,0.08)',
+                  borderRadius: '10px', padding: '10px 12px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                    <div>
+                      <strong style={{ fontSize: '13px', color: '#0B120D' }}>{bd.cropName}</strong>
+                      <div style={{ fontSize: '11px', color: '#64748B' }}>{bd.buyerName}</div>
+                    </div>
+                    <span style={{ fontSize: '13px', fontWeight: '800', color: '#0B120D' }}>
+                      ₹{bd.minPrice} - ₹{bd.maxPrice}/kg
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#475569', marginTop: '6px' }}>
+                    <span>Req: <strong>{bd.quantityRequired.toLocaleString('en-IN')} KG</strong></span>
+                    <button 
+                      onClick={() => navigate('/farmer/market')}
+                      style={{ background: '#0B120D', color: '#FFFFFF', border: 'none', borderRadius: '4px', padding: '3px 8px', fontSize: '10px', fontWeight: '700', cursor: 'pointer' }}
+                    >
+                      Quote Lot →
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
-            <button className="view-all-btn" onClick={() => navigate('/farmer/my-wool')}>
-              View All Batches <ArrowRight size={16} />
-            </button>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="quick-actions panel">
+            <h2>Quick Produce Actions</h2>
+            <div className="action-buttons">
+              <button className="action-btn primary" onClick={() => navigate('/farmer/my-wool')}>
+                <Plus size={18} />
+                <span>Register Produce Batch</span>
+              </button>
+              <button className="action-btn secondary" onClick={() => navigate('/farmer/track')}>
+                <MapPin size={18} />
+                <span>Trace Passport & QR</span>
+              </button>
+              <button className="action-btn secondary" onClick={() => navigate('/farmer/warehouses')}>
+                <Warehouse size={18} />
+                <span>Locate Storage & Silos</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

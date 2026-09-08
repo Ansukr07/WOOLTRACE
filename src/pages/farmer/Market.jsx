@@ -1,14 +1,18 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import {
-  BarChart2, Target, TrendingUp, Users, Layers, FileText, DollarSign, ShieldAlert,
-  Sparkles, CheckCircle2
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useGlobalState } from '../../context/GlobalStateContext';
 import { useAuth } from '../../context/AuthContext';
 import {
-  getPriceDiscoveryChannels, getSaleWindowRecommendation, generatePriceTrends
+  COMMODITIES,
+  COMMODITY_CATEGORIES,
+  getCommodityById,
+  getCommoditiesByCategory,
+  getMarketChannelsForCommodity,
+  calculateNetRealization,
+  getSaleWindowRecommendation,
+  generatePriceTrends
 } from '../../services/market/marketIntelligenceService';
-import { findMatchingBuyers } from '../../services/market/matchingEngine';
+import { calculateMatchScore } from '../../services/market/matchingEngine';
 
 import MarketOverviewTab from './market_tabs/MarketOverviewTab';
 import PriceDiscoveryTab from './market_tabs/PriceDiscoveryTab';
@@ -19,600 +23,577 @@ import OffersTab from './market_tabs/OffersTab';
 import TransactionsTab from './market_tabs/TransactionsTab';
 import DisputesTab from './market_tabs/DisputesTab';
 
+import {
+  LineChart,
+  Target,
+  BarChart2,
+  Building,
+  Layers,
+  FileText,
+  CreditCard,
+  AlertTriangle,
+  Plus,
+  Users,
+  CheckCircle2,
+  X,
+  Search,
+  Filter
+} from 'lucide-react';
 import './Market.css';
 
 export default function Market() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
+
   const {
-    batches,
-    woolLots, createWoolLot, aggregateFpoLot,
-    buyerDemands,
-    marketOffers, respondOffer,
-    marketTransactions, updateTransactionPayment, updateTransactionDelivery,
-    disputes, raiseTransactionDispute
+    batches = [],
+    woolLots = [],
+    buyerDemands = [],
+    marketOffers = [],
+    marketTransactions = [],
+    disputes = [],
+    createWoolLot = () => {},
+    aggregateFpoLot = () => {},
+    respondOffer = () => {},
+    createTransactionFromOffer = () => {},
+    raiseTransactionDispute = () => {}
   } = useGlobalState();
 
-  const [activeTab, setActiveTab] = useState('OVERVIEW');
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
+  
+  // Commodity & Category Selector State
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [selectedCommodityId, setSelectedCommodityId] = useState(searchParams.get('crop') || 'WHEAT');
+  const [commoditySearch, setCommoditySearch] = useState('');
 
-  // Price Discovery Parameters
-  const [selectedBatchId, setSelectedBatchId] = useState(batches[0]?.id || '');
-  const [customWoolType, setCustomWoolType] = useState('FINE_MERINO');
-  const [customGrade, setCustomGrade] = useState('A');
-  const [customQuantity, setCustomQuantity] = useState(450);
-  const [customState, setCustomState] = useState('Karnataka');
-  const [customCleanliness, setCustomCleanliness] = useState(90);
-  const [customMoisture, setCustomMoisture] = useState(12);
-  const [transportDistance, setTransportDistance] = useState(35);
-  const [storageMonths, setStorageMonths] = useState(1);
+  // Price discovery parameters
+  const [selectedBatchId, setSelectedBatchId] = useState('');
+  const [quantityInput, setQuantityInput] = useState(500);
+  const [selectedVariety, setSelectedVariety] = useState('Sharbati');
+  const [selectedGrade, setSelectedGrade] = useState('A');
+  const [distanceKm, setDistanceKm] = useState(25);
+  const [storageMonths, setStorageMonths] = useState(0);
+  const [timeframe, setTimeframe] = useState('30D');
 
-  // Trend Analysis Parameters
-  const [trendPeriod, setTrendPeriod] = useState('30D');
-  const [trendWoolType, setTrendWoolType] = useState('FINE_MERINO');
-
-  // Buyer Discovery Filters
-  const [buyerTypeFilter, setBuyerTypeFilter] = useState('ALL');
-  const [buyerSearchQuery, setBuyerSearchQuery] = useState('');
-  const [matchedBatchForBuyer, setMatchedBatchForBuyer] = useState(batches[0]?.id || '');
-
-  // Modals & Toast State
+  // Modals state
   const [showCreateLotModal, setShowCreateLotModal] = useState(false);
-  const [showFpoAggregatorModal, setShowFpoAggregatorModal] = useState(false);
+  const [showFPOModal, setShowFPOModal] = useState(false);
   const [showCounterModal, setShowCounterModal] = useState(false);
-  const [showDisputeModal, setShowDisputeModal] = useState(false);
   const [activeOfferForCounter, setActiveOfferForCounter] = useState(null);
+  const [counterPrice, setCounterPrice] = useState(30);
+  const [counterTerms, setCounterTerms] = useState('');
+  const [showDisputeModal, setShowDisputeModal] = useState(false);
   const [activeTxnForDispute, setActiveTxnForDispute] = useState(null);
+  const [disputeReasonCategory, setDisputeReasonCategory] = useState('QUALITY_MISMATCH');
+  const [disputeDesc, setDisputeDesc] = useState('');
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Modal Form Inputs
-  const [newLotBatchId, setNewLotBatchId] = useState(batches[0]?.id || '');
-  const [newLotAskingPrice, setNewLotAskingPrice] = useState(450);
-  const [newLotDescription, setNewLotDescription] = useState('');
-  
-  const [fpoSelectedBatches, setFpoSelectedBatches] = useState([]);
-  const [fpoLotAskingPrice, setFpoLotAskingPrice] = useState(425);
-  const [fpoLotName, setFpoLotName] = useState('Southern Wool Growers FPO Apex');
-
-  const [counterPrice, setCounterPrice] = useState('');
-  const [counterNote, setCounterNote] = useState('');
-
-  const [disputeCategory, setDisputeCategory] = useState('Quality Discrepancy');
-  const [disputeClaim, setDisputeClaim] = useState('');
-  const [disputeDescription, setDisputeDescription] = useState('');
+  const selectedCommodity = getCommodityById(selectedCommodityId);
 
   useEffect(() => {
-    if (selectedBatchId) {
-      const b = batches.find(x => (x.id || x.batchId) === selectedBatchId);
-      if (b) {
-        if (b.quantity) setCustomQuantity(b.quantity);
-        if (b.qualityGrade) setCustomGrade(b.qualityGrade);
-        if (b.origin && b.origin.includes('Rajasthan')) setCustomState('Rajasthan');
-        else if (b.origin && b.origin.includes('Himachal')) setCustomState('Himachal Pradesh');
-        else setCustomState('Karnataka');
-      }
+    if (selectedCommodity && selectedCommodity.varieties && selectedCommodity.varieties.length > 0) {
+      setSelectedVariety(selectedCommodity.varieties[0]);
     }
-  }, [selectedBatchId, batches]);
+  }, [selectedCommodityId]);
 
   const showToast = (msg) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
+    setTimeout(() => setToastMessage(null), 4000);
   };
 
-  const discoveryChannels = useMemo(() => {
-    return getPriceDiscoveryChannels({
-      woolType: customWoolType,
-      grade: customGrade,
-      quantity: customQuantity,
-      state: customState,
-      cleanliness: customCleanliness,
-      moisture: customMoisture
+  const rawChannels = getMarketChannelsForCommodity(selectedCommodityId, selectedVariety, selectedGrade);
+  const channelsComparison = rawChannels.map(ch => {
+    const net = calculateNetRealization({
+      pricePerKg: ch.pricePerKg,
+      quantityKg: quantityInput,
+      distanceKm: ch.distanceKm || distanceKm,
+      transportCostPerKm: ch.transportRatePerKm || 18,
+      storageMonths: storageMonths,
+      storageRatePerKgMonth: selectedCommodity.storageCharacteristics?.monthlyRatePerKg || 1.0,
+      platformFeePercent: ch.channelId === 'APMC_MANDI' ? 1.5 : ch.channelId === 'PROCESSING_UNIT' ? 0.0 : 1.0
     });
-  }, [customWoolType, customGrade, customQuantity, customState, customCleanliness, customMoisture]);
+    return { ...ch, netCalc: net };
+  });
 
-  const saleWindowAdvisory = useMemo(() => {
-    const avgChannelPrice = Math.round(discoveryChannels.reduce((sum, c) => sum + c.pricePerKg, 0) / (discoveryChannels.length || 1));
-    return getSaleWindowRecommendation({
-      woolType: customWoolType,
-      currentPrice: avgChannelPrice,
-      historicalAvg30d: 420,
-      storageCostPerMonth: 4.5,
-      demandLevel: 'HIGH'
-    });
-  }, [discoveryChannels, customWoolType]);
+  const saleWindowAdvisory = getSaleWindowRecommendation({
+    commodityId: selectedCommodityId,
+    currentPrice: selectedCommodity.basePricePerKg,
+    historicalAvg30d: selectedCommodity.basePricePerKg * 0.95,
+    storageCostPerMonth: selectedCommodity.storageCharacteristics?.monthlyRatePerKg || 1.0,
+    demandLevel: selectedCommodity.demandLevel
+  });
 
-  const trendResult = useMemo(() => {
-    return generatePriceTrends(trendPeriod, trendWoolType);
-  }, [trendPeriod, trendWoolType]);
+  const priceTrendsData = generatePriceTrends(timeframe, selectedCommodityId);
 
-  const targetLotOrBatch = useMemo(() => {
-    const b = batches.find(x => (x.id || x.batchId) === matchedBatchForBuyer) || batches[0];
-    return b || { woolType: 'Fine Merino', qualityGrade: 'A', quantity: 500, askingPrice: 450, origin: 'Mandya, Karnataka' };
-  }, [matchedBatchForBuyer, batches]);
+  const matchedDemands = buyerDemands.map(bd => {
+    const match = calculateMatchScore({
+      cropId: selectedCommodityId,
+      cropName: selectedCommodity.name,
+      woolType: selectedCommodity.name,
+      qualityGrade: selectedGrade,
+      quantity: quantityInput,
+      askingPrice: selectedCommodity.basePricePerKg,
+      origin: 'Regional Farm Hub'
+    }, bd);
+    return { ...bd, matchResult: match };
+  }).sort((a, b) => b.matchResult.score - a.matchResult.score);
 
-  const rankedBuyers = useMemo(() => {
-    let list = buyerDemands;
-    if (buyerTypeFilter !== 'ALL') {
-      list = list.filter(b => b.buyerType === buyerTypeFilter);
-    }
-    if (buyerSearchQuery) {
-      const q = buyerSearchQuery.toLowerCase();
-      list = list.filter(b => b.buyerName.toLowerCase().includes(q) || b.location.toLowerCase().includes(q) || b.woolType.toLowerCase().includes(q));
-    }
-    return findMatchingBuyers(targetLotOrBatch, list);
-  }, [buyerDemands, buyerTypeFilter, buyerSearchQuery, targetLotOrBatch]);
-
-  // Handlers
-  const handleCreateLot = (e) => {
-    e.preventDefault();
-    const batch = batches.find(b => (b.id || b.batchId) === newLotBatchId);
-    if (!batch) return;
-
-    createWoolLot({
-      batchIds: [batch.id || batch.batchId],
-      sellerId: user?.id || 'FARMER-01',
-      sellerName: user?.name || batch.farmerName || 'Rajesh Gowda',
-      sellerType: 'FARMER',
-      woolType: batch.woolType || 'Fine Merino Wool',
-      qualityGrade: batch.qualityGrade || 'A',
-      qualityScore: 88,
-      fiberDiameter: 21.5,
-      origin: batch.origin || 'Mandya, Karnataka',
-      currentLocation: batch.currentLocation || 'Mysuru Storage Centre',
-      totalQuantity: batch.quantity || 400,
-      availableQuantity: batch.quantity || 400,
-      askingPrice: Number(newLotAskingPrice),
-      minAcceptablePrice: Math.round(Number(newLotAskingPrice) * 0.94),
-      storageLocation: batch.warehouseName || 'Mysuru Wool Storage Centre',
-      certificateId: batch.certificateId || 'WTC-QA-2026-00124',
-      traceabilityUrl: `/track/${batch.id || batch.batchId}`,
-      availableFrom: new Date().toISOString().split('T')[0],
-      description: newLotDescription || `Fresh farm batch ${batch.id}. Verified by WoolTrace.`
-    });
-
-    setShowCreateLotModal(false);
-    showToast('✓ Wool Lot created and published to verified buyer exchange!');
-    setActiveTab('MY_LOTS');
-  };
-
-  const handleCreateFpoLot = (e) => {
-    e.preventDefault();
-    if (fpoSelectedBatches.length < 2) {
-      alert('Please select at least 2 farmer batches to aggregate into an FPO bulk lot.');
-      return;
-    }
-
-    aggregateFpoLot(fpoSelectedBatches, {
-      fpoId: 'FPO-KA-01',
-      fpoName: fpoLotName,
-      woolType: 'Consolidated Commercial Fleece (Grade A/B)',
-      grade: 'A/B Mix',
-      askingPrice: Number(fpoLotAskingPrice),
-      minAcceptablePrice: Math.round(Number(fpoLotAskingPrice) * 0.95),
-      currentLocation: 'FPO Central Aggregation Depot, Mysuru',
-      storageLocation: 'Mysuru Central Wool Depot',
-      description: `Aggregated bulk lot from ${fpoSelectedBatches.length} member farmer batches for industrial spinning mills.`
-    });
-
-    setShowFpoAggregatorModal(false);
-    setFpoSelectedBatches([]);
-    showToast('✓ Consolidated FPO bulk lot successfully created with collective bargaining power!');
-    setActiveTab('MY_LOTS');
-  };
-
-  const handleAcceptOffer = (offer) => {
-    respondOffer(offer.id, 'ACCEPT', { actor: user?.name || 'Seller', note: 'Offer accepted. Digital contract generated.' });
-    showToast(`✓ Offer ${offer.offerNumber} accepted! Transaction initiated in Escrow.`);
-    setActiveTab('TRANSACTIONS');
-  };
-
-  const handleRejectOffer = (offer) => {
-    respondOffer(offer.id, 'REJECT', { actor: user?.name || 'Seller', reason: 'Price expectation not met.' });
-    showToast(`Offer ${offer.offerNumber} rejected.`);
-  };
-
-  const handleOpenCounter = (offer) => {
-    setActiveOfferForCounter(offer);
-    setCounterPrice(offer.offeredPricePerKg + 15);
-    setShowCounterModal(true);
-  };
-
-  const handleSubmitCounter = (e) => {
-    e.preventDefault();
-    if (!activeOfferForCounter) return;
-    respondOffer(activeOfferForCounter.id, 'COUNTER', {
-      actor: user?.name || 'Seller',
-      counterPricePerKg: Number(counterPrice),
-      counterQuantityKg: activeOfferForCounter.quantityKg,
-      note: counterNote || `Counter-offer of ₹${counterPrice}/KG submitted.`
-    });
-    setShowCounterModal(false);
-    showToast(`✓ Counter-offer of ₹${counterPrice}/KG submitted to ${activeOfferForCounter.buyerName}.`);
-  };
-
-  const handleOpenDispute = (txn) => {
-    setActiveTxnForDispute(txn);
-    setDisputeClaim(Math.round(txn.grossValue * 0.05));
-    setShowDisputeModal(true);
-  };
-
-  const handleSubmitDispute = (e) => {
-    e.preventDefault();
-    if (!activeTxnForDispute) return;
-    raiseTransactionDispute(activeTxnForDispute.id, {
-      lotNumber: activeTxnForDispute.lotNumber,
-      raisedBy: 'FARMER',
-      raisedByName: user?.name || 'Rajesh Gowda',
-      reasonCategory: disputeCategory,
-      description: disputeDescription,
-      claimedAmount: Number(disputeClaim)
-    });
-    setShowDisputeModal(false);
-    showToast(`Dispute raised on ${activeTxnForDispute.transactionNumber}. Case routed to WoolTrace Ombudsman.`);
-    setActiveTab('DISPUTES');
-  };
+  const availableCategories = COMMODITIES.filter(c => 
+    (selectedCategory === 'ALL' || c.category === selectedCategory) &&
+    (c.name.toLowerCase().includes(commoditySearch.toLowerCase()) || c.hindiName.includes(commoditySearch))
+  );
 
   return (
-    <div className="market-hub-container">
+    <div className="farmer-market-page">
+      {/* Toast Alert */}
       {toastMessage && (
         <div style={{
-          position: 'fixed', top: '24px', right: '24px', zIndex: 9999,
-          background: '#0B120D', color: '#DDFF86', padding: '12px 20px',
-          borderRadius: '10px', boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
-          fontSize: '14px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px'
+          position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999,
+          background: '#0B120D', color: '#FFFFFF', padding: '14px 22px', borderRadius: '12px',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.25)', borderLeft: '5px solid #DDFF86',
+          display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', fontWeight: '600'
         }}>
-          <CheckCircle2 size={18} />
+          <CheckCircle2 size={18} color="#DDFF86" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Top Header Hero */}
-      <div className="market-header-hero">
-        <div className="market-header-top">
-          <div className="market-title-group">
-            <h1>
-              Market Linkage & Price Discovery
-              <span className="sih-badge">SIH 2026 · PS 26132</span>
-            </h1>
-            <p>
-              Empowering farmers & FPOs with transparent mandi benchmarks, verified buyer demand, net realization analysis, and digital offer negotiations.
-            </p>
-          </div>
-          <div className="market-header-actions">
-            <div className="live-feed-pill">
-              <span className="live-pulse-dot" />
-              <span>CEDA / AGMARKNET Live</span>
-            </div>
-            <button className="cta-sell-wool-btn" onClick={() => setActiveTab('DISCOVERY')}>
-              <Sparkles size={16} />
-              <span>Sell My Wool</span>
-            </button>
-          </div>
+      {/* Header Banner */}
+      <div className="market-header-banner">
+        <div className="header-left">
+          <div className="sih-tag">SIH 2026 · Problem Statement 26132</div>
+          <h1 className="market-title">Market Linkages & Price Discovery Hub</h1>
+          <p className="market-subtitle">
+            Crop-agnostic market intelligence, multi-channel price discovery, and escrow transaction enablement for farmers and FPOs.
+          </p>
         </div>
-
-        {/* Navigation Tabs */}
-        <div className="market-nav-tabs">
-          <button className={`market-tab-btn ${activeTab === 'OVERVIEW' ? 'active' : ''}`} onClick={() => setActiveTab('OVERVIEW')}>
-            <BarChart2 size={16} />
-            <span>Market Overview</span>
+        <div className="header-actions">
+          <button className="btn-primary" onClick={() => setShowCreateLotModal(true)}>
+            <Plus size={16} />
+            <span>Create Produce Lot</span>
           </button>
-          <button className={`market-tab-btn ${activeTab === 'DISCOVERY' ? 'active' : ''}`} onClick={() => setActiveTab('DISCOVERY')}>
-            <Target size={16} />
-            <span>Price Discovery & Net Return</span>
-          </button>
-          <button className={`market-tab-btn ${activeTab === 'TRENDS' ? 'active' : ''}`} onClick={() => setActiveTab('TRENDS')}>
-            <TrendingUp size={16} />
-            <span>Price Trends & History</span>
-          </button>
-          <button className={`market-tab-btn ${activeTab === 'BUYERS' ? 'active' : ''}`} onClick={() => setActiveTab('BUYERS')}>
+          <button className="btn-accent" onClick={() => setShowFPOModal(true)}>
             <Users size={16} />
-            <span>Buyer Discovery & Demand</span>
-            <span className="tab-badge-pill lime">{buyerDemands.length}</span>
-          </button>
-          <button className={`market-tab-btn ${activeTab === 'MY_LOTS' ? 'active' : ''}`} onClick={() => setActiveTab('MY_LOTS')}>
-            <Layers size={16} />
-            <span>My Lots & FPO Lots</span>
-            <span className="tab-badge-pill">{woolLots.length}</span>
-          </button>
-          <button className={`market-tab-btn ${activeTab === 'OFFERS' ? 'active' : ''}`} onClick={() => setActiveTab('OFFERS')}>
-            <FileText size={16} />
-            <span>Offers & Negotiations</span>
-            <span className="tab-badge-pill coral">{marketOffers.filter(o => o.status === 'PENDING').length}</span>
-          </button>
-          <button className={`market-tab-btn ${activeTab === 'TRANSACTIONS' ? 'active' : ''}`} onClick={() => setActiveTab('TRANSACTIONS')}>
-            <DollarSign size={16} />
-            <span>Transactions & Payments</span>
-            <span className="tab-badge-pill">{marketTransactions.length}</span>
-          </button>
-          <button className={`market-tab-btn ${activeTab === 'DISPUTES' ? 'active' : ''}`} onClick={() => setActiveTab('DISPUTES')}>
-            <ShieldAlert size={16} />
-            <span>Disputes</span>
-            {disputes.length > 0 && <span className="tab-badge-pill coral">{disputes.length}</span>}
+            <span>FPO Aggregator</span>
           </button>
         </div>
       </div>
 
-      {/* Tab Panels */}
-      {activeTab === 'OVERVIEW' && (
-        <MarketOverviewTab
-          saleWindowAdvisory={saleWindowAdvisory}
-          marketTransactions={marketTransactions}
-          onLaunchDiscovery={() => setActiveTab('DISCOVERY')}
-        />
-      )}
+      {/* ── Global Commodity Selector Bar ── */}
+      <div style={{
+        background: '#FFFFFF', border: '1px solid rgba(11,18,13,0.10)',
+        borderRadius: '14px', padding: '16px 20px', marginBottom: '20px',
+        boxShadow: '0 2px 8px rgba(11,18,13,0.04)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Filter size={16} color="#0B120D" />
+            <strong style={{ fontSize: '13px', color: '#0B120D', textTransform: 'uppercase' }}>Select Commodity Category:</strong>
+          </div>
 
-      {activeTab === 'DISCOVERY' && (
-        <PriceDiscoveryTab
-          batches={batches}
-          selectedBatchId={selectedBatchId} setSelectedBatchId={setSelectedBatchId}
-          customWoolType={customWoolType} setCustomWoolType={setCustomWoolType}
-          customGrade={customGrade} setCustomGrade={setCustomGrade}
-          customQuantity={customQuantity} setCustomQuantity={setCustomQuantity}
-          transportDistance={transportDistance} setTransportDistance={setTransportDistance}
-          storageMonths={storageMonths} setStorageMonths={setStorageMonths}
-          discoveryChannels={discoveryChannels}
-          onOpenCreateLot={(price) => {
-            setNewLotAskingPrice(price);
-            setShowCreateLotModal(true);
-          }}
-        />
-      )}
+          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
+            {COMMODITY_CATEGORIES.map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                style={{
+                  background: selectedCategory === cat.id ? '#0B120D' : '#F8F8F3',
+                  color: selectedCategory === cat.id ? '#FFFFFF' : '#0B120D',
+                  border: '1px solid rgba(11,18,13,0.10)',
+                  borderRadius: '6px',
+                  padding: '5px 10px',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  cursor: 'pointer'
+                }}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-      {activeTab === 'TRENDS' && (
-        <PriceTrendsTab
-          trendPeriod={trendPeriod}
-          setTrendPeriod={setTrendPeriod}
-          trendResult={trendResult}
-        />
-      )}
+        {/* Commodity Horizontal Picker */}
+        <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }}>
+          {availableCategories.map(c => {
+            const isSel = c.id === selectedCommodityId;
+            return (
+              <button
+                key={c.id}
+                onClick={() => setSelectedCommodityId(c.id)}
+                style={{
+                  background: isSel ? '#DDFF86' : '#FFFFFF',
+                  color: '#0B120D',
+                  border: isSel ? '2px solid #0B120D' : '1px solid rgba(11,18,13,0.12)',
+                  borderRadius: '10px',
+                  padding: '8px 14px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  whiteSpace: 'nowrap',
+                  fontWeight: isSel ? '800' : '600',
+                  fontSize: '13px'
+                }}
+              >
+                <span>{c.name}</span>
+                <span style={{ fontSize: '12px', fontWeight: '800', background: isSel ? '#0B120D' : '#F8F8F3', color: isSel ? '#FFFFFF' : '#0B120D', padding: '2px 6px', borderRadius: '4px' }}>
+                  ₹{c.basePricePerKg}/kg
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-      {activeTab === 'BUYERS' && (
-        <BuyerDiscoveryTab
-          batches={batches}
-          matchedBatchForBuyer={matchedBatchForBuyer} setMatchedBatchForBuyer={setMatchedBatchForBuyer}
-          buyerTypeFilter={buyerTypeFilter} setBuyerTypeFilter={setBuyerTypeFilter}
-          rankedBuyers={rankedBuyers}
-          onOpenSubmitLot={(budgetPrice) => {
-            setNewLotAskingPrice(budgetPrice);
-            setShowCreateLotModal(true);
-          }}
-        />
-      )}
+      {/* Navigation Tabs */}
+      <div className="market-nav-tabs">
+        <button className={`nav-tab ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
+          <LineChart size={16} />
+          <span>Market Overview</span>
+        </button>
+        <button className={`nav-tab ${activeTab === 'discovery' ? 'active' : ''}`} onClick={() => setActiveTab('discovery')}>
+          <Target size={16} />
+          <span>Price Discovery & Net Return</span>
+        </button>
+        <button className={`nav-tab ${activeTab === 'trends' ? 'active' : ''}`} onClick={() => setActiveTab('trends')}>
+          <BarChart2 size={16} />
+          <span>Price Trends</span>
+        </button>
+        <button className={`nav-tab ${activeTab === 'buyers' ? 'active' : ''}`} onClick={() => setActiveTab('buyers')}>
+          <Building size={16} />
+          <span>Buyer Discovery & Demand</span>
+        </button>
+        <button className={`nav-tab ${activeTab === 'lots' ? 'active' : ''}`} onClick={() => setActiveTab('lots')}>
+          <Layers size={16} />
+          <span>My Lots & Aggregation</span>
+        </button>
+        <button className={`nav-tab ${activeTab === 'offers' ? 'active' : ''}`} onClick={() => setActiveTab('offers')}>
+          <FileText size={16} />
+          <span>Digital Offers ({marketOffers.filter(o => o.status === 'PENDING').length})</span>
+        </button>
+        <button className={`nav-tab ${activeTab === 'transactions' ? 'active' : ''}`} onClick={() => setActiveTab('transactions')}>
+          <CreditCard size={16} />
+          <span>Transactions & Escrow</span>
+        </button>
+        <button className={`nav-tab ${activeTab === 'disputes' ? 'active' : ''}`} onClick={() => setActiveTab('disputes')}>
+          <AlertTriangle size={16} />
+          <span>Disputes ({disputes.length})</span>
+        </button>
+      </div>
 
-      {activeTab === 'MY_LOTS' && (
-        <MyLotsTab
-          woolLots={woolLots}
-          onOpenFpoAggregator={() => setShowFpoAggregatorModal(true)}
-          onOpenCreateLot={(price) => {
-            setNewLotAskingPrice(price);
-            setShowCreateLotModal(true);
-          }}
-        />
-      )}
+      {/* Tab Content Panes */}
+      <div className="market-tab-content">
+        {activeTab === 'overview' && (
+          <MarketOverviewTab
+            selectedCommodityId={selectedCommodityId}
+            saleWindowAdvisory={saleWindowAdvisory}
+            marketTransactions={marketTransactions}
+            onLaunchDiscovery={() => setActiveTab('discovery')}
+          />
+        )}
 
-      {activeTab === 'OFFERS' && (
-        <OffersTab
-          marketOffers={marketOffers}
-          onAcceptOffer={handleAcceptOffer}
-          onRejectOffer={handleRejectOffer}
-          onOpenCounter={handleOpenCounter}
-        />
-      )}
+        {activeTab === 'discovery' && (
+          <PriceDiscoveryTab
+            selectedCommodityId={selectedCommodityId}
+            selectedBatchId={selectedBatchId}
+            setSelectedBatchId={setSelectedBatchId}
+            batches={batches}
+            quantityInput={quantityInput}
+            setQuantityInput={setQuantityInput}
+            selectedVariety={selectedVariety}
+            setSelectedVariety={setSelectedVariety}
+            selectedGrade={selectedGrade}
+            setSelectedGrade={setSelectedGrade}
+            distanceKm={distanceKm}
+            setDistanceKm={setDistanceKm}
+            storageMonths={storageMonths}
+            setStorageMonths={setStorageMonths}
+            channelsComparison={channelsComparison}
+            onSelectChannel={(ch) => {
+              showToast(`Initiated lot connection with ${ch.buyerName} at ₹${ch.pricePerKg}/KG.`);
+              setActiveTab('lots');
+            }}
+          />
+        )}
 
-      {activeTab === 'TRANSACTIONS' && (
-        <TransactionsTab
-          marketTransactions={marketTransactions}
-          onOpenDispute={handleOpenDispute}
-          onConfirmDelivery={(txn) => {
-            updateTransactionDelivery(txn.id, 'DELIVERED');
-            updateTransactionPayment(txn.id, 'PAID', txn.grossValue);
-            showToast(`✓ Transaction ${txn.transactionNumber} marked as Delivered and Paid!`);
-          }}
-        />
-      )}
+        {activeTab === 'trends' && (
+          <PriceTrendsTab
+            selectedCommodityId={selectedCommodityId}
+            timeframe={timeframe}
+            setTimeframe={setTimeframe}
+            priceTrendsData={priceTrendsData}
+          />
+        )}
 
-      {activeTab === 'DISPUTES' && (
-        <DisputesTab disputes={disputes} />
-      )}
+        {activeTab === 'buyers' && (
+          <BuyerDiscoveryTab
+            selectedCommodityId={selectedCommodityId}
+            buyerDemands={matchedDemands}
+            onQuoteBuyer={(buyer) => {
+              showToast(`Direct lot quote submitted to ${buyer.buyerName}.`);
+              setActiveTab('offers');
+            }}
+          />
+        )}
 
-      {/* MODAL: CREATE WOOL LOT */}
+        {activeTab === 'lots' && (
+          <MyLotsTab
+            woolLots={woolLots}
+            batches={batches}
+            onCreateLotClick={() => setShowCreateLotModal(true)}
+            onAggregateFpoClick={() => setShowFPOModal(true)}
+          />
+        )}
+
+        {activeTab === 'offers' && (
+          <OffersTab
+            marketOffers={marketOffers}
+            onAcceptOffer={(offer) => {
+              createTransactionFromOffer(offer.id);
+              showToast(`Offer ${offer.id} accepted. Escrow transaction created!`);
+              setActiveTab('transactions');
+            }}
+            onRejectOffer={(offer) => {
+              respondOffer(offer.id, 'REJECTED');
+              showToast(`Offer ${offer.id} declined.`);
+            }}
+            onCounterOffer={(offer) => {
+              setActiveOfferForCounter(offer);
+              setCounterPrice(offer.offeredPricePerKg + 1.5);
+              setShowCounterModal(true);
+            }}
+          />
+        )}
+
+        {activeTab === 'transactions' && (
+          <TransactionsTab
+            marketTransactions={marketTransactions}
+            onConfirmDelivery={(txn) => {
+              showToast(`Delivery confirmed for ${txn.id}. Escrow release initiated.`);
+            }}
+            onRaiseDispute={(txn) => {
+              setActiveTxnForDispute(txn);
+              setShowDisputeModal(true);
+            }}
+          />
+        )}
+
+        {activeTab === 'disputes' && (
+          <DisputesTab disputes={disputes} />
+        )}
+      </div>
+
+      {/* ── Modal: Create Produce Lot ── */}
       {showCreateLotModal && (
         <div className="wt-modal-overlay">
           <div className="wt-modal-card">
             <div className="modal-header-row">
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>Create Verified Wool Lot</h3>
-              <button className="btn-close-modal" onClick={() => setShowCreateLotModal(false)}>×</button>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>Create Verified Produce Lot</h3>
+              <button className="btn-close-modal" onClick={() => setShowCreateLotModal(false)}><X size={20}/></button>
             </div>
-
-            <form onSubmit={handleCreateLot}>
-              <div className="form-field-group" style={{ marginBottom: '14px' }}>
-                <label>Select Wool Batch</label>
-                <select value={newLotBatchId} onChange={(e) => setNewLotBatchId(e.target.value)}>
-                  {batches.map(b => (
-                    <option key={b.id || b.batchId} value={b.id || b.batchId}>
-                      {b.id || b.batchId} - {b.quantity} KG ({b.woolType})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-field-group" style={{ marginBottom: '14px' }}>
-                <label>Asking Price (₹ / KG)</label>
-                <input
-                  type="number"
-                  value={newLotAskingPrice}
-                  onChange={(e) => setNewLotAskingPrice(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-field-group" style={{ marginBottom: '14px' }}>
-                <label>Description & Notes</label>
-                <textarea
-                  rows="3"
-                  value={newLotDescription}
-                  onChange={(e) => setNewLotDescription(e.target.value)}
-                  placeholder="Specify moisture baseline, shearing season, packaging..."
-                  style={{ padding: '10px', borderRadius: '8px', border: '1px solid rgba(11,18,13,0.2)', fontSize: '13px' }}
-                />
-              </div>
-
-              <div className="modal-action-row">
-                <button type="button" className="btn-secondary" onClick={() => setShowCreateLotModal(false)}>Cancel</button>
-                <button type="submit" className="btn-primary">Publish Lot to Market</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: FPO MULTI-BATCH AGGREGATOR */}
-      {showFpoAggregatorModal && (
-        <div className="wt-modal-overlay">
-          <div className="wt-modal-card">
-            <div className="modal-header-row">
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>FPO Collective Bulk Lot Aggregator</h3>
-              <button className="btn-close-modal" onClick={() => setShowFpoAggregatorModal(false)}>×</button>
-            </div>
-
-            <form onSubmit={handleCreateFpoLot}>
-              <div className="form-field-group" style={{ marginBottom: '14px' }}>
-                <label>FPO Producer Co-op Name</label>
-                <input
-                  type="text"
-                  value={fpoLotName}
-                  onChange={(e) => setFpoLotName(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-field-group" style={{ marginBottom: '14px' }}>
-                <label>Select Member Batches to Consolidate</label>
-                <div style={{ maxHeight: '160px', overflowY: 'auto', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '8px' }}>
-                  {batches.map(b => (
-                    <label key={b.id || b.batchId} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', fontSize: '13px', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={fpoSelectedBatches.includes(b.id || b.batchId)}
-                        onChange={(e) => {
-                          const id = b.id || b.batchId;
-                          if (e.target.checked) setFpoSelectedBatches(prev => [...prev, id]);
-                          else setFpoSelectedBatches(prev => prev.filter(x => x !== id));
-                        }}
-                      />
-                      <span><strong>{b.id || b.batchId}</strong> ({b.quantity} KG, {b.woolType}) - {b.farmerName}</span>
-                    </label>
-                  ))}
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const form = e.target;
+              createWoolLot({
+                cropId: form.cropId.value,
+                cropName: getCommodityById(form.cropId.value).name,
+                woolType: getCommodityById(form.cropId.value).name,
+                variety: form.variety.value,
+                quantity: Number(form.quantity.value),
+                askingPrice: Number(form.askingPrice.value),
+                origin: form.origin.value,
+                qualityGrade: form.qualityGrade.value,
+                farmerName: user?.name || 'Ramesh Kumar'
+              });
+              setShowCreateLotModal(false);
+              showToast('Produce lot published to national buyer marketplace!');
+              setActiveTab('lots');
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Commodity</label>
+                  <select name="cropId" defaultValue={selectedCommodityId} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC' }}>
+                    {COMMODITIES.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Variety</label>
+                  <input name="variety" defaultValue={selectedCommodity.varieties[0] || 'Standard'} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC' }} required />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Quantity (KG)</label>
+                    <input name="quantity" type="number" defaultValue="500" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC' }} required />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Asking Price (₹/KG)</label>
+                    <input name="askingPrice" type="number" step="0.5" defaultValue={selectedCommodity.basePricePerKg} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC' }} required />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Quality Grade</label>
+                    <select name="qualityGrade" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC' }}>
+                      <option value="A+">Grade A+ (Premium)</option>
+                      <option value="A">Grade A (Standard)</option>
+                      <option value="B">Grade B (Fair)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Origin Location</label>
+                    <input name="origin" defaultValue="Punjab / Karnataka Farm" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC' }} required />
+                  </div>
                 </div>
               </div>
-
-              <div className="form-field-group" style={{ marginBottom: '14px' }}>
-                <label>Consolidated Target Asking Price (₹ / KG)</label>
-                <input
-                  type="number"
-                  value={fpoLotAskingPrice}
-                  onChange={(e) => setFpoLotAskingPrice(e.target.value)}
-                  required
-                />
-              </div>
-
               <div className="modal-action-row">
-                <button type="button" className="btn-secondary" onClick={() => setShowFpoAggregatorModal(false)}>Cancel</button>
-                <button type="submit" className="btn-primary">Create Consolidated FPO Bulk Lot</button>
+                <button type="button" className="btn-secondary" onClick={() => setShowCreateLotModal(false)}>Cancel</button>
+                <button type="submit" className="btn-primary">Publish Lot</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* MODAL: COUNTER OFFER */}
-      {showCounterModal && (
+      {/* ── Modal: FPO Bulk Aggregation ── */}
+      {showFPOModal && (
         <div className="wt-modal-overlay">
           <div className="wt-modal-card">
             <div className="modal-header-row">
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>Submit Counter-Offer</h3>
-              <button className="btn-close-modal" onClick={() => setShowCounterModal(false)}>×</button>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>FPO Multi-Farmer Bulk Aggregator</h3>
+              <button className="btn-close-modal" onClick={() => setShowFPOModal(false)}><X size={20}/></button>
             </div>
-
-            <form onSubmit={handleSubmitCounter}>
-              <p style={{ fontSize: '13px', color: '#475569' }}>
-                Buyer <strong>{activeOfferForCounter?.buyerName}</strong> offered ₹{activeOfferForCounter?.offeredPricePerKg}/KG.
-              </p>
-
-              <div className="form-field-group" style={{ marginBottom: '14px' }}>
-                <label>Your Counter Price (₹ / KG)</label>
-                <input
-                  type="number"
-                  value={counterPrice}
-                  onChange={(e) => setCounterPrice(e.target.value)}
-                  required
-                />
+            <p style={{ fontSize: '13px', color: '#475569' }}>
+              Pool smallholder produce batches into an aggregated bulk lot (1,000+ KG) to unlock corporate procurement volume premiums.
+            </p>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              aggregateFpoLot({
+                fpoName: 'Kisan Samridhi Producer Co. (FPO)',
+                cropId: selectedCommodityId,
+                cropName: selectedCommodity.name,
+                woolType: selectedCommodity.name,
+                targetPrice: selectedCommodity.basePricePerKg + 2.5,
+                sourceBatchIds: ['WT-PB-2026-00401', 'WT-MH-2026-00305']
+              });
+              setShowFPOModal(false);
+              showToast('FPO Aggregated Lot created successfully!');
+              setActiveTab('lots');
+            }}>
+              <div style={{ background: '#F8F8F3', padding: '14px', borderRadius: '10px', marginBottom: '14px', fontSize: '13px' }}>
+                <div style={{ fontWeight: '800', marginBottom: '6px' }}>Selected Batches to Aggregate:</div>
+                <div>✓ Gurpreet Singh · 1,200 KG Sharbati Wheat (Grade A)</div>
+                <div>✓ Shivaji Rao · 850 KG Nashik Red Onion (Grade A)</div>
+                <div style={{ marginTop: '8px', fontWeight: '800', color: '#0B120D', borderTop: '1px dashed #CCC', paddingTop: '6px' }}>
+                  Total Pooled Volume: 2,050 KG
+                </div>
               </div>
-
-              <div className="form-field-group" style={{ marginBottom: '14px' }}>
-                <label>Note to Buyer</label>
-                <textarea
-                  rows="3"
-                  value={counterNote}
-                  onChange={(e) => setCounterNote(e.target.value)}
-                  placeholder="Explain quality justification, moisture certifications..."
-                  style={{ padding: '10px', borderRadius: '8px', border: '1px solid rgba(11,18,13,0.2)', fontSize: '13px' }}
-                />
-              </div>
-
               <div className="modal-action-row">
-                <button type="button" className="btn-secondary" onClick={() => setShowCounterModal(false)}>Cancel</button>
-                <button type="submit" className="btn-primary">Send Counter-Offer</button>
+                <button type="button" className="btn-secondary" onClick={() => setShowFPOModal(false)}>Cancel</button>
+                <button type="submit" className="btn-accent">Confirm FPO Bulk Lot</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* MODAL: DISPUTE GRIEVANCE */}
-      {showDisputeModal && (
+      {/* ── Modal: Counter Offer ── */}
+      {showCounterModal && activeOfferForCounter && (
         <div className="wt-modal-overlay">
           <div className="wt-modal-card">
             <div className="modal-header-row">
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>Raise Transaction Grievance</h3>
-              <button className="btn-close-modal" onClick={() => setShowDisputeModal(false)}>×</button>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>Submit Digital Counter-Offer</h3>
+              <button className="btn-close-modal" onClick={() => setShowCounterModal(false)}><X size={20}/></button>
             </div>
+            <div style={{ fontSize: '13px', color: '#475569', marginBottom: '14px' }}>
+              Buyer: <strong>{activeOfferForCounter.buyerName}</strong> · Current Offer: <strong>₹{activeOfferForCounter.offeredPricePerKg}/KG</strong>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Counter Price (₹/KG)</label>
+                <input 
+                  type="number" 
+                  step="0.25"
+                  value={counterPrice} 
+                  onChange={(e) => setCounterPrice(Number(e.target.value))}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC', fontSize: '16px', fontWeight: '800' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Revised Commercial Terms</label>
+                <textarea 
+                  value={counterTerms} 
+                  onChange={(e) => setCounterTerms(e.target.value)}
+                  placeholder="e.g. 30% advance escrow deposit before farm dispatch; buyer arranges freight container."
+                  rows={3}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC', fontSize: '13px' }}
+                />
+              </div>
+            </div>
+            <div className="modal-action-row">
+              <button className="btn-secondary" onClick={() => setShowCounterModal(false)}>Cancel</button>
+              <button className="btn-primary" onClick={() => {
+                respondOffer(activeOfferForCounter.id, 'COUNTERED', { price: counterPrice, terms: counterTerms });
+                setShowCounterModal(false);
+                showToast(`Counter-offer of ₹${counterPrice}/KG submitted to ${activeOfferForCounter.buyerName}.`);
+              }}>
+                Transmit Counter-Offer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-            <form onSubmit={handleSubmitDispute}>
-              <div className="form-field-group" style={{ marginBottom: '14px' }}>
-                <label>Grievance Category</label>
-                <select value={disputeCategory} onChange={(e) => setDisputeCategory(e.target.value)}>
-                  <option value="Moisture Level Discrepancy">Moisture Level Discrepancy</option>
-                  <option value="Quantity / Weight Mismatch">Quantity / Weight Mismatch</option>
-                  <option value="Payment Delay">Payment Release Delay</option>
-                  <option value="Freight Transit Damage">Freight Transit Damage</option>
+      {/* ── Modal: Dispute ── */}
+      {showDisputeModal && activeTxnForDispute && (
+        <div className="wt-modal-overlay">
+          <div className="wt-modal-card">
+            <div className="modal-header-row">
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>Raise Commercial Dispute / Grievance</h3>
+              <button className="btn-close-modal" onClick={() => setShowDisputeModal(false)}><X size={20}/></button>
+            </div>
+            <div style={{ fontSize: '13px', color: '#475569', marginBottom: '14px' }}>
+              Transaction: <strong>{activeTxnForDispute.id}</strong> · Counterparty: <strong>{activeTxnForDispute.buyerName}</strong>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Grievance Category</label>
+                <select 
+                  value={disputeReasonCategory} 
+                  onChange={(e) => setDisputeReasonCategory(e.target.value)}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC' }}
+                >
+                  <option value="QUALITY_MISMATCH">Quality Specification Discrepancy</option>
+                  <option value="WEIGHT_SHORTAGE">Weighbridge / Quantity Discrepancy</option>
+                  <option value="PAYMENT_DELAY">Escrow Payment Release Delay</option>
+                  <option value="LOGISTICS_DAMAGE">Transit Damage / Delayed Pickup</option>
                 </select>
               </div>
-
-              <div className="form-field-group" style={{ marginBottom: '14px' }}>
-                <label>Claim Amount (₹)</label>
-                <input
-                  type="number"
-                  value={disputeClaim}
-                  onChange={(e) => setDisputeClaim(e.target.value)}
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Grievance Description & Evidence</label>
+                <textarea 
+                  value={disputeDesc} 
+                  onChange={(e) => setDisputeDesc(e.target.value)}
+                  placeholder="State the discrepancy in detail. QA certificates and weighbridge receipts will be attached."
+                  rows={4}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC', fontSize: '13px' }}
                 />
               </div>
-
-              <div className="form-field-group" style={{ marginBottom: '14px' }}>
-                <label>Details & Verification Evidence</label>
-                <textarea
-                  rows="3"
-                  value={disputeDescription}
-                  onChange={(e) => setDisputeDescription(e.target.value)}
-                  placeholder="Describe the discrepancy and reference weighbridge / moisture lab slips..."
-                  required
-                  style={{ padding: '10px', borderRadius: '8px', border: '1px solid rgba(11,18,13,0.2)', fontSize: '13px' }}
-                />
-              </div>
-
-              <div className="modal-action-row">
-                <button type="button" className="btn-secondary" onClick={() => setShowDisputeModal(false)}>Cancel</button>
-                <button type="submit" className="btn-primary">Submit to Ombudsman</button>
-              </div>
-            </form>
+            </div>
+            <div className="modal-action-row">
+              <button className="btn-secondary" onClick={() => setShowDisputeModal(false)}>Cancel</button>
+              <button className="btn-primary" onClick={() => {
+                raiseTransactionDispute(activeTxnForDispute.id, { reasonCategory: disputeReasonCategory, description: disputeDesc });
+                setShowDisputeModal(false);
+                showToast(`Dispute raised for ${activeTxnForDispute.id}. Escrow locked pending mediation.`);
+                setActiveTab('disputes');
+              }}>
+                Submit for CEDA / APMC Mediation
+              </button>
+            </div>
           </div>
         </div>
       )}

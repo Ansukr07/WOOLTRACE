@@ -29,14 +29,14 @@ const FarmerLayout = () => {
 
   const navItems = [
     { name: 'HOME', path: '/farmer', icon: <Home size={18} /> },
-    { name: 'TRACK WOOL', path: '/farmer/track', icon: <QrCode size={18} /> },
-    { name: 'WAREHOUSES', path: '/farmer/warehouses', icon: <Warehouse size={18} /> },
-    { name: 'MY WOOL', path: '/farmer/my-wool', icon: <Box size={18} /> },
-    { name: 'MARKET', path: '/farmer/market', icon: <LineChart size={18} />, badge: pendingOffersCount > 0 ? pendingOffersCount : null },
-    { name: 'SERVICES', path: '/farmer/services', icon: <Wrench size={18} /> },
-    { name: 'WOOLKART', path: '/farmer/woolkart', icon: <ShoppingCart size={18} /> },
-    { name: 'LEARN', path: '/farmer/academy', icon: <BookOpen size={18} /> },
+    { name: 'MARKET & PRICES', path: '/farmer/market', icon: <LineChart size={18} />, badge: pendingOffersCount > 0 ? pendingOffersCount : null },
+    { name: 'MY PRODUCE', path: '/farmer/my-wool', icon: <Box size={18} /> },
+    { name: 'TRACK PASSPORT', path: '/farmer/track', icon: <QrCode size={18} /> },
+    { name: 'STORAGE & SILOS', path: '/farmer/warehouses', icon: <Warehouse size={18} /> },
+    { name: 'SERVICES & QA', path: '/farmer/services', icon: <Wrench size={18} /> },
     { name: 'WALLET', path: '/farmer/wallet', icon: <Wallet size={18} /> },
+    { name: 'ACADEMY', path: '/farmer/academy', icon: <BookOpen size={18} /> },
+    { name: 'AGRI-STORE', path: '/farmer/woolkart', icon: <ShoppingCart size={18} /> },
   ];
 
   return (

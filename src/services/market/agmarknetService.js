@@ -1,66 +1,67 @@
 /**
- * WoolTrace Frontend Service for Market Intelligence
- * Connects to CEDA Agmarknet API proxy with comprehensive offline/demo Indian Wool Mandi dataset.
+ * WoolTrace Multi-Commodity Service for Market Intelligence
+ * Connects to CEDA Agmarknet API proxy with comprehensive Indian Mandi datasets across all agricultural crops.
  */
 
 const API_BASE = '/api/market';
-const CACHE_PREFIX = 'wt_ceda_cache_';
-const CACHE_TTL_MS = 1000 * 60 * 60 * 2;
 
-// ── Realistic Indian Wool Mandi Dataset ─────────────────────────────────────
 const MOCK_COMMODITIES = [
-  { commodity_id: 101, commodity_name: 'Raw Wool (Fleece / Greasy)' },
-  { commodity_id: 102, commodity_name: 'Fine Merino Cross Wool' },
-  { commodity_id: 103, commodity_name: 'Chokla Carpet Grade Wool' },
-  { commodity_id: 104, commodity_name: 'Gaddi Mountain Fleece' },
-  { commodity_id: 105, commodity_name: 'Deccani Coarse Wool' }
+  { commodity_id: 1, commodity_name: 'Wheat (गेहूं)', category: 'CEREAL', default_base: 28 },
+  { commodity_id: 2, commodity_name: 'Paddy / Basmati Rice (चावल)', category: 'CEREAL', default_base: 42 },
+  { commodity_id: 3, commodity_name: 'Tomato (टमाटर)', category: 'VEGETABLE', default_base: 34 },
+  { commodity_id: 4, commodity_name: 'Onion (प्याज)', category: 'VEGETABLE', default_base: 24 },
+  { commodity_id: 5, commodity_name: 'Mustard (सरसों)', category: 'OILSEED', default_base: 58 },
+  { commodity_id: 6, commodity_name: 'Raw Cotton (कपास)', category: 'COMMERCIAL', default_base: 68 },
+  { commodity_id: 7, commodity_name: 'Apple (सेब)', category: 'FRUIT', default_base: 115 },
+  { commodity_id: 8, commodity_name: 'Chickpea / Chana (चना)', category: 'PULSE', default_base: 62 },
+  { commodity_id: 101, commodity_name: 'Raw Wool (Fleece / Greasy)', category: 'FIBER', default_base: 448 }
 ];
 
 const MOCK_GEOGRAPHIES = [
+  { census_state_id: 3,  census_state_name: 'Punjab' },
+  { census_state_id: 27, census_state_name: 'Maharashtra' },
   { census_state_id: 29, census_state_name: 'Karnataka' },
   { census_state_id: 8,  census_state_name: 'Rajasthan' },
   { census_state_id: 2,  census_state_name: 'Himachal Pradesh' },
-  { census_state_id: 3,  census_state_name: 'Punjab' },
   { census_state_id: 24, census_state_name: 'Gujarat' },
-  { census_state_id: 1,  census_state_name: 'Jammu & Kashmir' },
-  { census_state_id: 27, census_state_name: 'Maharashtra' },
-  { census_state_id: 36, census_state_name: 'Telangana' }
+  { census_state_id: 23, census_state_name: 'Madhya Pradesh' },
+  { census_state_id: 9,  census_state_name: 'Uttar Pradesh' }
 ];
 
 const MOCK_MARKETS = {
+  3: [ // Punjab
+    { id: 301, name: 'Khanna Grain Market (Asia Largest Mandi)' },
+    { id: 302, name: 'Ludhiana Central APMC Yard' },
+    { id: 303, name: 'Amritsar Agro Trading Mandi' }
+  ],
+  27: [ // Maharashtra
+    { id: 2701, name: 'Lasalgaon Onion & Grain APMC (Nashik)' },
+    { id: 2702, name: 'Pune Gultekdi Market Yard' },
+    { id: 2703, name: 'Nagpur Cotton & Orange Mandi' }
+  ],
   29: [ // Karnataka
-    { id: 2901, name: 'Mandya APMC Yard (Wool Terminal)' },
-    { id: 2902, name: 'Ranebennur APMC Wool Market' },
-    { id: 2903, name: 'Ballari Cotton & Wool Mandi' },
-    { id: 2904, name: 'Chitradurga Wool Trading Hub' }
+    { id: 2901, name: 'Kolar Tomato & Vegetable Market Yard' },
+    { id: 2902, name: 'Mandya Agro Terminal' },
+    { id: 2903, name: 'Ranebennur APMC Market' }
   ],
   8: [ // Rajasthan
-    { id: 801, name: 'Bikaner Wool Mandi (National Exchange)' },
-    { id: 802, name: 'Beawar Wool & Textile APMC' },
-    { id: 803, name: 'Kekri Wool Market, Ajmer' },
-    { id: 804, name: 'Jodhpur Wool Terminal' }
+    { id: 801, name: 'Kota Grain & Mustard APMC' },
+    { id: 802, name: 'Bikaner Agri & Wool Mandi' },
+    { id: 803, name: 'Sri Ganganagar Cotton & Wheat Mandi' }
   ],
   2: [ // Himachal Pradesh
-    { id: 201, name: 'Kullu Artisan & Wool Mandi' },
-    { id: 202, name: 'Chamba Sheep Breeders Market' },
-    { id: 203, name: 'Rampur Bushahr Wool Depot' }
-  ],
-  3: [ // Punjab
-    { id: 301, name: 'Ludhiana Wool & Yarn Exchange' },
-    { id: 302, name: 'Amritsar Textile Raw Material Mandi' }
+    { id: 201, name: 'Shimla Dhalli Apple & Fruit Market' },
+    { id: 202, name: 'Solan Vegetable & Agro Terminal' },
+    { id: 203, name: 'Kullu Artisan & Fruit Mandi' }
   ],
   24: [ // Gujarat
-    { id: 2401, name: 'Jamnagar Wool & Cotton APMC' },
-    { id: 2402, name: 'Patanwadi Fleece Market, Patan' }
-  ],
-  1: [ // Jammu & Kashmir
-    { id: 101, name: 'Srinagar Sheep Products Terminal' },
-    { id: 102, name: 'Anantnag Wool Depot' }
+    { id: 2401, name: 'Rajkot Cotton & Groundnut APMC' },
+    { id: 2402, name: 'Unjha Spices & Mustard Mandi' },
+    { id: 2403, name: 'Mahuva Onion & Dehydration Market' }
   ]
 };
 
-// Generate realistic daily price & arrival records
-function generateMockPriceHistory(marketName = 'Bikaner Wool Mandi', basePrice = 425) {
+function generateMockPriceHistory(marketName = 'APMC Mandi Yard', basePrice = 28.5) {
   const records = [];
   const days = 180;
   const now = new Date();
@@ -70,20 +71,19 @@ function generateMockPriceHistory(marketName = 'Bikaner Wool Mandi', basePrice =
     d.setDate(d.getDate() - i);
     const dateStr = d.toISOString().split('T')[0];
 
-    // Subtle seasonal & weekly fluctuations
-    const trendCycle = Math.sin(i / 15) * 18;
-    const noise = (Math.random() - 0.5) * 8;
-    const modal = Math.round(basePrice + trendCycle + noise);
-    const min = Math.round(modal * 0.91);
-    const max = Math.round(modal * 1.09);
-    const arrivals = Math.round(25 + Math.sin(i / 8) * 15 + Math.random() * 8);
+    const trendCycle = Math.sin(i / 15) * (basePrice * 0.05);
+    const noise = (Math.random() - 0.5) * (basePrice * 0.03);
+    const modal = Number((basePrice + trendCycle + noise).toFixed(1));
+    const min = Number((modal * 0.92).toFixed(1));
+    const max = Number((modal * 1.08).toFixed(1));
+    const arrivals = Math.round(30 + Math.sin(i / 8) * 18 + Math.random() * 10);
 
     records.push({
       date: dateStr,
       market_name: marketName,
-      min_price: min * 100, // In paise
-      modal_price: modal * 100,
-      max_price: max * 100,
+      min_price: Math.round(min * 100),
+      modal_price: Math.round(modal * 100),
+      max_price: Math.round(max * 100),
       quantity: arrivals
     });
   }
@@ -100,7 +100,7 @@ export const agmarknetService = {
         const data = json.output?.data || json.commodities || json;
         if (Array.isArray(data) && data.length > 0) return data;
       }
-    } catch (e) {
+    } catch (_e) {
       console.warn('CEDA commodities fetch bypassed, using standard Mandi commodities dataset');
     }
     return MOCK_COMMODITIES;
@@ -114,7 +114,7 @@ export const agmarknetService = {
         const data = json.output?.data || json;
         if (Array.isArray(data) && data.length > 0) return data;
       }
-    } catch (e) {
+    } catch (_e) {
       console.warn('CEDA geographies fetch bypassed, using standard Mandi states');
     }
     return MOCK_GEOGRAPHIES;
@@ -132,7 +132,7 @@ export const agmarknetService = {
         const data = json.output?.data || json;
         if (Array.isArray(data) && data.length > 0) return data;
       }
-    } catch (e) {
+    } catch (_e) {
       console.warn('CEDA markets fetch bypassed, using standard APMC markets list');
     }
 
@@ -140,10 +140,10 @@ export const agmarknetService = {
       return MOCK_MARKETS[stateId].map(m => ({ market_id: m.id, market_name: m.name }));
     }
 
-    // Default fallback to Karnataka + Rajasthan markets
     return [
-      ...MOCK_MARKETS[29],
-      ...MOCK_MARKETS[8]
+      ...MOCK_MARKETS[3],
+      ...MOCK_MARKETS[27],
+      ...MOCK_MARKETS[29]
     ].map(m => ({ market_id: m.id, market_name: m.name }));
   },
 
@@ -166,55 +166,54 @@ export const agmarknetService = {
         const data = json.output?.data || json;
         if (Array.isArray(data) && data.length > 0) return data;
       }
-    } catch (e) {
+    } catch (_e) {
       console.warn('CEDA prices fetch bypassed, using high-resolution Mandi price history dataset');
     }
 
-    // Determine market name
-    let mktName = 'Mandya APMC Yard (Wool Terminal)';
-    let base = 428;
-    if (stateId === 8) {
-      mktName = 'Bikaner Wool Mandi (National Exchange)';
-      base = 445;
-    } else if (stateId === 2) {
-      mktName = 'Kullu Artisan & Wool Mandi';
-      base = 560;
-    } else if (stateId === 3) {
-      mktName = 'Ludhiana Wool & Yarn Exchange';
-      base = 438;
+    let mktName = 'Khanna Grain Market (Punjab)';
+    let base = 28.5;
+
+    if (commodityId === 3 || commodityId === 'TOMATO') {
+      mktName = 'Kolar Tomato & Vegetable Market Yard';
+      base = 34.0;
+    } else if (commodityId === 4 || commodityId === 'ONION') {
+      mktName = 'Lasalgaon Onion APMC (Nashik)';
+      base = 24.5;
+    } else if (commodityId === 5 || commodityId === 'MUSTARD') {
+      mktName = 'Kota Grain & Mustard APMC';
+      base = 58.0;
+    } else if (commodityId === 6 || commodityId === 'COTTON') {
+      mktName = 'Rajkot Cotton APMC';
+      base = 68.0;
+    } else if (commodityId === 7 || commodityId === 'APPLE') {
+      mktName = 'Shimla Dhalli Apple & Fruit Market';
+      base = 115.0;
+    } else if (commodityId === 101 || commodityId === 'WOOL') {
+      mktName = 'Bikaner Wool Mandi';
+      base = 448.0;
     }
 
     return generateMockPriceHistory(mktName, base);
   },
 
-  async getQuantities(commodityId, stateId, districtId, markets, fromDate, toDate) {
-    try {
-      const res = await fetch(`${API_BASE}/quantities`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          commodity_id: commodityId,
-          state_id: stateId,
-          district_id: districtId,
-          market_id: markets,
-          start_date: fromDate,
-          end_date: toDate
-        })
-      });
-      if (res.ok) {
-        const json = await res.json();
-        const data = json.output?.data || json;
-        if (Array.isArray(data) && data.length > 0) return data;
-      }
-    } catch (e) {
-      console.warn('CEDA quantities fetch bypassed, using Mandi arrivals dataset');
-    }
+  getMarketSummary() {
+    return [
+      { month: 'Mar', modalPrice: 26.5 },
+      { month: 'Apr', modalPrice: 27.2 },
+      { month: 'May', modalPrice: 27.8 },
+      { month: 'Jun', modalPrice: 28.0 },
+      { month: 'Jul', modalPrice: 28.4 },
+      { month: 'Aug', modalPrice: 28.9 },
+      { month: 'Sep', modalPrice: 29.5 }
+    ];
+  },
 
-    const prices = generateMockPriceHistory('Mandi Arrivals', 420);
-    return prices.map(p => ({
-      date: p.date,
-      quantity: p.quantity
-    }));
+  getCurrentPrice(cropId = 'WHEAT') {
+    const c = MOCK_COMMODITIES.find(m => m.commodity_name.toUpperCase().includes(cropId.toUpperCase())) || MOCK_COMMODITIES[0];
+    return {
+      modalPrice: c.default_base,
+      priceChange: 3.8
+    };
   }
 };
 
@@ -232,16 +231,11 @@ export function getDateOffset(days, fromDate = new Date()) {
 
 export function fmtPrice(p) {
   if (p == null || isNaN(p)) return '₹0';
-  return `₹${Math.round(p)}`;
+  return `₹${Number(p).toFixed(1)}`;
 }
 
 export function fmtChange(c) {
   if (c == null || isNaN(c)) return '0.0%';
   const prefix = c > 0 ? '+' : '';
   return `${prefix}${c.toFixed(1)}%`;
-}
-
-export function pctChange(oldVal, newVal) {
-  if (!oldVal || !newVal) return 0;
-  return ((newVal - oldVal) / oldVal) * 100;
 }

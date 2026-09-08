@@ -1,596 +1,491 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import QRCode from 'react-qr-code';
-import { 
-  Box, Plus, Search, Filter, ArrowRight, QrCode, CheckCircle2, 
-  MapPin, ShieldCheck, Download, Printer, X, Sparkles 
-} from 'lucide-react';
 import { useGlobalState } from '../../context/GlobalStateContext';
 import { useAuth } from '../../context/AuthContext';
-import { qaService } from '../../services/qa/qaService';
+import { COMMODITIES, COMMODITY_CATEGORIES, getCommodityById } from '../../services/market/cropCommodityRegistry';
+import { 
+  Box, 
+  Plus, 
+  MapPin, 
+  Clock, 
+  CheckCircle2, 
+  QrCode, 
+  ArrowRight,
+  Printer,
+  Sparkles,
+  Layers,
+  Filter,
+  Warehouse,
+  Scale,
+  Calendar,
+  ShieldCheck,
+  Target
+} from 'lucide-react';
+import QRCode from 'react-qr-code';
 import './MyWool.css';
-
-const WOOL_BREEDS = [
-  'Merino Cross Fleece',
-  'Chokla Fine Carpet Wool',
-  'Gaddi Mountain White Fleece',
-  'Magra Lustrous Carpet Wool',
-  'Deccani Native Coarse Wool',
-  'Bharat Merino Apparel Grade',
-  'Patanwadi Dense Fleece',
-  'Pashmina Cashmere Undercoat'
-];
 
 const MyWool = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { batches, addBatch } = useGlobalState();
-  const [isCreating, setIsCreating] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('ALL');
+  const { batches = [], addBatch } = useGlobalState();
   
-  // Newly created batch popup modal
+  const [activeCategory, setActiveCategory] = useState('ALL');
+  const [isCreating, setIsCreating] = useState(false);
   const [createdBatch, setCreatedBatch] = useState(null);
   const [showQRModal, setShowQRModal] = useState(null);
 
-  const [formData, setFormData] = useState({
-    date: new Date().toISOString().split('T')[0],
-    count: '35',
-    type: 'Merino Cross Fleece',
-    quantity: '450',
-    origin: user?.state ? `Mandya, ${user.state}` : 'Mandya, Karnataka',
-    notes: 'Clean spring fleece, zero burr contamination, moisture preserved in sealed jute bags.'
-  });
+  // Form State
+  const [selectedCropId, setSelectedCropId] = useState('WHEAT');
+  const [variety, setVariety] = useState('Sharbati');
+  const [quantity, setQuantity] = useState('');
+  const [unit, setUnit] = useState('KG');
+  const [origin, setOrigin] = useState(user?.location || 'Khanna Farm, Punjab');
+  const [qualityGrade, setQualityGrade] = useState('A');
+  const [harvestDate, setHarvestDate] = useState(new Date().toISOString().split('T')[0]);
+  const [qualityAttributes, setQualityAttributes] = useState({});
+  const [storageType, setStorageType] = useState('DRY_SILO');
 
-  const handleCreateBatch = async (e) => {
+  const selectedCommodity = getCommodityById(selectedCropId);
+
+  const handleCropChange = (cropId) => {
+    setSelectedCropId(cropId);
+    const item = getCommodityById(cropId);
+    if (item.varieties && item.varieties.length > 0) {
+      setVariety(item.varieties[0]);
+    }
+    setUnit(item.defaultUnit || 'KG');
+    setQualityAttributes({});
+  };
+
+  const handleCreateBatch = (e) => {
     e.preventDefault();
-    const qtyNum = Number(formData.quantity) || 400;
-    const farmerName = user?.name || 'Rajesh Gowda';
-    const farmerId = user?.id || 'FARMER-01';
 
-    const stateCode = (formData.origin || '').toLowerCase().includes('rajasthan') ? 'RJ'
-      : (formData.origin || '').toLowerCase().includes('himachal') ? 'HP'
-      : (formData.origin || '').toLowerCase().includes('punjab') ? 'PB'
-      : (formData.origin || '').toLowerCase().includes('kashmir') ? 'JK'
-      : 'KA';
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    const prefix = selectedCropId === 'WHEAT' ? 'PB' :
+                   selectedCropId === 'TOMATO' ? 'KA' :
+                   selectedCropId === 'ONION' ? 'MH' :
+                   selectedCropId === 'COTTON' ? 'GJ' :
+                   selectedCropId === 'APPLE' ? 'HP' : 'WT';
+    
+    const newBatchId = `WT-${prefix}-2026-00${randomSuffix}`;
 
-    const randomSuffix = Math.floor(10000 + Math.random() * 90000);
-    const newBatchId = `WT-${stateCode}-2026-${randomSuffix}`;
-
-    const newBatchData = {
+    const newBatch = {
       id: newBatchId,
       batchId: newBatchId,
-      farmerId: farmerId,
-      farmerName: farmerName,
-      origin: formData.origin,
-      quantity: qtyNum,
-      woolType: formData.type,
-      shearingDate: formData.date,
+      farmerId: user?.id || 'FARMER-01',
+      farmerName: user?.name || 'Ramesh Kumar',
+      cropId: selectedCropId,
+      cropName: selectedCommodity.name,
+      woolType: `${selectedCommodity.name} (Grade ${qualityGrade})`,
+      variety,
+      quantity: Number(quantity),
+      unit,
+      origin,
+      qualityGrade,
+      harvestDate: new Date(harvestDate).toISOString(),
       createdAt: new Date().toISOString(),
       currentStage: 'FARM',
-      currentStatus: 'Harvested at Farm',
-      currentLocation: formData.origin,
-      qualityGrade: 'Pending QA',
-      certificateStatus: 'Uninspected',
+      currentStatus: 'Ready for Quality Inspection / Market Sale',
+      currentLocation: origin,
+      qualityAttributes,
+      certificateStatus: 'Self-Declared Grade',
       verificationUrl: `http://localhost:5173/track/${newBatchId}`,
       events: [
         {
-          id: `EVT-${Date.now().toString().slice(-4)}`,
-          timestamp: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' · ' +
-                     new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          id: `EVT-${Date.now()}`,
+          timestamp: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
           stage: 'FARM',
-          title: 'Farm Shearing & Batch Registered',
-          location: formData.origin,
+          title: 'Farm Harvest Registered',
+          location: origin,
           status: 'Completed',
-          actor: `${farmerName} (Farmer)`,
-          description: `Batch #${newBatchId} registered with ${qtyNum} KG of ${formData.type} from ${formData.count} sheep. ${formData.notes}`
+          actor: `${user?.name || 'Ramesh Kumar'} (Farmer)`,
+          description: `Batch of ${quantity} ${unit} ${variety} ${selectedCommodity.name} registered with self-declared Grade ${qualityGrade}.`
         }
       ]
     };
 
-    // Save to Global State Context and qaService
-    addBatch(newBatchData);
-    await qaService.createBatch(newBatchData);
-
+    if (addBatch) {
+      addBatch(newBatch);
+    }
+    
     setIsCreating(false);
-    setCreatedBatch(newBatchData);
+    setCreatedBatch(newBatch);
   };
 
   const filteredBatches = batches.filter(b => {
-    const matchesSearch = (b.id || b.batchId || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          (b.woolType || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          (b.origin || '').toLowerCase().includes(searchQuery.toLowerCase());
-    if (!matchesSearch) return false;
-    if (selectedFilter === 'ALL') return true;
-    if (selectedFilter === 'CERTIFIED') return b.certificateStatus === 'Certified';
-    if (selectedFilter === 'WAREHOUSE') return b.currentStage === 'WAREHOUSE';
-    if (selectedFilter === 'FARM') return b.currentStage === 'FARM';
-    return true;
+    if (activeCategory === 'ALL') return true;
+    const item = getCommodityById(b.cropId || b.woolType);
+    return item.category === activeCategory;
   });
 
   return (
-    <div className="my-wool-page">
-      {/* Page Header */}
-      <div className="page-header">
+    <div className="my-wool-container">
+      {/* Top Banner */}
+      <div className="my-wool-header">
         <div>
-          <h1>My Wool Batches</h1>
-          <p>Register, track, and manage your wool batches with verifiable digital passports.</p>
+          <span style={{ background: '#DDFF86', color: '#0B120D', fontSize: '11px', fontWeight: '800', padding: '3px 8px', borderRadius: '4px', textTransform: 'uppercase' }}>
+            SIH 2026 · Farm Produce Inventory
+          </span>
+          <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#0B120D', margin: '6px 0 4px 0' }}>
+            My Produce Batches & Digital Passports
+          </h1>
+          <p style={{ color: '#475569', fontSize: '13px', margin: 0 }}>
+            Register harvests, generate cryptographic QR tags, and link verified lots directly to the national buyer marketplace.
+          </p>
         </div>
-        <button className="btn-primary" onClick={() => setIsCreating(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-          <Plus size={20} /> Create New Batch
+        <button 
+          className="btn-primary" 
+          onClick={() => setIsCreating(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px', borderRadius: '10px' }}
+        >
+          <Plus size={18} /> Register Produce Batch
         </button>
       </div>
 
-      {/* Toolbar */}
-      <div className="toolbar">
-        <div className="search-bar">
-          <Search size={18} />
-          <input 
-            type="text" 
-            placeholder="Search by Batch ID, wool type, or origin..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {['ALL', 'FARM', 'CERTIFIED', 'WAREHOUSE'].map(f => (
-            <button 
-              key={f}
-              onClick={() => setSelectedFilter(f)}
-              style={{
-                padding: '6px 12px',
-                borderRadius: '8px',
-                border: '1px solid rgba(11,18,13,0.12)',
-                background: selectedFilter === f ? '#0B120D' : '#F8F8F3',
-                color: selectedFilter === f ? '#DDFF86' : '#0B120D',
-                fontWeight: '700',
-                fontSize: '12px',
-                cursor: 'pointer'
-              }}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
+      {/* Category Tabs */}
+      <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '20px', paddingBottom: '4px' }}>
+        {COMMODITY_CATEGORIES.map(cat => (
+          <button
+            key={cat.id}
+            onClick={() => setActiveCategory(cat.id)}
+            style={{
+              background: activeCategory === cat.id ? '#0B120D' : '#FFFFFF',
+              color: activeCategory === cat.id ? '#FFFFFF' : '#0B120D',
+              border: '1px solid rgba(11,18,13,0.12)',
+              padding: '8px 14px',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {cat.label}
+          </button>
+        ))}
       </div>
 
-      {/* Batch Cards Grid */}
-      <div className="batch-list">
-        {filteredBatches.map(batch => {
-          const isCertified = batch.certificateStatus === 'Certified';
-          const stageBadgeColor = batch.currentStage === 'WAREHOUSE' ? '#BED5E5' 
-            : batch.currentStage === 'FABRIC' ? '#DDFF86' 
-            : batch.currentStage === 'PROCESSING' ? '#EDEDCE' 
-            : '#F8F8F3';
-
-          return (
-            <div key={batch.id} className="batch-card" onClick={() => navigate(`/farmer/batch/${batch.id}`)}>
-              <div className="batch-card-header">
-                <div className="batch-id">
-                  <Box size={18} />
-                  <span>{batch.id}</span>
+      {/* Batches Grid */}
+      {filteredBatches.length === 0 ? (
+        <div style={{ background: '#FFFFFF', padding: '60px 20px', textAlign: 'center', borderRadius: '16px', border: '1px solid rgba(11,18,13,0.10)' }}>
+          <Box size={40} style={{ color: '#64748B', margin: '0 auto 12px', opacity: 0.6 }} />
+          <h3 style={{ fontSize: '18px', fontWeight: '800', margin: '0 0 6px 0' }}>No produce batches found in this category</h3>
+          <p style={{ color: '#64748B', fontSize: '13px', margin: '0 0 16px 0' }}>
+            Register a harvest to generate a batch ID, QR passport, and discover real-time buyer quotes.
+          </p>
+          <button className="btn-primary" onClick={() => setIsCreating(true)}>
+            <Plus size={16} /> Register Batch
+          </button>
+        </div>
+      ) : (
+        <div className="batches-grid">
+          {filteredBatches.map(b => (
+            <div key={b.id || b.batchId} className="batch-card" style={{ background: '#FFFFFF', border: '1px solid rgba(11,18,13,0.10)', borderRadius: '14px', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                  <span style={{ fontSize: '14px', fontWeight: '800', color: '#0B120D', background: '#F8F8F3', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(11,18,13,0.08)' }}>
+                    {b.id || b.batchId}
+                  </span>
+                  <span style={{ fontSize: '11px', fontWeight: '800', background: '#DDFF86', color: '#0B120D', padding: '3px 8px', borderRadius: '4px' }}>
+                    Grade {b.qualityGrade || 'A'}
+                  </span>
                 </div>
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                  <span style={{ 
-                    background: stageBadgeColor, 
-                    color: '#0B120D', 
-                    fontSize: '11px', 
-                    fontWeight: '800', 
-                    padding: '3px 8px', 
-                    borderRadius: '4px',
-                    border: '1px solid rgba(11,18,13,0.1)'
-                  }}>
-                    {batch.currentStage || 'FARM'}
-                  </span>
-                  <span className={`status-badge ${isCertified ? 'certified' : 'at-farm'}`}>
-                    {batch.certificateStatus || 'Uninspected'}
-                  </span>
+
+                <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#0B120D', margin: '0 0 4px 0' }}>
+                  {b.cropName || b.woolType}
+                </h3>
+                <div style={{ fontSize: '12px', color: '#64748B', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <MapPin size={12} />
+                  <span>{b.origin}</span>
+                </div>
+
+                <div style={{ background: '#F8F8F3', borderRadius: '8px', padding: '10px', margin: '10px 0', fontSize: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span>Quantity:</span>
+                    <strong>{b.quantity} {b.unit || 'KG'}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span>Stage:</span>
+                    <strong style={{ color: '#0B120D' }}>{b.currentStage}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Status:</span>
+                    <span style={{ color: '#0B120D', fontWeight: '600' }}>{b.currentStatus}</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="batch-card-body">
-                <div className="detail">
-                  <span className="label">Harvest Date</span>
-                  <span className="value">
-                    {new Date(batch.shearingDate || batch.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                  </span>
-                </div>
-                <div className="detail">
-                  <span className="label">Quantity</span>
-                  <span className="value" style={{ fontWeight: '800' }}>{batch.quantity} KG</span>
-                </div>
-                <div className="detail">
-                  <span className="label">Wool Type</span>
-                  <span className="value">{batch.woolType}</span>
-                </div>
-                <div className="detail">
-                  <span className="label">Quality Grade</span>
-                  <span className="value" style={{ color: isCertified ? '#166534' : '#666', fontWeight: '800' }}>
-                    {batch.qualityGrade || 'Pending QA'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Bottom Quick Action Bar */}
-              <div style={{ 
-                borderTop: '1px solid rgba(11,18,13,0.06)', 
-                padding: '10px 16px', 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                background: '#FAFAF7',
-                borderRadius: '0 0 12px 12px'
-              }} onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
                 <button 
-                  onClick={() => setShowQRModal(batch)}
-                  style={{
-                    background: '#FFFFFF',
-                    border: '1px solid rgba(11,18,13,0.12)',
-                    padding: '4px 10px',
-                    borderRadius: '6px',
-                    fontSize: '11px',
-                    fontWeight: '700',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    cursor: 'pointer'
-                  }}
+                  onClick={() => setShowQRModal(b)}
+                  style={{ flex: 1, padding: '8px', borderRadius: '8px', background: '#F8F8F3', border: '1px solid rgba(11,18,13,0.12)', fontSize: '12px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                 >
-                  <QrCode size={13} /> View QR
+                  <QrCode size={14} /> QR Tag
                 </button>
-
                 <button 
-                  onClick={() => navigate(`/farmer/track?id=${batch.id}`)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#0B120D',
-                    fontSize: '12px',
-                    fontWeight: '700',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    cursor: 'pointer'
-                  }}
+                  onClick={() => navigate(`/farmer/track?id=${b.id || b.batchId}`)}
+                  style={{ flex: 1, padding: '8px', borderRadius: '8px', background: '#0B120D', color: '#FFFFFF', border: 'none', fontSize: '12px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                 >
-                  Track Journey <ArrowRight size={13} />
+                  Passport →
+                </button>
+                <button 
+                  onClick={() => navigate(`/farmer/market?crop=${b.cropId || 'WHEAT'}`)}
+                  style={{ padding: '8px', borderRadius: '8px', background: '#DDFF86', color: '#0B120D', border: '1px solid rgba(11,18,13,0.15)', fontSize: '12px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  title="Discover Market Price"
+                >
+                  <Target size={14} />
                 </button>
               </div>
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {/* ── Create Batch Form Modal ── */}
+      {/* ── Modal: Register Produce Batch ── */}
       {isCreating && (
         <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(11, 18, 13, 0.65)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 120,
-          padding: '20px'
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(11, 18, 13, 0.70)', backdropFilter: 'blur(5px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, padding: '20px'
         }}>
           <div style={{
-            background: '#FFFFFF',
-            borderRadius: '20px',
-            maxWidth: '680px',
-            width: '100%',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            padding: '32px',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
+            background: '#FFFFFF', borderRadius: '18px', maxWidth: '600px', width: '100%',
+            maxHeight: '90vh', overflowY: 'auto', padding: '28px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
-              <div>
-                <span style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', color: '#166534', letterSpacing: '0.08em' }}>
-                  Farm Digital Registration
-                </span>
-                <h2 style={{ margin: '4px 0 0 0', fontSize: '22px', fontWeight: '800', color: '#0B120D' }}>
-                  Register New Wool Batch
-                </h2>
-                <p style={{ margin: '4px 0 0 0', color: '#666', fontSize: '13px' }}>
-                  Capture shearing harvest details to instantly mint a digital passport and cryptographic QR tag.
-                </p>
-              </div>
-              <button 
-                onClick={() => setIsCreating(false)}
-                style={{ background: '#F8F8F3', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-              >
-                <X size={18} />
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid rgba(11,18,13,0.10)', paddingBottom: '12px' }}>
+              <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#0B120D' }}>
+                Register Farm Produce Batch
+              </h2>
+              <button onClick={() => setIsCreating(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#64748B' }}>✕</button>
             </div>
 
             <form onSubmit={handleCreateBatch}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '6px' }}>Shearing Date</label>
-                  <input 
-                    type="date" 
-                    required 
-                    value={formData.date} 
-                    onChange={e => setFormData({ ...formData, date: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(11,18,13,0.15)', fontSize: '14px' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '6px' }}>Total Wool Weight (KG)</label>
-                  <input 
-                    type="number" 
-                    placeholder="e.g. 450" 
-                    required 
-                    value={formData.quantity} 
-                    onChange={e => setFormData({ ...formData, quantity: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(11,18,13,0.15)', fontSize: '14px' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '6px' }}>Sheep Shorn (Count)</label>
-                  <input 
-                    type="number" 
-                    placeholder="e.g. 35" 
-                    required 
-                    value={formData.count} 
-                    onChange={e => setFormData({ ...formData, count: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(11,18,13,0.15)', fontSize: '14px' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '6px' }}>Wool Breed / Type</label>
+                  <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Select Commodity</label>
                   <select 
-                    required 
-                    value={formData.type} 
-                    onChange={e => setFormData({ ...formData, type: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(11,18,13,0.15)', fontSize: '14px' }}
+                    value={selectedCropId} 
+                    onChange={(e) => handleCropChange(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC', fontSize: '14px' }}
                   >
-                    {WOOL_BREEDS.map(b => <option key={b} value={b}>{b}</option>)}
+                    {COMMODITIES.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
                   </select>
                 </div>
 
-                <div style={{ gridColumn: 'span 2' }}>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '6px' }}>Farm Origin & Location</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. Mandya Pastoral Farm, Karnataka" 
-                    required 
-                    value={formData.origin} 
-                    onChange={e => setFormData({ ...formData, origin: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(11,18,13,0.15)', fontSize: '14px' }}
-                  />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Variety</label>
+                    <select 
+                      value={variety} 
+                      onChange={(e) => setVariety(e.target.value)}
+                      style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC' }}
+                    >
+                      {selectedCommodity.varieties.map(v => (
+                        <option key={v} value={v}>{v}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Quality Grade</label>
+                    <select 
+                      value={qualityGrade} 
+                      onChange={(e) => setQualityGrade(e.target.value)}
+                      style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC' }}
+                    >
+                      <option value="A+">Grade A+ (Premium / Export)</option>
+                      <option value="A">Grade A (Standard Mill Grade)</option>
+                      <option value="B">Grade B (Commercial Fair)</option>
+                      <option value="C">Grade C (Standard)</option>
+                    </select>
+                  </div>
                 </div>
 
-                <div style={{ gridColumn: 'span 2' }}>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '6px' }}>Shearing Notes & Visual Assessment</label>
-                  <textarea 
-                    rows="3" 
-                    value={formData.notes} 
-                    onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                    placeholder="Describe cleanliness, staple length, moisture content, shearing method..."
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(11,18,13,0.15)', fontSize: '13px' }}
-                  />
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Harvest Quantity</label>
+                    <input 
+                      type="number" 
+                      value={quantity} 
+                      onChange={(e) => setQuantity(e.target.value)}
+                      placeholder="e.g. 500" 
+                      style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC' }} 
+                      required 
+                      min="1"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Unit</label>
+                    <select 
+                      value={unit} 
+                      onChange={(e) => setUnit(e.target.value)}
+                      style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC' }}
+                    >
+                      {selectedCommodity.supportedUnits.map(u => (
+                        <option key={u} value={u}>{u}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Farm Location / Origin</label>
+                    <input 
+                      type="text" 
+                      value={origin} 
+                      onChange={(e) => setOrigin(e.target.value)}
+                      style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC' }} 
+                      required 
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Harvest Date</label>
+                    <input 
+                      type="date" 
+                      value={harvestDate} 
+                      onChange={(e) => setHarvestDate(e.target.value)}
+                      style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC' }} 
+                      required 
+                    />
+                  </div>
+                </div>
+
+                {/* Dynamic Quality Schemas */}
+                {selectedCommodity.qualitySchema && selectedCommodity.qualitySchema.length > 0 && (
+                  <div style={{ background: '#F8F8F3', padding: '12px', borderRadius: '10px', border: '1px solid rgba(11,18,13,0.08)' }}>
+                    <label style={{ fontSize: '12px', fontWeight: '800', color: '#0B120D', marginBottom: '8px', display: 'block' }}>
+                      Crop Quality Specifications ({selectedCommodity.name}):
+                    </label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      {selectedCommodity.qualitySchema.map(q => (
+                        <div key={q.key}>
+                          <label style={{ fontSize: '11px', color: '#64748B', display: 'block' }}>{q.label}</label>
+                          <select 
+                            value={qualityAttributes[q.key] || q.options[0]}
+                            onChange={(e) => setQualityAttributes(prev => ({ ...prev, [q.key]: e.target.value }))}
+                            style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #CCC', fontSize: '12px' }}
+                          >
+                            {q.options.map(opt => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </select>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                <button 
-                  type="button" 
-                  onClick={() => setIsCreating(false)}
-                  style={{ padding: '12px 20px', borderRadius: '10px', background: '#F8F8F3', border: '1px solid rgba(11,18,13,0.15)', fontWeight: '700', cursor: 'pointer' }}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  className="btn-primary"
-                  style={{ padding: '12px 24px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}
-                >
-                  <Sparkles size={16} /> Generate Batch ID & QR Tag
-                </button>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+                <button type="button" className="btn-secondary" onClick={() => setIsCreating(false)}>Cancel</button>
+                <button type="submit" className="btn-primary">Generate Batch ID & QR Tag</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* ── Success Batch Created & QR Passport Modal ── */}
+      {/* ── Success Modal: Batch Created & QR Passport ── */}
       {createdBatch && (
         <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(11, 18, 13, 0.75)',
-          backdropFilter: 'blur(6px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 130,
-          padding: '20px'
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(11, 18, 13, 0.75)', backdropFilter: 'blur(6px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1100, padding: '20px'
         }}>
           <div style={{
-            background: '#FFFFFF',
-            borderRadius: '24px',
-            maxWidth: '520px',
-            width: '100%',
-            padding: '36px 32px',
-            textAlign: 'center',
-            boxShadow: '0 24px 48px rgba(0,0,0,0.25)'
+            background: '#FFFFFF', borderRadius: '20px', maxWidth: '480px', width: '100%',
+            padding: '32px 24px', textAlign: 'center', boxShadow: '0 20px 48px rgba(0,0,0,0.25)'
           }}>
-            <div style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '50%',
-              background: '#DCFCE7',
-              color: '#166534',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 16px'
-            }}>
-              <CheckCircle2 size={32} />
+            <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#DDFF86', color: '#0B120D', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+              <CheckCircle2 size={28} />
             </div>
 
-            <span style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#166534' }}>
+            <span style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', color: '#0B120D' }}>
               Digital Twin Created
             </span>
-            <h2 style={{ margin: '6px 0 8px 0', fontSize: '24px', fontWeight: '800', color: '#0B120D' }}>
-              Batch Registered Successfully!
+            <h2 style={{ margin: '4px 0 8px 0', fontSize: '20px', fontWeight: '800', color: '#0B120D' }}>
+              Produce Batch Registered!
             </h2>
-            <div style={{
-              display: 'inline-block',
-              background: '#0B120D',
-              color: '#DDFF86',
-              padding: '6px 14px',
-              borderRadius: '100px',
-              fontSize: '14px',
-              fontWeight: '800',
-              letterSpacing: '0.04em',
-              marginBottom: '20px'
-            }}>
+            <div style={{ display: 'inline-block', background: '#0B120D', color: '#DDFF86', padding: '4px 12px', borderRadius: '100px', fontSize: '13px', fontWeight: '800', marginBottom: '16px' }}>
               {createdBatch.id}
             </div>
 
-            {/* Render Live QR Code */}
-            <div style={{
-              background: '#F8F8F3',
-              padding: '20px',
-              borderRadius: '16px',
-              border: '1px solid rgba(11,18,13,0.08)',
-              display: 'inline-block',
-              marginBottom: '20px'
-            }}>
-              <QRCode value={createdBatch.verificationUrl || `http://localhost:5173/track/${createdBatch.id}`} size={180} />
+            <div style={{ background: '#F8F8F3', padding: '16px', borderRadius: '14px', display: 'inline-block', marginBottom: '16px' }}>
+              <QRCode value={createdBatch.verificationUrl || `http://localhost:5173/track/${createdBatch.id}`} size={160} />
             </div>
 
-            <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#555', lineHeight: '1.5' }}>
-              Print and fasten this cryptographic QR passport to the physical wool bales. Buyers and inspectors can scan it to trace authenticity.
+            <p style={{ margin: '0 0 16px 0', fontSize: '12px', color: '#64748B' }}>
+              Cryptographic QR Passport generated for {createdBatch.quantity} {createdBatch.unit} {createdBatch.cropName}.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <button
-                  onClick={() => {
-                    alert('QR Tag dispatched to thermal printer buffer.');
-                  }}
-                  style={{
-                    padding: '10px',
-                    borderRadius: '8px',
-                    background: '#F8F8F3',
-                    border: '1px solid rgba(11,18,13,0.15)',
-                    fontWeight: '700',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <Printer size={15} /> Print Bale Tag
-                </button>
-
-                <button
-                  onClick={() => navigate(`/farmer/track?id=${createdBatch.id}`)}
-                  className="btn-primary"
-                  style={{ padding: '10px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                >
-                  Track Journey <ArrowRight size={15} />
-                </button>
-              </div>
-
-              <button
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button 
+                onClick={() => navigate(`/farmer/market?crop=${createdBatch.cropId || 'WHEAT'}`)}
+                className="btn-accent"
+                style={{ flex: 1, padding: '10px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              >
+                <Target size={14} /> Price Discovery
+              </button>
+              <button 
                 onClick={() => {
                   const bId = createdBatch.id;
                   setCreatedBatch(null);
-                  navigate(`/farmer/batch/${bId}`);
+                  navigate(`/farmer/track?id=${bId}`);
                 }}
-                style={{
-                  padding: '10px',
-                  borderRadius: '8px',
-                  background: '#0B120D',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  fontWeight: '700',
-                  fontSize: '13px',
-                  cursor: 'pointer'
-                }}
+                className="btn-primary"
+                style={{ flex: 1, padding: '10px', fontSize: '13px' }}
               >
-                View Batch Details & Request Inspection
+                View Passport
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── View Batch QR Modal ── */}
+      {/* ── View QR Modal ── */}
       {showQRModal && (
         <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(11, 18, 13, 0.70)',
-          backdropFilter: 'blur(5px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 130,
-          padding: '20px'
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(11, 18, 13, 0.70)', backdropFilter: 'blur(5px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1100, padding: '20px'
         }} onClick={() => setShowQRModal(null)}>
           <div style={{
-            background: '#FFFFFF',
-            borderRadius: '20px',
-            maxWidth: '460px',
-            width: '100%',
-            padding: '32px',
-            textAlign: 'center',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
+            background: '#FFFFFF', borderRadius: '18px', maxWidth: '420px', width: '100%',
+            padding: '28px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
           }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', fontWeight: '800' }}>
-              Wool Traceability QR Tag
+            <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '800' }}>
+              Produce Traceability QR Tag
             </h3>
-            <div style={{ fontWeight: '800', color: '#166534', fontSize: '14px', marginBottom: '16px' }}>
+            <div style={{ fontWeight: '800', color: '#0B120D', fontSize: '13px', marginBottom: '14px' }}>
               {showQRModal.id}
             </div>
 
-            <div style={{
-              background: '#F8F8F3',
-              padding: '18px',
-              borderRadius: '16px',
-              border: '1px solid rgba(11,18,13,0.08)',
-              display: 'inline-block',
-              marginBottom: '16px'
-            }}>
-              <QRCode value={showQRModal.verificationUrl || `http://localhost:5173/track/${showQRModal.id}`} size={180} />
+            <div style={{ background: '#F8F8F3', padding: '16px', borderRadius: '14px', display: 'inline-block', marginBottom: '14px' }}>
+              <QRCode value={showQRModal.verificationUrl || `http://localhost:5173/track/${showQRModal.id}`} size={160} />
             </div>
 
-            <div style={{ fontSize: '13px', color: '#666', marginBottom: '20px' }}>
-              Quantity: <strong>{showQRModal.quantity} KG</strong> · Grade: <strong>{showQRModal.qualityGrade || 'A'}</strong><br/>
-              Origin: <strong>{showQRModal.origin}</strong>
+            <div style={{ fontSize: '12px', color: '#64748B', marginBottom: '16px' }}>
+              <strong>{showQRModal.cropName || showQRModal.woolType}</strong> · {showQRModal.quantity} {showQRModal.unit || 'KG'} · Grade {showQRModal.qualityGrade || 'A'}
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
               <button 
                 className="btn-primary" 
                 onClick={() => navigate(`/farmer/track?id=${showQRModal.id}`)}
-                style={{ flex: 1, fontSize: '13px', padding: '10px' }}
+                style={{ flex: 1, fontSize: '12px', padding: '8px' }}
               >
-                Track Journey
+                Track Passport
               </button>
               <button 
+                className="btn-secondary"
                 onClick={() => setShowQRModal(null)}
-                style={{ padding: '10px 16px', borderRadius: '8px', background: '#F8F8F3', border: '1px solid rgba(11,18,13,0.12)', fontWeight: '700', cursor: 'pointer' }}
+                style={{ fontSize: '12px', padding: '8px 14px' }}
               >
                 Close
               </button>
