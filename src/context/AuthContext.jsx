@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [loadingText, setLoadingText] = useState('Authenticating WoolTrace Session...');
+  const [loadingText, setLoadingText] = useState('Authenticating KhetSetu session...');
 
   useEffect(() => {
     if (user) {
@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (identifier, password) => {
     setIsLoading(true);
-    setLoadingText('Authenticating WoolTrace Credentials...');
+    setLoadingText('Authenticating KhetSetu credentials...');
     const cleanId = (identifier || '').trim().toLowerCase();
 
     try {
@@ -165,12 +165,12 @@ export const AuthProvider = ({ children }) => {
         return { success: true, user: demoUser };
       }
 
-      if (cleanId.endsWith('@wooltrace.com')) {
+      if (cleanId.endsWith('@wooltrace.com') || cleanId.endsWith('@khetsetu.in')) {
         let role = 'FARMER';
         if (cleanId.includes('seller')) role = 'SELLER';
-        if (cleanId.includes('inspector')) role = 'QUALITY_INSPECTOR';
-        if (cleanId.includes('warehouse')) role = 'WAREHOUSE';
-        if (cleanId.includes('transport')) role = 'TRANSPORT';
+        if (cleanId.includes('inspector') || cleanId.includes('quality')) role = 'QUALITY_INSPECTOR';
+        if (cleanId.includes('warehouse') || cleanId.includes('storage')) role = 'WAREHOUSE';
+        if (cleanId.includes('transport') || cleanId.includes('logistics')) role = 'TRANSPORT';
         if (cleanId.includes('processing')) role = 'PROCESSING_UNIT';
         if (cleanId.includes('educator') || cleanId.includes('teacher')) role = 'EDUCATOR';
 
@@ -187,17 +187,17 @@ export const AuthProvider = ({ children }) => {
       }
 
       let inferredRole = 'FARMER';
-      if (cleanId.includes('warehouse')) inferredRole = 'WAREHOUSE';
-      else if (cleanId.includes('inspector') || cleanId.includes('qa')) inferredRole = 'QUALITY_INSPECTOR';
+      if (cleanId.includes('warehouse') || cleanId.includes('storage')) inferredRole = 'WAREHOUSE';
+      else if (cleanId.includes('inspector') || cleanId.includes('qa') || cleanId.includes('quality')) inferredRole = 'QUALITY_INSPECTOR';
       else if (cleanId.includes('seller') || cleanId.includes('buyer')) inferredRole = 'SELLER';
-      else if (cleanId.includes('transport')) inferredRole = 'TRANSPORT';
+      else if (cleanId.includes('transport') || cleanId.includes('logistics')) inferredRole = 'TRANSPORT';
       else if (cleanId.includes('processing')) inferredRole = 'PROCESSING_UNIT';
       else if (cleanId.includes('educator') || cleanId.includes('teacher')) inferredRole = 'EDUCATOR';
 
       const fallbackUser = {
         id: `USER-${Date.now().toString().slice(-4)}`,
         name: cleanId.split('@')[0].toUpperCase(),
-        email: cleanId.includes('@') ? cleanId : `${cleanId}@wooltrace.com`,
+        email: cleanId.includes('@') ? cleanId : `${cleanId}@khetsetu.in`,
         role: inferredRole,
         state: 'Karnataka',
         preferredLanguage: 'en'
@@ -214,7 +214,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     setIsLoading(true);
-    setLoadingText('Creating WoolTrace Profile & Digital Identity...');
+    setLoadingText('Creating KhetSetu market profile...');
     try {
       const response = await fetch('/api/register', {
         method: 'POST',
@@ -266,7 +266,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setIsLoggingOut(true);
-    setLoadingText('Logging out of WoolTrace Session...');
+    setLoadingText('Logging out of KhetSetu...');
     setTimeout(() => {
       setUser(null);
       localStorage.removeItem('wooltrace_user');
@@ -302,7 +302,7 @@ export const AuthProvider = ({ children }) => {
     }}>
       {(isLoading || isLoggingOut) && (
         <WoolCloudLoader 
-          text={isLoggingOut ? 'Logging Out of WoolTrace Session...' : loadingText} 
+          text={isLoggingOut ? 'Logging out of KhetSetu...' : loadingText} 
           fullScreen={true} 
         />
       )}

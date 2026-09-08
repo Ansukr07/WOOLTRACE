@@ -1,7 +1,7 @@
 import React from 'react';
 import './WoolCloudLoader.css';
 
-const WoolCloudLoader = ({ text = 'Loading WoolTrace...', fullScreen = true }) => {
+const WoolCloudLoader = ({ text = 'Loading KhetSetu...', fullScreen = true }) => {
   return (
     <div className={`minimal-loader-wrapper ${fullScreen ? 'fullscreen-overlay' : 'inline-loader'}`}>
       <div className="minimal-loader-container">
@@ -12,7 +12,7 @@ const WoolCloudLoader = ({ text = 'Loading WoolTrace...', fullScreen = true }) =
       {/* Clean Typography */}
       <div className="minimal-loader-text">
         <div className="minimal-brand">
-          WOOL<span>TRACE</span>
+          KHET<span>SETU</span>
         </div>
         <p className="minimal-status">{text}</p>
       </div>

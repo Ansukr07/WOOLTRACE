@@ -5,13 +5,13 @@ import { useAuth } from '../../context/AuthContext';
 import './Login.css';
 
 const ROLES = [
-  { id: 'FARMER', label: 'FARMER', desc: 'Produce and sell wool', icon: <Box size={24} /> },
-  { id: 'SELLER', label: 'SELLER / BUYER', desc: 'Buy, sell and trade wool', icon: <Store size={24} /> },
-  { id: 'QUALITY_INSPECTOR', label: 'QUALITY INSPECTOR', desc: 'Inspect and certify wool', icon: <ShieldCheck size={24} /> },
-  { id: 'WAREHOUSE', label: 'WAREHOUSE PARTNER', desc: 'Store and manage wool', icon: <Warehouse size={24} /> },
-  { id: 'TRANSPORT', label: 'TRANSPORT PARTNER', desc: 'Transport wool batches', icon: <Truck size={24} /> },
-  { id: 'PROCESSING_UNIT', label: 'PROCESSING PARTNER', desc: 'Process wool', icon: <Combine size={24} /> },
-  { id: 'EDUCATOR', label: 'EDUCATOR', desc: 'Provide training resources', icon: <BookOpen size={24} /> }
+  { id: 'FARMER', label: 'FARMER / FPO', desc: 'Discover markets and sell produce', icon: <Box size={24} /> },
+  { id: 'SELLER', label: 'BUYER / PROCESSOR', desc: 'Source verified produce at scale', icon: <Store size={24} /> },
+  { id: 'QUALITY_INSPECTOR', label: 'QUALITY PARTNER', desc: 'Grade produce and issue certificates', icon: <ShieldCheck size={24} /> },
+  { id: 'WAREHOUSE', label: 'STORAGE PARTNER', desc: 'Offer verified storage capacity', icon: <Warehouse size={24} /> },
+  { id: 'TRANSPORT', label: 'LOGISTICS PARTNER', desc: 'Coordinate farm-gate collection', icon: <Truck size={24} /> },
+  { id: 'PROCESSING_UNIT', label: 'PROCESSOR', desc: 'Publish procurement demand', icon: <Combine size={24} /> },
+  { id: 'EDUCATOR', label: 'MARKET FACILITATOR', desc: 'Support farmer market readiness', icon: <BookOpen size={24} /> }
 ];
 
 const Register = () => {
@@ -46,14 +46,7 @@ const Register = () => {
     if (result.success) {
       setSuccessMessage('Account created successfully! Redirecting to your dashboard...');
       setTimeout(() => {
-        if (selectedRole === 'PROCESSING_UNIT') navigate('/processing');
-        else if (selectedRole === 'FARMER') navigate('/farmer');
-        else if (selectedRole === 'SELLER') navigate('/seller');
-        else if (selectedRole === 'QUALITY_INSPECTOR') navigate('/inspector');
-        else if (selectedRole === 'WAREHOUSE') navigate('/warehouse');
-        else if (selectedRole === 'TRANSPORT') navigate('/transport');
-        else if (selectedRole === 'EDUCATOR') navigate('/teacher');
-        else navigate('/login');
+        navigate('/platform');
       }, 1000);
     } else {
       setErrorMessage(result.message || 'Registration failed. Please check your information.');
@@ -65,16 +58,16 @@ const Register = () => {
       {/* Top Left Home Back Button */}
       <Link to="/" className="top-left-brand-link">
         <ArrowLeft size={16} />
-        <span>WOOL<span className="logo-badge">TRACE</span> Home</span>
+        <span>KHET<span className="logo-badge">SETU</span> Home</span>
       </Link>
 
       <div className="login-container" style={{maxWidth: '600px'}}>
         <div className="login-header">
           <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div className="logo">WOOL<span>TRACE</span></div>
+            <div className="logo">KHET<span>SETU</span></div>
           </Link>
           <h2>Create Account</h2>
-          <p>Join the WoolTrace ecosystem.</p>
+          <p>Join the KhetSetu market network.</p>
         </div>
 
         {errorMessage && (
@@ -115,7 +108,7 @@ const Register = () => {
 
         {step === 1 ? (
           <div>
-            <h3 style={{marginBottom: '16px', textAlign: 'center'}}>What do you use WoolTrace for?</h3>
+            <h3 style={{marginBottom: '16px', textAlign: 'center'}}>How will you use KhetSetu?</h3>
             <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px'}}>
               {ROLES.map(role => (
                 <div 

@@ -5,18 +5,17 @@ import { useAuth } from '../../context/AuthContext';
 import './Login.css';
 
 const DEMO_BUTTONS = [
-  { label: 'Farmer', email: 'farmer@wooltrace.com', role: 'FARMER', color: '#166534', bg: '#DCFCE7' },
-  { label: 'Warehouse Partner', email: 'warehouse@wooltrace.com', role: 'WAREHOUSE', color: '#0B120D', bg: '#DDFF86' },
-  { label: 'Seller / Buyer', email: 'seller@wooltrace.com', role: 'SELLER', color: '#0B120D', bg: '#EDEDCE' },
-  { label: 'Quality Inspector', email: 'inspector@wooltrace.com', role: 'QUALITY_INSPECTOR', color: '#0B120D', bg: '#BED5E5' },
-  { label: 'Transport Operator', email: 'transport@wooltrace.com', role: 'TRANSPORT', color: '#92400E', bg: '#FEF3C7' },
-  { label: 'Processing Partner', email: 'processing@wooltrace.com', role: 'PROCESSING_UNIT', color: '#1E3A8A', bg: '#DBEAFE' },
+  { label: 'Farmer / FPO', email: 'farmer@khetsetu.in', role: 'FARMER', color: '#166534', bg: '#DCFCE7' },
+  { label: 'Buyer / Processor', email: 'buyer@khetsetu.in', role: 'SELLER', color: '#0B120D', bg: '#EDEDCE' },
+  { label: 'Quality Partner', email: 'quality@khetsetu.in', role: 'QUALITY_INSPECTOR', color: '#0B120D', bg: '#BED5E5' },
+  { label: 'Storage Partner', email: 'storage@khetsetu.in', role: 'WAREHOUSE', color: '#0B120D', bg: '#DDFF86' },
+  { label: 'Logistics Partner', email: 'logistics@khetsetu.in', role: 'TRANSPORT', color: '#92400E', bg: '#FEF3C7' },
 ];
 
 const Login = () => {
   const navigate = useNavigate();
   const { login, isLoading } = useAuth();
-  const [identifier, setIdentifier] = useState('farmer@wooltrace.com');
+  const [identifier, setIdentifier] = useState('farmer@khetsetu.in');
   const [password, setPassword] = useState('password123');
   const [errorMessage, setErrorMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -27,13 +26,7 @@ const Login = () => {
     setErrorMessage('');
     const result = await login(idToUse, passToUse);
     if (result.success) {
-      if (result.user.role === 'FARMER') navigate('/farmer');
-      else if (result.user.role === 'SELLER') navigate('/seller');
-      else if (result.user.role === 'QUALITY_INSPECTOR') navigate('/inspector');
-      else if (result.user.role === 'WAREHOUSE') navigate('/warehouse');
-      else if (result.user.role === 'TRANSPORT') navigate('/transport');
-      else if (result.user.role === 'PROCESSING_UNIT') navigate('/processing');
-      else navigate('/farmer');
+      navigate('/platform');
     } else {
       setErrorMessage(result.message || 'Login failed. Please check your credentials.');
     }
@@ -55,7 +48,7 @@ const Login = () => {
       {/* Top Left Home Back Button */}
       <Link to="/" className="top-left-brand-link">
         <ArrowLeft size={16} />
-        <span>WOOL<span className="logo-badge">TRACE</span> Home</span>
+        <span>KHET<span className="logo-badge">SETU</span> Home</span>
       </Link>
 
       <div className="login-container">
@@ -68,10 +61,10 @@ const Login = () => {
 
         <div className="login-header">
           <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div className="logo">WOOL<span>TRACE</span></div>
+            <div className="logo">KHET<span>SETU</span></div>
           </Link>
-          <h2 style={{marginTop: '8px', fontSize: '20px'}}>One ecosystem. Every role connected.</h2>
-          <p>Sign in to your WoolTrace account.</p>
+          <h2 style={{marginTop: '8px', fontSize: '20px'}}>One market. Every decision connected.</h2>
+          <p>Sign in to your KhetSetu market workspace.</p>
         </div>
 
         {errorMessage && (
@@ -97,7 +90,7 @@ const Login = () => {
             <label>Email / Mobile Number</label>
             <input 
               type="text" 
-              placeholder="e.g. farmer@wooltrace.com" 
+              placeholder="e.g. farmer@khetsetu.in" 
               value={identifier}
               onChange={e => setIdentifier(e.target.value)}
               required 
