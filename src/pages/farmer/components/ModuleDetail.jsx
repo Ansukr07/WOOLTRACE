@@ -350,10 +350,10 @@ const ModuleDetail = () => {
                     {t.keyTakeaways}:
                   </div>
                   <ul style={{ paddingLeft: '20px', margin: '0 0 16px 0' }}>
-                    <li><strong>Preparation:</strong> Keep sheep off feed and water for 8–10 hours prior to shearing to prevent stress and contamination.</li>
+                    <li><strong>Preparation:</strong> Keep sheep off feed and water for 8-10 hours prior to shearing to prevent stress and contamination.</li>
                     <li><strong>Blade Technique:</strong> Maintain flat blade contact to eliminate second-cuts that reduce fleece fiber staple length.</li>
                     <li><strong>Skirting & Quality:</strong> Remove belly, stained tags, and burrs immediately before rolling the fleece into breathable jute packs.</li>
-                    <li><strong>Moisture Control:</strong> Never shear or bale damp wool. Maintain 10–12% relative moisture baseline to preserve fiber elasticity and prevent fungal discoloration.</li>
+                    <li><strong>Moisture Control:</strong> Never shear or bale damp wool. Maintain 10-12% relative moisture baseline to preserve fiber elasticity and prevent fungal discoloration.</li>
                   </ul>
                 </div>
               ) : (

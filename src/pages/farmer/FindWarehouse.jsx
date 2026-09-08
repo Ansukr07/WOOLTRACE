@@ -387,7 +387,7 @@ export default function FindWarehouse() {
                 <select value={selectedBatchId} onChange={handleBatchSelectChange} required>
                   {batches.map(b => (
                     <option key={b.id || b.batchId} value={b.id || b.batchId}>
-                      {b.id || b.batchId} — {b.quantity} KG ({b.woolType})
+                      {b.id || b.batchId} - {b.quantity} KG ({b.woolType})
                     </option>
                   ))}
                 </select>

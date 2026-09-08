@@ -11,7 +11,11 @@ import {
   MapPin,
   ArrowRight,
   Warehouse,
-  ShieldCheck
+  ShieldCheck,
+  Sparkles,
+  Users,
+  Target,
+  FileText
 } from 'lucide-react';
 import {
   AreaChart,
@@ -24,13 +28,13 @@ import {
 } from 'recharts';
 import { useGlobalState } from '../../context/GlobalStateContext';
 import { useAuth } from '../../context/AuthContext';
-import { agmarknetService, formatDate, getDateOffset } from '../../services/market/agmarknetService';
+import { agmarknetService } from '../../services/market/agmarknetService';
 import './Dashboard.css';
 
 const fallbackPriceData = [
   { name: 'Feb', fine: 410, medium: 345, coarse: 275 },
   { name: 'Mar', fine: 418, medium: 350, coarse: 280 },
-  { name: 'Apr', fine: 425, medium: 355, coarse: 285 },
+  { name: 'Apr', clever: 425, medium: 355, coarse: 285 },
   { name: 'May', fine: 430, medium: 360, coarse: 290 },
   { name: 'Jun', fine: 440, medium: 365, coarse: 295 },
   { name: 'Jul', fine: 448, medium: 370, coarse: 300 },
@@ -40,7 +44,7 @@ const fallbackPriceData = [
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { batches, warehouses } = useGlobalState();
+  const { batches, buyerDemands, marketOffers, woolLots } = useGlobalState();
   const [chartData, setChartData] = useState(fallbackPriceData);
   const [currentPrices, setCurrentPrices] = useState({ fine: 455, medium: 380, coarse: 310, trend: 2.8 });
 
@@ -92,6 +96,7 @@ const Dashboard = () => {
 
   const activeBatches = batches.length;
   const woolAvailable = batches.reduce((sum, b) => sum + Number(b.quantity || 0), 0);
+  const pendingOffersCount = (marketOffers || []).filter(o => o.status === 'PENDING').length;
 
   return (
     <div className="dashboard">
@@ -129,6 +134,58 @@ const Dashboard = () => {
             <span className="label">Total Wool Harvested</span>
             <span className="value">{woolAvailable.toLocaleString('en-IN')} KG</span>
           </div>
+        </div>
+      </div>
+
+      {/* Flagship Market Linkages Opportunity Banner (SIH 2026 PS 26132) */}
+      <div style={{
+        background: '#FFFFFF', border: '1px solid rgba(11,18,13,0.12)', borderLeft: '5px solid #DDFF86',
+        borderRadius: '14px', padding: '20px 24px', marginBottom: '24px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px',
+        boxShadow: '0 2px 8px rgba(11,18,13,0.04)'
+      }}>
+        <div style={{ maxWidth: '650px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <span style={{ background: '#DDFF86', color: '#0B120D', fontSize: '11px', fontWeight: '800', padding: '3px 8px', borderRadius: '4px', textTransform: 'uppercase' }}>
+              SIH 2026 · Market Intelligence
+            </span>
+            <span style={{ color: '#166534', fontSize: '12px', fontWeight: '700' }}>
+              ✓ {(buyerDemands || []).length} Verified Procurement Buyers Active
+            </span>
+          </div>
+          <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#0B120D', margin: '0 0 6px 0' }}>
+            Your Harvested Wool Has Active Buyer Matches
+          </h2>
+          <p style={{ fontSize: '13px', color: '#475569', margin: 0, lineHeight: '1.5' }}>
+            Grade A Merino prices are currently trending <strong>+6.8% above 30-day benchmarks</strong>. Spinning mills and handloom federations are actively seeking certified lots.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button 
+            onClick={() => navigate('/farmer/market')}
+            style={{
+              background: '#0B120D', color: '#FFFFFF', border: 'none',
+              padding: '10px 18px', borderRadius: '8px', fontWeight: '700', fontSize: '13px',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
+            }}
+          >
+            <Target size={16} />
+            <span>Discover Net Price</span>
+          </button>
+          {pendingOffersCount > 0 && (
+            <button 
+              onClick={() => navigate('/farmer/market')}
+              style={{
+                background: '#FFAAA4', color: '#0B120D', border: 'none',
+                padding: '10px 16px', borderRadius: '8px', fontWeight: '800', fontSize: '13px',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+              }}
+            >
+              <FileText size={16} />
+              <span>{pendingOffersCount} New Offers</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -209,7 +266,7 @@ const Dashboard = () => {
                 <div key={b.id || i} className="activity-item" onClick={() => navigate(`/farmer/batch/${b.id}`)} style={{ cursor: 'pointer' }}>
                   <div className="activity-icon bg-blue"><Box size={16} /></div>
                   <div className="activity-text">
-                    <p><strong>{b.id}</strong> — {b.quantity} KG ({b.woolType})</p>
+                    <p><strong>{b.id}</strong> - {b.quantity} KG ({b.woolType})</p>
                     <span>Stage: {b.currentStage} · {b.origin}</span>
                   </div>
                 </div>

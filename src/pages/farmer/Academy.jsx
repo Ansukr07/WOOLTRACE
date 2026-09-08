@@ -67,10 +67,10 @@ const languages = [
 const copy = {
   en: {
     title: 'Wool Academy',
-    subtitle: 'Learn everything about wool — from clean shearing to certified sale. Practical lessons in your language, built for Indian farmers.',
+    subtitle: 'Learn everything about wool - from clean shearing to certified sale. Practical lessons in your language, built for Indian farmers.',
     badge: 'From Farm to Fabric',
     heroTitle: 'Learn. Grow. Earn more from your wool.',
-    heroBody: 'Master wool shearing, grading, batch traceability, and market access through practical video lessons, audio guides, and village field sessions — all available in 12 Indian languages.',
+    heroBody: 'Master wool shearing, grading, batch traceability, and market access through practical video lessons, audio guides, and village field sessions - all available in 12 Indian languages.',
     primaryCta: 'Start Learning',
     secondaryCta: 'Download Guides',
     search: 'Search lessons, wool topics, guides...',
@@ -78,7 +78,7 @@ const copy = {
     journeyTitle: 'The Wool Journey',
     journeySubtitle: 'Understand how your wool travels from farm to fabric. Each step adds value.',
     modulesTitle: 'Training Modules',
-    modulesSubtitle: 'Practical lessons covering every stage of wool production — from shearing techniques to market readiness.',
+    modulesSubtitle: 'Practical lessons covering every stage of wool production - from shearing techniques to market readiness.',
     cohortsTitle: 'Village Learning Groups',
     cohortsSubtitle: 'Join a nearby farmer training group. Learn together, improve wool quality, and access better markets.',
     guidesTitle: 'Practical Guides',
@@ -139,10 +139,10 @@ const copy = {
   },
   hi: {
     title: 'ऊन अकादमी',
-    subtitle: 'ऊन के बारे में सब कुछ सीखें — साफ कतराई से लेकर प्रमाणित बिक्री तक। आपकी भाषा में व्यावहारिक पाठ।',
+    subtitle: 'ऊन के बारे में सब कुछ सीखें - साफ कतराई से लेकर प्रमाणित बिक्री तक। आपकी भाषा में व्यावहारिक पाठ।',
     badge: 'खेत से कपड़े तक',
     heroTitle: 'सीखो। बढ़ो। अपनी ऊन से ज़्यादा कमाओ।',
-    heroBody: 'व्यावहारिक वीडियो पाठ, ऑडियो गाइड के ज़रिए ऊन कतराई, ग्रेडिंग, बैच ट्रेसेबिलिटी और बाज़ार पहुंच में महारत हासिल करें — सभी 12 भारतीय भाषाओं में।',
+    heroBody: 'व्यावहारिक वीडियो पाठ, ऑडियो गाइड के ज़रिए ऊन कतराई, ग्रेडिंग, बैच ट्रेसेबिलिटी और बाज़ार पहुंच में महारत हासिल करें - सभी 12 भारतीय भाषाओं में।',
     primaryCta: 'सीखना शुरू करें',
     secondaryCta: 'गाइड डाउनलोड करें',
     search: 'पाठ, ऊन विषय, गाइड खोजें...',
@@ -209,7 +209,7 @@ const copy = {
   },
   raj: {
     title: 'ऊन अकादमी',
-    subtitle: 'ऊन रे बारे में सब सीखो — कतराई से लेकर बिक्री तक। राजस्थानी भाषा में पाठ।',
+    subtitle: 'ऊन रे बारे में सब सीखो - कतराई से लेकर बिक्री तक। राजस्थानी भाषा में पाठ।',
     badge: 'खेत से कपड़ा',
     heroTitle: 'सीखो। बढ़ो। ऊन से ज्यादा कमाओ।',
     heroBody: 'वीडियो पाठ, ऑडियो गाइड रे जरिए ऊन कतराई, ग्रेडिंग, बाजार पहुंच में महारत पाओ।',
@@ -279,7 +279,7 @@ const copy = {
   },
   gu: {
     title: 'ઊન અકાડેમી',
-    subtitle: 'ઊન વિશે બધું શીખો — ઊની કાતરોથી પ્રમાણિત વેચાણ સુધી.',
+    subtitle: 'ઊન વિશે બધું શીખો - ઊની કાતરોથી પ્રમાણિત વેચાણ સુધી.',
     badge: 'ખેત થી કાપડ',
     heroTitle: 'શીખો. વધો. ઊન થી વધુ કમાઓ.',
     heroBody: 'વ્યવહારુ વીડિયો પાઠ, ઑડિઓ ગાઈડ દ્વારા ઊન કાતરો, ગ્રેડિંગ, બજાર ઍક્સેસ માં નિષ્ણાત બનો.',
@@ -349,7 +349,7 @@ const copy = {
   },
   ks: {
     title: 'ऊन अकादमी',
-    subtitle: 'पश्म बारे वुछ سیکھ — کتروایس ته مستند فروخت تک. ہندوستانی کسانوں کے لیے عملی سبق۔',
+    subtitle: 'पश्म बारे वुछ سیکھ - کتروایس ته مستند فروخت تک. ہندوستانی کسانوں کے لیے عملی سبق۔',
     badge: 'کھیت سے کپڑا',
     heroTitle: 'سیکھو۔ بڑھو۔ اپنی ऊن سے زیادہ کماؤ۔',
     heroBody: 'عملی ویڈیو سبق، آڈیو گائیڈ کے ذریعے ऊन کتروائی، گریڈنگ میں مہارت حاصل کرو۔',
@@ -921,19 +921,19 @@ const cohorts = [
 const woolJourney = [
   { step: 'Farm', desc: 'A farmer produces wool from their sheep flock', icon: Sprout },
   { step: 'Shearing', desc: 'Wool is carefully sheared and a digital batch is created', icon: Scissors },
-  { step: 'Quality', desc: 'Wool is inspected — fiber diameter, strength, purity tested', icon: Award },
+  { step: 'Quality', desc: 'Wool is inspected - fiber diameter, strength, purity tested', icon: Award },
   { step: 'Certification', desc: 'The batch receives a quality certificate and QR code', icon: CheckCircle2 },
   { step: 'Market', desc: 'The farmer sees live market prices and buyer bids', icon: TrendingUp },
   { step: 'Trade', desc: 'Buyers place offers, a fair transaction is created', icon: Handshake },
   { step: 'Logistics', desc: 'Transport is arranged and tracked in real-time', icon: Truck },
   { step: 'Warehouse', desc: 'Wool is stored in climate-controlled facilities', icon: Warehouse },
   { step: 'Processing', desc: 'Wool is cleaned, carded, combed, and spun into yarn', icon: Factory },
-  { step: 'Fabric', desc: 'Yarn becomes fabric — the consumer can verify the full journey', icon: Shirt },
+  { step: 'Fabric', desc: 'Yarn becomes fabric - the consumer can verify the full journey', icon: Shirt },
 ];
 
 const guides = [
   { title: 'Shearing Season Calendar', desc: 'Breed-wise optimal shearing dates for each Indian region', icon: CalendarDays, pages: 4, file: 'shearing-calendar.pdf' },
-  { title: 'Wool Grading Reference Card', desc: 'Quick visual reference for BIS wool grades — fiber, color, purity', icon: ClipboardList, pages: 2, file: 'grading-reference.pdf' },
+  { title: 'Wool Grading Reference Card', desc: 'Quick visual reference for BIS wool grades - fiber, color, purity', icon: ClipboardList, pages: 2, file: 'grading-reference.pdf' },
   { title: 'Batch QR Step-by-Step', desc: 'How to create, scan, and share your wool batch QR code on WoolTrace', icon: QrCode, pages: 3, file: 'batch-qr-guide.pdf' },
   { title: 'Sheep Feed & Nutrition Chart', desc: 'Seasonal feeding plan for healthy sheep and stronger wool fiber', icon: Sprout, pages: 6, file: 'nutrition-chart.pdf' },
   { title: 'Market Price Comparison Guide', desc: 'How to read mandi prices, compare bids, and negotiate better rates', icon: IndianRupee, pages: 4, file: 'price-guide.pdf' },
@@ -941,10 +941,10 @@ const guides = [
 ];
 
 const schemes = [
-  { name: 'SWIS – Sheep & Wool Improvement Scheme', body: 'Ministry of Textiles', benefit: 'Health camps, breed improvement, shearing machines', status: 'Active', url: 'https://texmin.nic.in' },
-  { name: 'IWIDP – Integrated Wool Improvement & Development Programme', body: 'CWDB (Central Wool Development Board)', benefit: 'Wool marketing, CFC setup, training programs', status: 'Active', url: 'https://cwdb.gov.in' },
+  { name: 'SWIS - Sheep & Wool Improvement Scheme', body: 'Ministry of Textiles', benefit: 'Health camps, breed improvement, shearing machines', status: 'Active', url: 'https://texmin.nic.in' },
+  { name: 'IWIDP - Integrated Wool Improvement & Development Programme', body: 'CWDB (Central Wool Development Board)', benefit: 'Wool marketing, CFC setup, training programs', status: 'Active', url: 'https://cwdb.gov.in' },
   { name: 'Pashmina Wool Development Scheme', body: 'CWDB', benefit: 'Pashmina goat health, dehairing machines, marketing support', status: 'Active', url: 'https://cwdb.gov.in/pashmina' },
-  { name: 'HDP – Human Development Programme', body: 'CWDB', benefit: 'Skill development for wool artisans and weavers', status: 'Active', url: 'https://cwdb.gov.in/hdp' },
+  { name: 'HDP - Human Development Programme', body: 'CWDB', benefit: 'Skill development for wool artisans and weavers', status: 'Active', url: 'https://cwdb.gov.in/hdp' },
 ];
 
 // trainingPath is now per-language: t.trainingPath
@@ -1124,7 +1124,7 @@ const Academy = () => {
       
       doc.setFontSize(10);
       doc.text(`Pages: ${guide.pages}`, 20, currentY);
-      doc.text("This guide is provided by WoolTrace — From Farm to Fabric.", 20, currentY + 10);
+      doc.text("This guide is provided by WoolTrace - From Farm to Fabric.", 20, currentY + 10);
       doc.text("Visit: https://wooltrace.in", 20, currentY + 15);
       
       const fileName = guide.file.endsWith('.pdf') ? guide.file : guide.file.replace('.txt', '.pdf');
@@ -1766,7 +1766,7 @@ const CohortJoinModal = ({ cohort, user, onJoined, onClose, t }) => {
 
 /* ─── Inline SchemeDetailModal ───────────────────────────────────────────── */
 const schemeInfo = {
-  'SWIS – Sheep & Wool Improvement Scheme': {
+  'SWIS - Sheep & Wool Improvement Scheme': {
     description: 'The Sheep and Wool Improvement Scheme (SWIS) aims to improve sheep productivity and wool quality across India. It provides subsidized health camps, breed improvement services, and modern shearing equipment to registered sheep farmers.',
     eligibility: ['Registered sheep farmer with minimum 20 sheep', 'Member of a state sheep farmers cooperative', 'Aadhaar-linked bank account', 'Valid animal husbandry registration'],
     benefits: ['Free veterinary health camps', 'Subsidized shearing machines (50% subsidy)', 'Breed improvement rams', 'Training in modern wool handling'],
@@ -1774,13 +1774,13 @@ const schemeInfo = {
     helpline: '1800-258-7150',
     deadline: 'Applications accepted year-round',
   },
-  'IWIDP – Integrated Wool Improvement & Development Programme': {
+  'IWIDP - Integrated Wool Improvement & Development Programme': {
     description: 'By the Central Wool Development Board (CWDB), IWIDP supports wool marketing infrastructure, Common Facility Centre (CFC) setup, and farmer training programs across wool-producing states.',
     eligibility: ['Active wool producing farmer or cooperative', 'Located in notified wool-producing district', 'Minimum annual production of 100 kg clean wool'],
     benefits: ['Access to Common Facility Centres (CFC)', 'Subsidized wool testing', 'Market linkage support', 'Annual training programs', 'Quality certification assistance'],
     documents: ['Farmer identity proof', 'Production records', 'Cooperative registration (if applicable)', 'Bank account details'],
     helpline: '0145-2637543',
-    deadline: 'Annual window: April–June',
+    deadline: 'Annual window: April-June',
   },
   'Pashmina Wool Development Scheme': {
     description: 'A specialized CWDB scheme focused on Pashmina goat health, dehairing machines, and international marketing for Pashmina wool from Ladakh, HP, and J&K.',
@@ -1788,15 +1788,15 @@ const schemeInfo = {
     benefits: ['Subsidized dehairing machines', 'Pashmina goat health camps', 'Direct market linkage with premium buyers', 'Export documentation support'],
     documents: ['State residency proof', 'Pashmina goat registration', 'Bank account details'],
     helpline: '0145-2637543',
-    deadline: 'Applications open: August–October',
+    deadline: 'Applications open: August-October',
   },
-  'HDP – Human Development Programme': {
+  'HDP - Human Development Programme': {
     description: 'The Human Development Programme (HDP) by CWDB provides free skill development and vocational training for wool artisans, weavers, and herders.',
-    eligibility: ['Any wool artisan, weaver, or sheep farmer', 'No minimum production requirement', 'Age 18–55 years', 'Priority for women and marginalized communities'],
-    benefits: ['Free skill development training (5–30 days)', 'Stipend during training', 'Tool kit after completion', 'CWDB certificate'],
+    eligibility: ['Any wool artisan, weaver, or sheep farmer', 'No minimum production requirement', 'Age 18-55 years', 'Priority for women and marginalized communities'],
+    benefits: ['Free skill development training (5-30 days)', 'Stipend during training', 'Tool kit after completion', 'CWDB certificate'],
     documents: ['Aadhaar card', 'Age proof', 'Bank account details'],
     helpline: '0145-2637543',
-    deadline: 'Rolling applications — monthly batches',
+    deadline: 'Rolling applications - monthly batches',
   },
 };
 

@@ -16,19 +16,23 @@ import {
   Wallet
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useGlobalState } from '../context/GlobalStateContext';
 import UserRoleDropdown from '../components/UserRoleDropdown';
 import './FarmerLayout.css';
 
 const FarmerLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { logout } = useAuth();
+  const { marketOffers } = useGlobalState();
+
+  const pendingOffersCount = (marketOffers || []).filter(o => o.status === 'PENDING').length;
 
   const navItems = [
     { name: 'HOME', path: '/farmer', icon: <Home size={18} /> },
     { name: 'TRACK WOOL', path: '/farmer/track', icon: <QrCode size={18} /> },
     { name: 'WAREHOUSES', path: '/farmer/warehouses', icon: <Warehouse size={18} /> },
     { name: 'MY WOOL', path: '/farmer/my-wool', icon: <Box size={18} /> },
-    { name: 'MARKET', path: '/farmer/market', icon: <LineChart size={18} /> },
+    { name: 'MARKET', path: '/farmer/market', icon: <LineChart size={18} />, badge: pendingOffersCount > 0 ? pendingOffersCount : null },
     { name: 'SERVICES', path: '/farmer/services', icon: <Wrench size={18} /> },
     { name: 'WOOLKART', path: '/farmer/woolkart', icon: <ShoppingCart size={18} /> },
     { name: 'LEARN', path: '/farmer/academy', icon: <BookOpen size={18} /> },
@@ -54,9 +58,18 @@ const FarmerLayout = () => {
               to={item.path}
               end={item.path === '/farmer'}
               className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+              style={{ position: 'relative' }}
             >
               {item.icon}
               <span>{item.name}</span>
+              {item.badge && (
+                <span style={{
+                  marginLeft: 'auto', background: '#DDFF86', color: '#0B120D',
+                  fontSize: '11px', fontWeight: '800', padding: '2px 7px', borderRadius: '10px'
+                }}>
+                  {item.badge}
+                </span>
+              )}
             </NavLink>
           ))}
 

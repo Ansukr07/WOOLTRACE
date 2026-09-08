@@ -1,5 +1,5 @@
 /**
- * marketService.js — Active provider selector + utility helpers
+ * marketService.js - Active provider selector + utility helpers
  *
  * To switch to the real AGMARKNET provider:
  *   change `activeProvider` to `new AgmarknetProvider()`
@@ -24,12 +24,12 @@ export function distanceKm(lat1, lng1, lat2, lng2) {
 
 /** Format a price number */
 export function fmtPrice(n) {
-  return `₹${n?.toFixed(0) ?? '—'}`;
+  return `₹${n?.toFixed(0) ?? ' - '}`;
 }
 
 /** Format change percentage with sign */
 export function fmtChange(pct) {
-  if (pct == null) return '—';
+  if (pct == null) return ' - ';
   return `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`;
 }
 

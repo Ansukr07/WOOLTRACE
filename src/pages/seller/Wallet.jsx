@@ -332,11 +332,11 @@ export default function Wallet() {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '600' }}>
                     <span style={{ color: '#16A34A' }}>● Payment Secured</span>
-                    <span style={{ color: '#E5E5E5' }}>—</span>
+                    <span style={{ color: '#E5E5E5' }}> - </span>
                     <span style={{ color: order.status === 'Shipped' || order.status === 'Delivered' ? '#16A34A' : '#666' }}>{order.status === 'Shipped' || order.status === 'Delivered' ? '●' : '○'} In Transit</span>
-                    <span style={{ color: '#E5E5E5' }}>—</span>
+                    <span style={{ color: '#E5E5E5' }}> - </span>
                     <span style={{ color: order.status === 'Delivered' ? '#16A34A' : '#666' }}>{order.status === 'Delivered' ? '●' : '○'} Delivered</span>
-                    <span style={{ color: '#E5E5E5' }}>—</span>
+                    <span style={{ color: '#E5E5E5' }}> - </span>
                     <span style={{ color: '#666' }}>○ Funds Released</span>
                   </div>
                 </div>
@@ -360,11 +360,11 @@ export default function Wallet() {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '600' }}>
                   <span style={{ color: '#16A34A' }}>● Payment Secured</span>
-                  <span style={{ color: '#E5E5E5' }}>—</span>
+                  <span style={{ color: '#E5E5E5' }}> - </span>
                   <span style={{ color: '#16A34A' }}>● In Transit</span>
-                  <span style={{ color: '#E5E5E5' }}>—</span>
+                  <span style={{ color: '#E5E5E5' }}> - </span>
                   <span style={{ color: '#666' }}>○ Delivered</span>
-                  <span style={{ color: '#E5E5E5' }}>—</span>
+                  <span style={{ color: '#E5E5E5' }}> - </span>
                   <span style={{ color: '#666' }}>○ Funds Released</span>
                 </div>
               </div>

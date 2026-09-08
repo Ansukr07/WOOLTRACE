@@ -1,8 +1,8 @@
 /**
- * WoolTrace Market Data Provider — Abstract Interface
+ * WoolTrace Market Data Provider - Abstract Interface
  *
  * This defines the contract that every market data provider must fulfil.
- * Providers: DemoDataProvider (shipped), AgmarknetProvider (stub — needs API key).
+ * Providers: DemoDataProvider (shipped), AgmarknetProvider (stub - needs API key).
  *
  * ALL price values returned must be in ₹ per KG.
  * AGMARKNET reports prices in ₹/quintal (÷100 to convert).
@@ -10,26 +10,26 @@
 
 /**
  * @typedef {Object} MarketRecord
- * @property {string} date          — ISO date string e.g. "2026-08-14"
+ * @property {string} date          - ISO date string e.g. "2026-08-14"
  * @property {string} state
  * @property {string} district
  * @property {string} market
- * @property {string} commodity     — "Wool"
- * @property {string} variety       — "Fine" | "Medium" | "Coarse" | "Mixed"
- * @property {string} grade         — "A" | "B" | "C" | "Unknown"
- * @property {number} minPrice      — ₹/kg
- * @property {number} maxPrice      — ₹/kg
- * @property {number} modalPrice    — ₹/kg (most traded price)
- * @property {number} arrivalQty    — metric tonnes
+ * @property {string} commodity     - "Wool"
+ * @property {string} variety       - "Fine" | "Medium" | "Coarse" | "Mixed"
+ * @property {string} grade         - "A" | "B" | "C" | "Unknown"
+ * @property {number} minPrice      - ₹/kg
+ * @property {number} maxPrice      - ₹/kg
+ * @property {number} modalPrice    - ₹/kg (most traded price)
+ * @property {number} arrivalQty    - metric tonnes
  * @property {number} lat
  * @property {number} lng
  */
 
 /**
  * @typedef {Object} ProviderMeta
- * @property {string} name          — Human-readable source name
- * @property {boolean} isDemo       — true → UI must show demo label
- * @property {string|null} lastUpdated — ISO datetime or null
+ * @property {string} name          - Human-readable source name
+ * @property {boolean} isDemo       - true → UI must show demo label
+ * @property {string|null} lastUpdated - ISO datetime or null
  */
 
 export class MarketDataProvider {

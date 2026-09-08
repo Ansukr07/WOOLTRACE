@@ -14,7 +14,7 @@ function RequestDetail({ req, onBack }) {
   const style = STATUS_STYLES[req.status] || STATUS_STYLES.Pending;
   const displayDate = req.formData.date
     ? new Date(req.formData.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-    : '—';
+    : ' - ';
   const createdDate = new Date(req.dateCreated).toLocaleDateString('en-IN', {
     day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
   });
@@ -139,7 +139,7 @@ export default function MyRequests({ requests, onBack }) {
             const style = STATUS_STYLES[req.status] || STATUS_STYLES.Pending;
             const displayDate = req.formData.date
               ? new Date(req.formData.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-              : '—';
+              : ' - ';
             return (
               <div key={req.id} className="panel" style={{ padding: '18px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
                 <div>

@@ -104,7 +104,7 @@ const RequestServiceModal = ({ provider, onClose, onSubmit }) => {
           <div className="form-group">
             <label>1. Choose Your Batch <span className="req">*</span></label>
             <select name="batch" value={formData.batch} onChange={handleChange}>
-              <option value="">— Select a batch —</option>
+              <option value=""> -  Select a batch  - </option>
               {activeBatches.map(b => (
                 <option key={b.id} value={b.id}>
                   {b.id} · {b.qty} · {b.type} · {b.grade}

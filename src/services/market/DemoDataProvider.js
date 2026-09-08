@@ -1,12 +1,12 @@
 /**
  * DemoDataProvider
  *
- * ⚠ DEMO DATA — Not real market prices.
+ * ⚠ DEMO DATA - Not real market prices.
  * Generates realistic, deterministic wool market data for development and SIH demonstration.
  * Every price figure is clearly labeled in the UI as demo data.
  *
  * Based on publicly available historical AGMARKNET wool price ranges (₹/quintal ÷ 100 = ₹/kg).
- * Realistic ranges: Fine ~₹5–8/kg, Medium ~₹3.5–5.5/kg, Coarse ~₹2.5–4/kg
+ * Realistic ranges: Fine ~₹5-8/kg, Medium ~₹3.5-5.5/kg, Coarse ~₹2.5-4/kg
  * Note: Indian mandi wool prices are low because most trade is in raw unwashed fleece.
  */
 import { MarketDataProvider } from './MarketDataProvider.js';
@@ -28,7 +28,7 @@ const VARIETIES = {
   Coarse: { multiplier: 0.7, grade: 'C' },
 };
 
-// Pseudo-random but deterministic — same seed = same data every run
+// Pseudo-random but deterministic - same seed = same data every run
 function seededRand(seed) {
   const x = Math.sin(seed) * 10000;
   return x - Math.floor(x);
@@ -120,7 +120,7 @@ export class DemoDataProvider extends MarketDataProvider {
         category: 'Government Schemes',
       },
       {
-        headline: 'Indian Wool Export Value Grows 12% in Q2 FY2026–27',
+        headline: 'Indian Wool Export Value Grows 12% in Q2 FY2026-27',
         summary: 'India exported wool worth ₹1,240 crore in Q2, driven by demand from European textile importers for Pashmina and fine wool blends.',
         source: 'DGCI&S Data (Demo)',
         date: '2026-08-08',

@@ -54,7 +54,7 @@ const MainHero = () => {
               </div>
             </div>
             <div className="overlay-description">
-              <p>Track, verify and trade wool through a single connected platform — from sheep farm to finished fabric.</p>
+              <p>Track, verify and trade wool through a single connected platform - from sheep farm to finished fabric.</p>
             </div>
           </div>
 

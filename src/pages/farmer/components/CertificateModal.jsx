@@ -24,7 +24,7 @@ const CertificateModal = ({ module, quizResult, lang = 'en', onClose }) => {
     win.document.write(`
       <html>
         <head>
-          <title>WoolTrace Certificate — ${module.title}</title>
+          <title>WoolTrace Certificate - ${module.title}</title>
           <link rel="preconnect" href="https://fonts.googleapis.com">
           <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
           <style>
@@ -46,7 +46,7 @@ const CertificateModal = ({ module, quizResult, lang = 'en', onClose }) => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `WoolTrace Certificate — ${module.title}`,
+          title: `WoolTrace Certificate - ${module.title}`,
           text: `${farmerName} has completed the "${module.title}" course on WoolTrace Academy with a score of ${quizResult?.score}%!`,
           url: verifyUrl,
         });

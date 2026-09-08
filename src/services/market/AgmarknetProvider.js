@@ -1,5 +1,5 @@
 /**
- * AgmarknetProvider — STUB
+ * AgmarknetProvider - STUB
  *
  * Ready to be wired to the CEDA Ashoka API (api.ceda.ashoka.edu.in/v1/agmarknet)
  * or a Vercel backend proxy that holds the API key securely.
@@ -14,7 +14,7 @@
  * AGMARKNET notes:
  * - Prices are in ₹/quintal. Divide by 100 to convert to ₹/kg.
  * - Wool commodity IDs (approximate, verify via /agmarknet/commodities):
- *     Wool (general) — search for "Wool" in the commodities list.
+ *     Wool (general) - search for "Wool" in the commodities list.
  *     Fine Wool, Medium Wool, Coarse Wool may appear as separate varieties.
  * - Data is updated daily, usually by 10 AM IST.
  * - Historical data available from 2005 onwards.

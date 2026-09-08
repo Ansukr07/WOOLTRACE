@@ -242,7 +242,7 @@ export default function WarehouseReleases() {
                 >
                   {batches.map(b => (
                     <option key={b.id || b.batchId} value={b.id || b.batchId}>
-                      {b.id || b.batchId} — Stored: {b.quantity} KG ({b.woolType})
+                      {b.id || b.batchId} - Stored: {b.quantity} KG ({b.woolType})
                     </option>
                   ))}
                 </select>
