@@ -1,30 +1,30 @@
 /**
- * KHETSETU — Market Intelligence, Price Discovery & Buyer Linkage Platform
+ * KHETSETU - Market Intelligence & CROP50 National Crop Market Index
  * SIH 2026 Problem Statement 26132 Solution
  * 
- * Multi-Language Support: English (Default), Hindi (हिंदी), Kannada (ಕನ್ನಡ), Tamil (தமிழ்)
- * Supports 5 Central Farmer Questions:
- * 1. WHERE should I sell? (Net Realization Channel Comparison)
- * 2. WHAT price can I expect? (Expected Price Range)
- * 3. WHEN should I sell? (Explainable Sale-Window Advisory)
- * 4. WHO is the most suitable/reliable buyer? (Verified Buyer Trust Cards & 5-Factor Match Breakdown)
- * 5. HOW MUCH will I actually realize? (Itemized Net Realization after logistics/storage/fees)
+ * Includes CROP50 National Agricultural Commodity Index, Sub-Indices, Movers & Farmer Decision Layer.
+ * Multi-Language: English (Default), Hindi (हिंदी), Kannada (ಕನ್ನಡ), Tamil (தமிழ்)
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useGlobalState } from '../../context/GlobalStateContext';
 import { COMMODITIES, getCommodityById } from '../../services/market/cropCommodityRegistry';
 import { getMarketChannelsForCommodity } from '../../services/market/marketIntelligenceService';
 import { calculateMatchScore } from '../../services/market/matchingEngine';
 import { getPriceForecastAndRecommendation } from '../../services/market/priceforecastService';
 import { agmarknetService, formatDate, getDateOffset } from '../../services/market/agmarknetService';
+import { crop50Service, CROP50_METADATA } from '../../services/market/crop50Service';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import QRCode from 'react-qr-code';
+import './KhetSetu.css';
 
 import {
   TrendingUp, TrendingDown, MapPin, Check, ChevronDown, ChevronUp,
   ShieldCheck, ArrowRight, PackagePlus, WalletCards,
   MessageSquareWarning, Gavel, X, Sparkles, Filter, Info, Building2,
-  Truck, Award, FileText, CheckCircle2, BarChart3, Globe
+  Truck, Award, FileText, CheckCircle2, BarChart3, Globe, ArrowLeft,
+  Compass, Activity, HelpCircle
 } from 'lucide-react';
 
 const TRANSLATIONS = {
@@ -32,8 +32,10 @@ const TRANSLATIONS = {
     brandTitle: 'KHETSETU',
     brandSubtitle: 'Field Bridge',
     headerTitle: 'Market Intelligence & Direct Price Discovery',
+    backToHome: 'Back to Landing Page',
     cropLabel: 'CROP / COMMODITY',
     mandiLocation: 'MANDI LOCATION',
+    tabCrop50: 'CROP50 National Index',
     tabOverview: 'Market Overview & Forecast',
     tabChannels: 'Net Realization Channels',
     tabBuyers: 'Verified Buyers',
@@ -58,7 +60,7 @@ const TRANSLATIONS = {
     nearbyTitle: 'Nearby Mandi Price Comparison',
     nearbySub: 'Spot rates across neighboring district markets',
     netIntroEyebrow: 'NET REALIZATION CALCULATOR',
-    netIntroTitle: "Don't look at headline prices alone — compare NET earnings",
+    netIntroTitle: "Don't look at headline prices alone - compare NET earnings",
     netIntroDesc: 'KhetSetu automatically deducts transport freight, storage fees, and mandatory mandi cess to show what you actually take home.',
     bestNetBadge: 'HIGHEST NET REALIZATION',
     bestNetHigher: 'HIGHER than selling at local APMC Mandi',
@@ -111,9 +113,11 @@ const TRANSLATIONS = {
   hi: {
     brandTitle: 'खेत सेतु',
     brandSubtitle: 'फील्ड ब्रिज',
-    headerTitle: 'मंडी भाव सूचना एवं प्रत्यक्ष मूल्य खोज',
+    headerTitle: 'मंडी भाव सूचना एवं CROP50 राष्ट्रीय सूचकांक',
+    backToHome: 'मुख्य पृष्ठ पर वापस जाएं',
     cropLabel: 'फसल / उपज',
     mandiLocation: 'मंडी स्थान',
+    tabCrop50: 'CROP50 राष्ट्रीय सूचकांक',
     tabOverview: 'मंडी अवलोकन एवं पूर्वानुमान',
     tabChannels: 'शुद्ध प्राप्ति चैनल',
     tabBuyers: 'सत्यापित खरीदार',
@@ -138,7 +142,7 @@ const TRANSLATIONS = {
     nearbyTitle: 'निकटवर्ती मंडी भाव तुलना',
     nearbySub: 'पड़ोसी जिला मंडियों में हाजिर भाव',
     netIntroEyebrow: 'शुद्ध प्राप्ति कैलकुलेटर',
-    netIntroTitle: 'केवल मुख्य भाव न देखें — शुद्ध लाभ की तुलना करें',
+    netIntroTitle: 'केवल मुख्य भाव न देखें - शुद्ध लाभ की तुलना करें',
     netIntroDesc: 'खेत सेतु परिवहन, भंडारण और मंडी सेस काटकर आपकी वास्तविक शुद्ध आय दिखाता है।',
     bestNetBadge: 'सर्वोत्तम शुद्ध प्राप्ति',
     bestNetHigher: 'स्थानीय मंडी से अधिक शुद्ध लाभ',
@@ -191,9 +195,11 @@ const TRANSLATIONS = {
   kn: {
     brandTitle: 'ಖೇತ್ ಸೇತು',
     brandSubtitle: 'ಫೀಲ್ಡ್ ಬ್ರಿಡ್ಜ್',
-    headerTitle: 'ಮಾರುಕಟ್ಟೆ ಮಾಹಿತಿ ಮತ್ತು ನೇರ ಬೆಲೆ ಶೋಧನೆ',
+    headerTitle: 'ಮಾರುಕಟ್ಟೆ ಮಾಹಿತಿ ಮತ್ತು CROP50 ರಾಷ್ಟ್ರೀಯ ಸೂಚ್ಯಂಕ',
+    backToHome: 'ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ',
     cropLabel: 'ಬೆಳೆ / ಕೃಷಿ ಉತ್ಪನ್ನ',
     mandiLocation: 'ಮಂಡಿ ಸ್ಥಳ',
+    tabCrop50: 'CROP50 ರಾಷ್ಟ್ರೀಯ ಸೂಚ್ಯಂಕ',
     tabOverview: 'ಮಾರುಕಟ್ಟೆ ಅವಲೋಕನ ಮತ್ತು ಮುನ್ಸೂಚನೆ',
     tabChannels: 'ನಿವ್ವಳ ಗಳಿಕೆಯ ಚಾನೆಲ್‌ಗಳು',
     tabBuyers: 'ಪರಿಶೀಲಿತ ಖರೀದಿದಾರರು',
@@ -218,7 +224,7 @@ const TRANSLATIONS = {
     nearbyTitle: 'ಹತ್ತಿರದ ಮಂಡಿ ಬೆಲೆ ಹೋಲಿಕೆ',
     nearbySub: 'ನೆರೆಯ ಜಿಲ್ಲಾ ಮಾರುಕಟ್ಟೆಗಳ ದರಗಳು',
     netIntroEyebrow: 'ನಿವ್ವಳ ಗಳಿಕೆ ಕ್ಯಾಲ್ಕುಲೇಟರ್',
-    netIntroTitle: 'ಕೇವಲ ಪ್ರಮುಖ ಬೆಲೆಯನ್ನು ನೋಡಬೇಡಿ — ನಿವ್ವಳ ಗಳಿಕೆಯನ್ನು ಹೋಲಿಸಿ',
+    netIntroTitle: 'ಕೇವಲ ಪ್ರಮುಖ ಬೆಲೆಯನ್ನು ನೋಡಬೇಡಿ - ನಿವ್ವಳ ಗಳಿಕೆಯನ್ನು ಹೋಲಿಸಿ',
     netIntroDesc: 'ಸಾರಿಗೆ, ಗೋದಾಮು ಮತ್ತು ಮಂಡಿ ಶುಲ್ಕಗಳನ್ನು ಕಳೆದು ನಿಮ್ಮ ನಿವ್ವಳ ಆದಾಯವನ್ನು ತೋರಿಸುತ್ತದೆ.',
     bestNetBadge: 'ಅತ್ಯುತ್ತಮ ನಿವ್ವಳ ಗಳಿಕೆ',
     bestNetHigher: 'ಸ್ಥಳೀಯ ಮಂಡಿಗಿಂತ ಹೆಚ್ಚು ನಿವ್ವಳ ಲಾಭ',
@@ -270,10 +276,12 @@ const TRANSLATIONS = {
   },
   ta: {
     brandTitle: 'கேத் சேது',
-    brandSubtitle: 'ஃபீಲ್ಡ್ பிரிட்ஜ்',
-    headerTitle: 'சந்தை நுண்ணறிவு மற்றும் நேரடி விலை கண்டறிதல்',
+    brandSubtitle: 'ஃபீல்ட் பிரிட்ஜ்',
+    headerTitle: 'சந்தை நுண்ணறிவு மற்றும் CROP50 தேசிய குறியீடு',
+    backToHome: 'முகப்புப் பக்கத்திற்குத் திரும்பு',
     cropLabel: 'பயிர் / விளைபொருள்',
     mandiLocation: 'சந்தை இடம்',
+    tabCrop50: 'CROP50 தேசிய குறியீடு',
     tabOverview: 'சந்தை கண்ணோட்டம் & முன்னறிவிப்பு',
     tabChannels: 'நிகர வரவு வழிகள்',
     tabBuyers: 'சரிபார்க்கப்பட்ட வாங்குபவர்கள்',
@@ -298,7 +306,7 @@ const TRANSLATIONS = {
     nearbyTitle: 'அருகிலுள்ள மண்டி விலை ஒப்பீடு',
     nearbySub: 'அண்டை மாவட்ட சந்தைகளின் விலை நிலவரம்',
     netIntroEyebrow: 'நிகர வரவு கால்குலேட்டர்',
-    netIntroTitle: 'முக்கிய விலையை மட்டும் பார்க்காதீர்கள் — நிகர வருவாயை ஒப்பிடுங்கள்',
+    netIntroTitle: 'முக்கிய விலையை மட்டும் பார்க்காதீர்கள் - நிகர வருவாயை ஒப்பிடுங்கள்',
     netIntroDesc: 'போக்குவரத்து, சேமிப்பு மற்றும் மண்டி வரிகளை கழித்து உங்கள் உண்மையான நிகர வருவாயைக் காட்டுகிறது.',
     bestNetBadge: 'சிறந்த நிகர வரவு',
     bestNetHigher: 'உள்ளூர் மண்டியை விட அதிக நிகர வருவாய்',
@@ -359,13 +367,19 @@ export default function MarketIntelligence() {
     submitOffer
   } = globalContext;
 
-  const [language, setLanguage] = useState('en'); // 'en' | 'hi' | 'kn' | 'ta'
+  const [language, setLanguage] = useState('en');
   const t = useMemo(() => TRANSLATIONS[language] || TRANSLATIONS.en, [language]);
 
   const [selectedCrop, setSelectedCrop] = useState('WHEAT');
   const [selectedState, setSelectedState] = useState('Rajasthan');
   const [selectedDistrict, setSelectedDistrict] = useState('Kota');
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('overview'); // Default to CROP50 flagship index!
+
+  // CROP50 States
+  const [crop50TimeRange, setCrop50TimeRange] = useState('1M');
+  const [moversPeriod, setMoversPeriod] = useState('1D');
+  const [selectedCrop50Detail, setSelectedCrop50Detail] = useState(null);
+  const [showMethodologyModal, setShowMethodologyModal] = useState(false);
 
   // Live Price State from CEDA / Agmarknet
   const [livePriceData, setLivePriceData] = useState(null);
@@ -399,6 +413,14 @@ export default function MarketIntelligence() {
   const commodity = useMemo(() => {
     return getCommodityById(selectedCrop) || COMMODITIES[0];
   }, [selectedCrop]);
+
+  // CROP50 Derived Calculations
+  const crop50Index = useMemo(() => crop50Service.getCurrentIndex(), []);
+  const crop50ChartData = useMemo(() => crop50Service.getHistoricalSeries(crop50TimeRange), [crop50TimeRange]);
+  const crop50Categories = useMemo(() => crop50Service.getCategorySubIndices(), []);
+  const crop50Movers = useMemo(() => crop50Service.getTopGainersAndLosers(moversPeriod), [moversPeriod]);
+  const crop50Contributors = useMemo(() => crop50Service.getIndexContributors(), []);
+  const crop50Sentiment = useMemo(() => crop50Service.getMarketSentiment(), []);
 
   // Fetch Live Prices via CEDA / Agmarknet Service on Crop or Location Change
   useEffect(() => {
@@ -605,31 +627,60 @@ export default function MarketIntelligence() {
         </div>
       )}
 
-      {/* HEADER BAR WITH TOP-RIGHT LANGUAGE SELECTOR */}
+      {/* TOP CROP50 NATIONAL PULSE TICKER STRIP */}
+      <aside className="ks-crop50-ticker-strip">
+        <div className="ks-ticker-content" onClick={() => setActiveTab('crop50')}>
+          <div className="ks-ticker-badge">
+            <Activity size={13} />
+            <b>CROP50 INDEX</b>
+          </div>
+          <div className="ks-ticker-val">
+            <b>{crop50Index.indexValue}</b>
+            <span className={crop50Index.isPositive ? 'green' : 'coral'}>
+              {crop50Index.changePct} ({crop50Index.changePoints} pts)
+            </span>
+          </div>
+          <div className="ks-ticker-sentiment">
+            <span className={'ks-sent-dot ' + crop50Sentiment.tone} />
+            <span>Market Breadth: <b>{crop50Index.gainersCount} Advancing, {crop50Index.losersCount} Softening</b></span>
+          </div>
+        </div>
+        <button className="ks-ticker-view-btn" onClick={() => setActiveTab('crop50')}>
+          Explore CROP50 Index <ArrowRight size={13} />
+        </button>
+      </aside>
+
+      {/* HEADER BAR WITH HOME REDIRECT & TOP-RIGHT LANGUAGE SELECTOR */}
       <header className="ks-platform-header">
         <div className="ks-header-top-row">
           <div className="ks-header-left">
-            <div className="ks-brand-pill">
+            <Link to="/" className="ks-brand-pill" title="KhetSetu Home">
               <span className="ks-brand-title">{t.brandTitle}</span>
               <span className="ks-brand-sub">{t.brandSubtitle}</span>
-            </div>
+            </Link>
             <h1>{t.headerTitle}</h1>
           </div>
 
-          {/* TOP RIGHT LANGUAGE DROPDOWN */}
-          <div className="ks-lang-dropdown-wrapper">
-            <Globe size={15} />
-            <select 
-              value={language} 
-              onChange={(e) => setLanguage(e.target.value)}
-              className="ks-lang-select"
-              aria-label="Select Language"
-            >
-              <option value="en">English (EN)</option>
-              <option value="hi">हिंदी (Hindi)</option>
-              <option value="kn">ಕನ್ನಡ (Kannada)</option>
-              <option value="ta">தமிழ் (Tamil)</option>
-            </select>
+          <div className="ks-header-right-actions">
+            <Link to="/" className="ks-home-redirect-btn" title="Back to KhetSetu Landing Page">
+              <ArrowLeft size={14} />
+              <span>{t.backToHome}</span>
+            </Link>
+
+            <div className="ks-lang-dropdown-wrapper">
+              <Globe size={15} />
+              <select 
+                value={language} 
+                onChange={(e) => setLanguage(e.target.value)}
+                className="ks-lang-select"
+                aria-label="Select Language"
+              >
+                <option value="en">English (EN)</option>
+                <option value="hi">हिंदी (Hindi)</option>
+                <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                <option value="ta">தமிழ் (Tamil)</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -681,54 +732,460 @@ export default function MarketIntelligence() {
         </div>
       </header>
 
-      {/* NAVIGATION TABS */}
-      <nav className="ks-tab-nav">
-        <button 
-          className={activeTab === 'overview' ? 'active' : ''} 
-          onClick={() => setActiveTab('overview')}
-        >
-          <BarChart3 size={16} /> {t.tabOverview}
-        </button>
-        <button 
-          className={activeTab === 'comparison' ? 'active' : ''} 
-          onClick={() => setActiveTab('comparison')}
-        >
-          <Building2 size={16} /> {t.tabChannels}
-        </button>
-        <button 
-          className={activeTab === 'buyers' ? 'active' : ''} 
-          onClick={() => setActiveTab('buyers')}
-        >
-          <ShieldCheck size={16} /> {t.tabBuyers} ({matchedBuyers.length})
-        </button>
-        <button 
-          className={activeTab === 'demand' ? 'active' : ''} 
-          onClick={() => setActiveTab('demand')}
-        >
-          <Award size={16} /> {t.tabDemand}
-        </button>
-        <button 
-          className={activeTab === 'lots' ? 'active' : ''} 
-          onClick={() => setActiveTab('lots')}
-        >
-          <PackagePlus size={16} /> {t.tabLots} ({woolLots ? woolLots.length : 1})
-        </button>
-        <button 
-          className={activeTab === 'payments' ? 'active' : ''} 
-          onClick={() => setActiveTab('payments')}
-        >
-          <WalletCards size={16} /> {t.tabPayments}
-        </button>
-        <button 
-          className={activeTab === 'disputes' ? 'active' : ''} 
-          onClick={() => setActiveTab('disputes')}
-        >
-          <MessageSquareWarning size={16} /> {t.tabDisputes}
-        </button>
-      </nav>
+      {/* 2-COLUMN PLATFORM LAYOUT: SIDEBAR NAVIGATION + MAIN CONTENT */}
+      <div className="ks-platform-layout">
+        <aside className="ks-platform-sidebar">
+          <div className="ks-sidebar-section">
+            <span className="ks-sidebar-heading">Market Discovery</span>
+            <nav className="ks-sidebar-nav">
+              <button 
+                type="button"
+                className={'ks-sidebar-btn ' + (activeTab === 'overview' ? 'active' : '')} 
+                onClick={() => setActiveTab('overview')}
+              >
+                <BarChart3 size={17} />
+                <span className="ks-sidebar-btn-label">{t.tabOverview}</span>
+              </button>
 
-      {/* MAIN BODY */}
-      <main className="ks-platform-body">
+              <button 
+                type="button"
+                className={'ks-sidebar-btn ' + (activeTab === 'crop50' ? 'active' : '')} 
+                onClick={() => setActiveTab('crop50')}
+              >
+                <Activity size={17} />
+                <span className="ks-sidebar-btn-label">CROP50 Index</span>
+                <span className="ks-sidebar-badge-flagship">Flagship</span>
+              </button>
+
+              <button 
+                type="button"
+                className={'ks-sidebar-btn ' + (activeTab === 'comparison' ? 'active' : '')} 
+                onClick={() => setActiveTab('comparison')}
+              >
+                <Building2 size={17} />
+                <span className="ks-sidebar-btn-label">{t.tabChannels}</span>
+              </button>
+
+              <button 
+                type="button"
+                className={'ks-sidebar-btn ' + (activeTab === 'demand' ? 'active' : '')} 
+                onClick={() => setActiveTab('demand')}
+              >
+                <Award size={17} />
+                <span className="ks-sidebar-btn-label">{t.tabDemand}</span>
+              </button>
+            </nav>
+          </div>
+
+          <div className="ks-sidebar-section">
+            <span className="ks-sidebar-heading">Transactions & Trade</span>
+            <nav className="ks-sidebar-nav">
+              <button 
+                type="button"
+                className={'ks-sidebar-btn ' + (activeTab === 'buyers' ? 'active' : '')} 
+                onClick={() => setActiveTab('buyers')}
+              >
+                <ShieldCheck size={17} />
+                <span className="ks-sidebar-btn-label">{t.tabBuyers}</span>
+                <span className="ks-sidebar-count-badge">{matchedBuyers.length}</span>
+              </button>
+
+              <button 
+                type="button"
+                className={'ks-sidebar-btn ' + (activeTab === 'lots' ? 'active' : '')} 
+                onClick={() => setActiveTab('lots')}
+              >
+                <PackagePlus size={17} />
+                <span className="ks-sidebar-btn-label">{t.tabLots}</span>
+                <span className="ks-sidebar-count-badge">{woolLots ? woolLots.length : 1}</span>
+              </button>
+
+              <button 
+                type="button"
+                className={'ks-sidebar-btn ' + (activeTab === 'payments' ? 'active' : '')} 
+                onClick={() => setActiveTab('payments')}
+              >
+                <WalletCards size={17} />
+                <span className="ks-sidebar-btn-label">{t.tabPayments}</span>
+              </button>
+
+              <button 
+                type="button"
+                className={'ks-sidebar-btn ' + (activeTab === 'disputes' ? 'active' : '')} 
+                onClick={() => setActiveTab('disputes')}
+              >
+                <MessageSquareWarning size={17} />
+                <span className="ks-sidebar-btn-label">{t.tabDisputes}</span>
+              </button>
+            </nav>
+          </div>
+        </aside>
+
+        {/* MAIN BODY */}
+        <main className="ks-platform-body">
+
+                {/* TAB 0: CROP50 NATIONAL CROP MARKET INDEX */}
+        {activeTab === 'crop50' && (
+          <div className="ks-tab-content ks-crop50-suite">
+            
+            {/* HERO PULSE SECTION */}
+            <section className="ks-crop50-hero-grid">
+              
+              {/* PRIMARY CROP50 HERO CARD */}
+              <div className="ks-crop50-pulse-card">
+                <div className="ks-crop50-pulse-header">
+                  <div className="ks-crop50-badge">
+                    <Activity size={14} />
+                    <span>FLAGSHIP NATIONAL INDEX</span>
+                  </div>
+                  <button 
+                    type="button"
+                    className="ks-crop50-btn-methodology" 
+                    onClick={() => setShowMethodologyModal(true)}
+                  >
+                    <HelpCircle size={13} />
+                    <span>Methodology</span>
+                  </button>
+                </div>
+
+                <div className="ks-crop50-title-area">
+                  <h2 className="ks-crop50-heading">CROP50 - India's Crop Market Pulse</h2>
+                  <p className="ks-crop50-lead">
+                    Methodology-driven national index tracking representative price movements across 50 major agricultural commodities.
+                  </p>
+                </div>
+
+                <div className="ks-crop50-val-section">
+                  <div className="ks-crop50-main-val">
+                    {crop50Index.indexValue}
+                  </div>
+                  <div className="ks-crop50-change-row">
+                    <span className={'ks-crop50-change-pill ' + (crop50Index.isPositive ? 'pos' : 'neg')}>
+                      {crop50Index.isPositive ? <TrendingUp size={15} /> : <TrendingDown size={15} />}
+                      <span>{crop50Index.changePoints} pts ({crop50Index.changePct}) Today</span>
+                    </span>
+                    <span className="ks-crop50-period-tag">Base Value: 1,000.00 · Base Date: 08 Sep 2026</span>
+                  </div>
+                </div>
+
+                <div className="ks-crop50-meta-grid">
+                  <div className="ks-crop50-meta-item">
+                    <span className="ks-crop50-meta-lbl">CONSTITUENTS</span>
+                    <div className="ks-crop50-meta-val">
+                      <span className="ks-status-dot-green" />
+                      <b>50 / 50 Active</b>
+                    </div>
+                  </div>
+                  <div className="ks-crop50-meta-item">
+                    <span className="ks-crop50-meta-lbl">MARKET BREADTH</span>
+                    <div className="ks-crop50-meta-val">
+                      <b>{crop50Index.gainersCount} Up</b>
+                      <span className="ks-meta-divider">/</span>
+                      <b>{crop50Index.losersCount} Down</b>
+                    </div>
+                  </div>
+                  <div className="ks-crop50-meta-item">
+                    <span className="ks-crop50-meta-lbl">DATA SOURCE</span>
+                    <div className="ks-crop50-meta-val">
+                      <span className="ks-ceda-badge-pill">CEDA Live</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* SENTIMENT & FARMER WORKFLOW CARD */}
+              <div className="ks-crop50-sentiment-card">
+                <div className="ks-sentiment-top-row">
+                  <span className="ks-card-eyebrow">MARKET BREADTH & COMMODITY MOVEMENT</span>
+                  <span className="ks-breadth-summary-pill">
+                    {crop50Index.gainersCount} of 50 Advancing
+                  </span>
+                </div>
+
+                <p className="ks-sentiment-explanation-text">
+                  {crop50Index.gainersCount} of 50 tracked commodities are registering positive price momentum across regional mandis based on latest CEDA arrival volumes.
+                </p>
+
+                {/* ADVANCE / DECLINE PROGRESS BAR */}
+                <div className="ks-breadth-meter-box">
+                  <div className="ks-breadth-bar-track">
+                    <div className="ks-breadth-bar-advance" style={{ width: `${crop50Sentiment.gainersPct}%` }} />
+                    <div className="ks-breadth-bar-decline" style={{ width: `${100 - crop50Sentiment.gainersPct}%` }} />
+                  </div>
+                  <div className="ks-breadth-bar-labels">
+                    <span className="ks-breadth-label-adv">
+                      <b>{crop50Sentiment.gainersPct}%</b> Advancing
+                    </span>
+                    <span className="ks-breadth-label-dec">
+                      <b>{100 - crop50Sentiment.gainersPct}%</b> Softening
+                    </span>
+                  </div>
+                </div>
+
+                {/* FARMER CONNECTION CALLOUT */}
+                <div className="ks-farmer-conn-box">
+                  <div className="ks-farmer-conn-header">
+                    <Compass size={15} />
+                    <b>Impact on your crop ({commodity.name}):</b>
+                  </div>
+                  <p className="ks-farmer-conn-text">
+                    {commodity.name} is up <b>+3.8%</b>, contributing positively to CROP50. KhetSetu recommends: <strong className="ks-recommend-tag">HOLD 3-5 DAYS</strong> for optimal net price realization.
+                  </p>
+                  <div className="ks-farmer-conn-action">
+                    <button 
+                      type="button" 
+                      className="ks-btn-view-advisory" 
+                      onClick={() => setActiveTab('overview')}
+                    >
+                      <span>View {commodity.name} Advisory</span>
+                      <ArrowRight size={13} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* INTERACTIVE INDEX CHART */}
+            <section className="ks-crop50-chart-card">
+              <div className="ks-crop50-chart-header">
+                <div className="ks-crop50-chart-title-box">
+                  <h3 className="ks-crop50-chart-title">CROP50 Historical Price Movement</h3>
+                  <p className="ks-crop50-chart-sub">Weighted index trajectory calculated using CEDA Agmarknet historical observations</p>
+                </div>
+
+                <div className="ks-crop50-range-btns">
+                  {['1D', '7D', '1M', '3M', '6M', '1Y', '3Y', '5Y', 'MAX'].map((range) => (
+                    <button
+                      key={range}
+                      type="button"
+                      className={'ks-crop50-range-btn ' + (crop50TimeRange === range ? 'active' : '')}
+                      onClick={() => setCrop50TimeRange(range)}
+                    >
+                      {range}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="ks-crop50-chart-container">
+                <ResponsiveContainer width="100%" height={260}>
+                  <AreaChart data={crop50ChartData} margin={{ top: 15, right: 15, left: -15, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="crop50AreaGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2D5A27" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#2D5A27" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#64748B' }} />
+                    <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11, fill: '#64748B' }} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#0B120D', color: '#FFFFFF', borderRadius: 8, fontSize: 12, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+                      formatter={(val) => [`${val} pts`, 'CROP50 Index']}
+                    />
+                    <Area type="monotone" dataKey="indexValue" stroke="#2D5A27" strokeWidth={2.5} fillOpacity={1} fill="url(#crop50AreaGrad)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="ks-crop50-chart-stats">
+                <div className="ks-crop50-stat-col">
+                  <span className="ks-crop50-stat-lbl">CURRENT LEVEL</span>
+                  <span className="ks-crop50-stat-val">{crop50Index.indexValue} pts</span>
+                </div>
+                <div className="ks-crop50-stat-col">
+                  <span className="ks-crop50-stat-lbl">TODAY'S RANGE</span>
+                  <span className="ks-crop50-stat-val">1,014.20 - 1,023.50</span>
+                </div>
+                <div className="ks-crop50-stat-col">
+                  <span className="ks-crop50-stat-lbl">30D RETURN</span>
+                  <span className="ks-crop50-stat-val text-green">+2.14%</span>
+                </div>
+                <div className="ks-crop50-stat-col">
+                  <span className="ks-crop50-stat-lbl">METHODOLOGY</span>
+                  <span className="ks-crop50-stat-val">Unit-Normalized Returns</span>
+                </div>
+              </div>
+            </section>
+
+            {/* SECTOR / CATEGORY SUB-INDICES */}
+            <section className="ks-subindices-section">
+              <div className="ks-section-header-row">
+                <div>
+                  <h3 className="ks-section-heading">CROP50 Category Sub-Indices</h3>
+                  <p className="ks-section-sub">Normalized sector indices calculated from constituent launch weights</p>
+                </div>
+              </div>
+
+              <div className="ks-subindices-grid">
+                {crop50Categories.map((cat) => (
+                  <div key={cat.categoryName} className="ks-subindex-card">
+                    <div className="ks-subindex-top-row">
+                      <span className="ks-subindex-title">{cat.categoryName}</span>
+                      <span className={'ks-subindex-chg ' + (cat.isPositive ? 'pos' : 'neg')}>
+                        {cat.changePct}
+                      </span>
+                    </div>
+                    <div className="ks-subindex-val">
+                      {cat.indexValue} <span className="ks-subindex-pts-unit">pts</span>
+                    </div>
+                    <div className="ks-subindex-bottom-row">
+                      <span className="ks-subindex-count">{cat.itemCount} Commodities</span>
+                      <span className={'ks-subindex-delta ' + (cat.isPositive ? 'pos' : 'neg')}>
+                        {cat.changePoints} pts
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* WHAT'S MOVING CROP50 & TOP MOVERS */}
+            <div className="ks-crop50-split-grid">
+              
+              {/* TOP CONTRIBUTORS TABLE */}
+              <section className="ks-crop50-box-card ks-contributors-box">
+                <div className="ks-box-header-row">
+                  <div>
+                    <h3 className="ks-box-title">What's Moving CROP50? (Top Drivers)</h3>
+                    <p className="ks-box-sub">Index point contribution based on constituent weight × price return</p>
+                  </div>
+                </div>
+
+                <div className="ks-table-wrapper">
+                  <table className="ks-crop50-table">
+                    <thead>
+                      <tr>
+                        <th>COMMODITY</th>
+                        <th>WEIGHT</th>
+                        <th>SPOT PRICE</th>
+                        <th>CHANGE</th>
+                        <th style={{ textAlign: 'right' }}>CONTRIBUTION</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {crop50Contributors.slice(0, 8).map((c) => (
+                        <tr 
+                          key={c.id} 
+                          className="ks-crop50-row-clickable"
+                          onClick={() => setSelectedCrop50Detail(c)}
+                          title="Click to view crop details"
+                        >
+                          <td>
+                            <div className="ks-crop-col-cell">
+                              <span className="ks-crop-cell-name">{c.name}</span>
+                              <span className="ks-crop-cell-cat">{c.category}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <span className="ks-crop-weight-badge">{(c.weight * 100).toFixed(2)}%</span>
+                          </td>
+                          <td>
+                            <span className="ks-crop-price-text">₹{c.currentPrice} {c.unit}</span>
+                          </td>
+                          <td>
+                            <span className={'ks-change-pill-sm ' + (c.isPositive ? 'pos' : 'neg')}>
+                              {c.isPositive ? '+' : ''}{c.priceChangePct}%
+                            </span>
+                          </td>
+                          <td style={{ textAlign: 'right' }}>
+                            <span className={'ks-contrib-points ' + (c.isPositive ? 'pos' : 'neg')}>
+                              {c.contributionPoints > 0 ? '+' : ''}{c.contributionPoints} pts
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              {/* TOP GAINERS & LOSERS */}
+              <section className="ks-crop50-box-card ks-movers-box">
+                <div className="ks-box-header-row">
+                  <div>
+                    <h3 className="ks-box-title">Top Movers</h3>
+                    <p className="ks-box-sub">Highest percentage gainers and decliners</p>
+                  </div>
+                  <div className="ks-period-toggle">
+                    {['1D', '7D', '30D'].map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        className={'ks-period-btn ' + (moversPeriod === p ? 'active' : '')}
+                        onClick={() => setMoversPeriod(p)}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="ks-movers-columns">
+                  {/* GAINERS */}
+                  <div className="ks-mover-column">
+                    <div className="ks-mover-col-title gainers">
+                      <TrendingUp size={14} />
+                      <span>TOP GAINERS</span>
+                    </div>
+                    <div className="ks-mover-list">
+                      {crop50Movers.gainers.map((g) => (
+                        <div 
+                          key={g.id} 
+                          className="ks-mover-item" 
+                          onClick={() => setSelectedCrop50Detail(g)}
+                        >
+                          <div className="ks-mover-left">
+                            <span className="ks-mover-name">{g.name}</span>
+                            <span className="ks-mover-price">₹{g.currentPrice} {g.unit}</span>
+                          </div>
+                          <span className="ks-mover-chg pos">+{g.periodChangePct}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* LOSERS */}
+                  <div className="ks-mover-column">
+                    <div className="ks-mover-col-title losers">
+                      <TrendingDown size={14} />
+                      <span>TOP LOSERS</span>
+                    </div>
+                    <div className="ks-mover-list">
+                      {crop50Movers.losers.map((l) => (
+                        <div 
+                          key={l.id} 
+                          className="ks-mover-item" 
+                          onClick={() => setSelectedCrop50Detail(l)}
+                        >
+                          <div className="ks-mover-left">
+                            <span className="ks-mover-name">{l.name}</span>
+                            <span className="ks-mover-price">₹{l.currentPrice} {l.unit}</span>
+                          </div>
+                          <span className="ks-mover-chg neg">{l.periodChangePct}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            {/* CEDA ATTRIBUTION FOOTER BANNER */}
+            <div className="ks-ceda-attribution-banner">
+              <div className="ks-ceda-attr-left">
+                <Award size={20} className="ks-ceda-icon" />
+                <div className="ks-ceda-attr-text">
+                  <h4 className="ks-ceda-attr-title">CEDA Agmarknet Data Attribution</h4>
+                  <p className="ks-ceda-attr-desc">{CROP50_METADATA.attribution}</p>
+                </div>
+              </div>
+              <span className="ks-ceda-attr-badge">Official Agmarknet Source</span>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 1: MARKET OVERVIEW & FORECAST */}
         {activeTab === 'overview' && (
           <div className="ks-tab-content">
             <section className="ks-snapshot-grid">
@@ -909,6 +1366,7 @@ export default function MarketIntelligence() {
           </div>
         )}
 
+        {/* TAB 2: PRICE COMPARISON & NET REALIZATION */}
         {activeTab === 'comparison' && (
           <div className="ks-tab-content">
             <section className="ks-card ks-intro-banner">
@@ -1008,6 +1466,7 @@ export default function MarketIntelligence() {
           </div>
         )}
 
+        {/* TAB 3: VERIFIED BUYERS */}
         {activeTab === 'buyers' && (
           <div className="ks-tab-content">
             <section className="ks-intro-strip">
@@ -1158,6 +1617,7 @@ export default function MarketIntelligence() {
           </div>
         )}
 
+        {/* TAB 4: DEMAND BY QUALITY */}
         {activeTab === 'demand' && (
           <div className="ks-tab-content">
             <section className="ks-card ks-intro-banner">
@@ -1220,6 +1680,7 @@ export default function MarketIntelligence() {
           </div>
         )}
 
+        {/* TAB 5: MY SELL LOTS */}
         {activeTab === 'lots' && (
           <div className="ks-tab-content">
             <section className="ks-intro-strip">
@@ -1237,7 +1698,7 @@ export default function MarketIntelligence() {
                 <div className="ks-lot-header">
                   <div>
                     <span className="ks-lot-id">LOT #KS-038</span>
-                    <h3>{selectedCrop} — 100 Quintals (Grade A)</h3>
+                    <h3>{selectedCrop} - 100 Quintals (Grade A)</h3>
                     <span className="ks-lot-loc"><MapPin size={13} /> {selectedDistrict}, {selectedState}</span>
                   </div>
                   <div className="ks-badge green">5 {t.matchedBuyersCount}</div>
@@ -1302,6 +1763,7 @@ export default function MarketIntelligence() {
           </div>
         )}
 
+        {/* TAB 6: PAYMENTS */}
         {activeTab === 'payments' && (
           <div className="ks-tab-content">
             <section className="ks-card ks-intro-banner">
@@ -1323,6 +1785,7 @@ export default function MarketIntelligence() {
           </div>
         )}
 
+        {/* TAB 7: DISPUTES */}
         {activeTab === 'disputes' && (
           <div className="ks-tab-content">
             <section className="ks-card ks-intro-banner">
@@ -1343,7 +1806,120 @@ export default function MarketIntelligence() {
             </div>
           </div>
         )}
-      </main>
+        </main>
+      </div>
+
+      {/* CROP50 CONSTITUENT DETAIL DRILLDOWN MODAL */}
+      {selectedCrop50Detail && (
+        <div className="ks-modal-backdrop">
+          <div className="ks-modal ks-crop50-detail-modal">
+            <button className="ks-close" onClick={() => setSelectedCrop50Detail(null)}><X /></button>
+            <div className="ks-eyebrow"><Activity size={14} /> CROP50 CONSTITUENT DRILLDOWN</div>
+            <h2>{selectedCrop50Detail.name}</h2>
+            <span className="ks-crop-category-pill">{selectedCrop50Detail.category}</span>
+
+            <div className="ks-crop50-detail-metrics">
+              <div>
+                <span>CROP50 WEIGHT</span>
+                <b>{(selectedCrop50Detail.weight * 100).toFixed(2)}%</b>
+              </div>
+              <div>
+                <span>CURRENT SPOT PRICE</span>
+                <b className="ks-green-text">₹{selectedCrop50Detail.currentPrice} {selectedCrop50Detail.unit}</b>
+              </div>
+              <div>
+                <span>BASE PRICE (LAUNCH)</span>
+                <b>₹{selectedCrop50Detail.basePrice} {selectedCrop50Detail.unit}</b>
+              </div>
+              <div>
+                <span>INDEX CONTRIBUTION</span>
+                <b className={selectedCrop50Detail.isPositive ? 'ks-green-text' : 'ks-coral-text'}>
+                  {selectedCrop50Detail.contributionPoints > 0 ? '+' : ''}{selectedCrop50Detail.contributionPoints} pts
+                </b>
+              </div>
+            </div>
+
+            <div className="ks-crop50-market-meta">
+              <div>
+                <span>REPORTING MANDIS</span>
+                <b>{selectedCrop50Detail.reportingMarkets} APMCs</b>
+              </div>
+              <div>
+                <span>DAILY ARRIVALS</span>
+                <b>{selectedCrop50Detail.arrivalTonnes} Tonnes</b>
+              </div>
+              <div>
+                <span>BUYER DEMAND</span>
+                <b>HIGH (Direct Millers Active)</b>
+              </div>
+            </div>
+
+            <div className="ks-detail-actions-strip">
+              <button 
+                className="ks-button ks-button-dark"
+                onClick={() => {
+                  setSelectedCrop(selectedCrop50Detail.id);
+                  setSelectedCrop50Detail(null);
+                  setActiveTab('overview');
+                }}
+              >
+                Analyze {selectedCrop50Detail.name} Advisory <ArrowRight size={15} />
+              </button>
+              <button 
+                className="ks-button ks-button-lime"
+                onClick={() => {
+                  setSelectedCrop(selectedCrop50Detail.id);
+                  setSelectedCrop50Detail(null);
+                  setActiveTab('buyers');
+                }}
+              >
+                View Buyers &amp; Net Realization
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CROP50 METHODOLOGY MODAL */}
+      {showMethodologyModal && (
+        <div className="ks-modal-backdrop">
+          <div className="ks-modal ks-methodology-modal">
+            <button className="ks-close" onClick={() => setShowMethodologyModal(false)}><X /></button>
+            <div className="ks-eyebrow"><HelpCircle size={14} /> METHODOLOGY &amp; GOVERNANCE</div>
+            <h2>CROP50 Index Calculation Methodology</h2>
+            <p className="ks-methodology-intro">
+              CROP50 is India's national crop market index tracking price movement across 50 agricultural commodities.
+            </p>
+
+            <div className="ks-methodology-facts">
+              <div><span>Index Ticker</span><b>CROP50</b></div>
+              <div><span>Base Value</span><b>1,000.00 pts</b></div>
+              <div><span>Base Date</span><b>08 September 2026</b></div>
+              <div><span>Constituents</span><b>50 Major Crops</b></div>
+              <div><span>Weighting Method</span><b>KhetSetu Base Weights</b></div>
+              <div><span>Rebalancing</span><b>Annual Governance Review</b></div>
+              <div><span>Data Source</span><b>CEDA Agmarknet / Ashoka Univ</b></div>
+            </div>
+
+            <div className="ks-math-box">
+              <b>Mathematical Formula:</b>
+              <code>CROP50(t) = 1000 × Σ [ weight_i × (Price_i(t) / BasePrice_i) ]</code>
+              <p>
+                Prices are normalized against constituent-specific base prices, allowing commodities with different physical units (₹/kg, ₹/quintal, ₹/dozen) to contribute based on percentage price returns rather than raw price levels.
+              </p>
+            </div>
+
+            <div className="ks-disclaimer-box">
+              <Info size={14} />
+              <span>{CROP50_METADATA.disclaimer}</span>
+            </div>
+
+            <button className="ks-button ks-button-dark ks-modal-action" onClick={() => setShowMethodologyModal(false)}>
+              Close Methodology
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* MODAL 1: CREATE SELL LOT MODAL */}
       {lotModalOpen && (
