@@ -711,7 +711,7 @@ export default function MarketIntelligence() {
             isPositive: Number(trendPct) >= 0,
             marketName: latest.market_name || (selectedDistrict + ' Mandi')
           });
-          setDataSource('CEDA / Agmarknet API');
+          setDataSource(records.source === 'ceda' ? 'CEDA / Agmarknet API' : 'KhetSetu demo dataset');
         }
       } catch (err) {
         console.warn('Live price fetch fallback:', err);

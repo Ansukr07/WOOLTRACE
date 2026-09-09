@@ -91,6 +91,11 @@ function generateMockPriceHistory(marketName = 'APMC Mandi Yard', basePrice = 28
   return records;
 }
 
+function withSource(records, source) {
+  if (Array.isArray(records)) records.source = source;
+  return records;
+}
+
 export const agmarknetService = {
   async getCommodities() {
     try {
@@ -98,7 +103,7 @@ export const agmarknetService = {
       if (res.ok) {
         const json = await res.json();
         const data = json.output?.data || json.commodities || json;
-        if (Array.isArray(data) && data.length > 0) return data;
+        if (Array.isArray(data) && data.length > 0) return withSource(data, 'ceda');
       }
     } catch (_e) {
       console.warn('CEDA commodities fetch bypassed, using standard Mandi commodities dataset');
@@ -112,7 +117,7 @@ export const agmarknetService = {
       if (res.ok) {
         const json = await res.json();
         const data = json.output?.data || json;
-        if (Array.isArray(data) && data.length > 0) return data;
+        if (Array.isArray(data) && data.length > 0) return withSource(data, 'ceda');
       }
     } catch (_e) {
       console.warn('CEDA geographies fetch bypassed, using standard Mandi states');
@@ -164,7 +169,7 @@ export const agmarknetService = {
       if (res.ok) {
         const json = await res.json();
         const data = json.output?.data || json;
-        if (Array.isArray(data) && data.length > 0) return data;
+        if (Array.isArray(data) && data.length > 0) return withSource(data, 'ceda');
       }
     } catch (_e) {
       console.warn('CEDA prices fetch bypassed, using high-resolution Mandi price history dataset');
@@ -193,7 +198,7 @@ export const agmarknetService = {
       base = 448.0;
     }
 
-    return generateMockPriceHistory(mktName, base);
+    return withSource(generateMockPriceHistory(mktName, base), 'demo');
   },
 
   getMarketSummary() {
