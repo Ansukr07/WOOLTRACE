@@ -6,7 +6,7 @@
  * Multi-Language: English (Default), Hindi (हिंदी), Kannada (ಕನ್ನಡ), Tamil (தமிழ்)
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useGlobalState } from '../../context/GlobalStateContext';
 import { COMMODITIES, getCommodityById } from '../../services/market/cropCommodityRegistry';
@@ -361,6 +361,7 @@ const TRANSLATIONS = {
 export default function MarketIntelligence() {
   const globalContext = useGlobalState() || {};
   const {
+    batches = [],
     buyerDemands = [],
     woolLots = [],
     createWoolLot,
@@ -374,6 +375,15 @@ export default function MarketIntelligence() {
   const [selectedState, setSelectedState] = useState('Rajasthan');
   const [selectedDistrict, setSelectedDistrict] = useState('Kota');
   const [activeTab, setActiveTab] = useState('overview'); // Default to CROP50 flagship index!
+
+  // Derived Commodity Data from Registry
+  const commodity = useMemo(() => {
+    return getCommodityById(selectedCrop) || COMMODITIES[0];
+  }, [selectedCrop]);
+  const woolCommodityId = useMemo(() => (
+    COMMODITIES.find(c => c.id === 'WOOL' || /wool/i.test(c.name))?.id || 'WOOL'
+  ), []);
+  const isWoolCommodity = selectedCrop === woolCommodityId;
 
   // CROP50 States
   const [crop50TimeRange, setCrop50TimeRange] = useState('1M');
@@ -392,6 +402,7 @@ export default function MarketIntelligence() {
   const [selectedBuyerForOffer, setSelectedBuyerForOffer] = useState(null);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+  const [apiWoolBatches, setApiWoolBatches] = useState([]);
 
   // Expandable accordions
   const [expandedReasoning, setExpandedReasoning] = useState(false);
@@ -399,6 +410,7 @@ export default function MarketIntelligence() {
 
   // Lot Creation Form State
   const [newLot, setNewLot] = useState({
+    selectedBatchId: '',
     crop: 'Wheat',
     variety: 'HD-2967 (Sharbati)',
     quantity: '100',
@@ -409,10 +421,90 @@ export default function MarketIntelligence() {
     needsStorage: false
   });
 
-  // Derived Commodity Data from Registry
-  const commodity = useMemo(() => {
-    return getCommodityById(selectedCrop) || COMMODITIES[0];
-  }, [selectedCrop]);
+  const getBatchKey = (batch = {}) => batch.batchId || batch.id;
+
+  const getAvailableQuantity = (batch = {}) => {
+    const available = Number(batch.availableQuantity);
+    if (Number.isFinite(available)) return Math.max(0, available);
+    const quantity = Number(batch.quantity);
+    return Number.isFinite(quantity) ? Math.max(0, quantity) : 0;
+  };
+
+  const isRegisteredWoolBatch = useCallback((batch = {}) => {
+    if (!getBatchKey(batch)) return false;
+    if (batch.cropId) return batch.cropId === woolCommodityId;
+    return Boolean(batch.woolType);
+  }, [woolCommodityId]);
+
+  const registeredBatches = useMemo(() => (
+    isWoolCommodity
+      ? [...apiWoolBatches, ...batches]
+        .filter(isRegisteredWoolBatch)
+        .filter((batch, index, list) => (
+          list.findIndex(item => getBatchKey(item) === getBatchKey(batch)) === index
+        ))
+      : []
+  ), [apiWoolBatches, batches, isRegisteredWoolBatch, isWoolCommodity]);
+
+  const selectedBatch = useMemo(() => (
+    isWoolCommodity
+      ? registeredBatches.find(batch => getBatchKey(batch) === newLot.selectedBatchId)
+      : null
+  ), [isWoolCommodity, registeredBatches, newLot.selectedBatchId]);
+
+  const selectedBatchAvailableQuantity = selectedBatch ? getAvailableQuantity(selectedBatch) : 0;
+
+  const handleBatchSelect = (batchId) => {
+    const batch = registeredBatches.find(item => getBatchKey(item) === batchId);
+    if (!batch) {
+      setNewLot(prev => ({ ...prev, selectedBatchId: batchId }));
+      return;
+    }
+
+    const availableQuantity = getAvailableQuantity(batch);
+    setNewLot(prev => ({
+      ...prev,
+      selectedBatchId: batchId,
+      crop: batch.cropName || batch.woolType || prev.crop,
+      variety: batch.variety || batch.woolType || prev.variety,
+      quantity: String(availableQuantity || ''),
+      grade: batch.qualityGrade || prev.grade
+    }));
+  };
+
+  useEffect(() => {
+    setNewLot(prev => ({
+      ...prev,
+      selectedBatchId: '',
+      crop: commodity.name,
+      variety: commodity.varieties?.[0] || commodity.name,
+      unit: commodity.defaultUnit || prev.unit,
+      grade: 'A'
+    }));
+  }, [commodity]);
+
+  useEffect(() => {
+    if (!isWoolCommodity) {
+      setApiWoolBatches([]);
+      return;
+    }
+
+    let isMounted = true;
+    fetch('/api/batches')
+      .then(res => (res.ok ? res.json() : null))
+      .then(payload => {
+        if (!isMounted) return;
+        const list = Array.isArray(payload?.data) ? payload.data : [];
+        setApiWoolBatches(list);
+      })
+      .catch(() => {
+        if (isMounted) setApiWoolBatches([]);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isWoolCommodity]);
 
   // CROP50 Derived Calculations
   const crop50Index = useMemo(() => crop50Service.getCurrentIndex(), []);
@@ -1694,6 +1786,89 @@ export default function MarketIntelligence() {
             </section>
 
             <div className="ks-lots-list">
+              {woolLots.map(lot => {
+                const lotQuantity = lot.totalQuantity ?? lot.quantity ?? 0;
+                const lotUnit = lot.unit || 'KG';
+                const lotPrice = lot.minAcceptablePrice || lot.askingPrice || lot.minPrice || Math.round(currentModalPrice * 0.95) || 0;
+                const lotStatus = lot.status || 'AVAILABLE';
+                const lotTraceabilityUrl = lot.traceabilityUrl || (lot.batchIds?.[0] ? '/track/' + lot.batchIds[0] : '');
+
+                return (
+                  <div className="ks-card ks-lot-card" key={lot.id || lot.lotNumber}>
+                    <div className="ks-lot-header">
+                      <div>
+                        <span className="ks-lot-id">{lot.lotNumber || lot.id}</span>
+                        <h3>{lot.woolType || lot.cropName || 'Registered Wool Lot'} - {lotQuantity} {lotUnit} ({lot.qualityGrade || 'Pending QA'})</h3>
+                        <span className="ks-lot-loc"><MapPin size={13} /> {lot.currentLocation || lot.origin || selectedDistrict + ', ' + selectedState}</span>
+                      </div>
+                      <div className="ks-badge green">5 {t.matchedBuyersCount}</div>
+                    </div>
+
+                    <div className="ks-lot-meta">
+                      <div><span>{t.minAcceptablePrice}</span><b>Rs {Number(lotPrice).toLocaleString('en-IN')} / {lotUnit}</b></div>
+                      <div><span>{t.bestOfferReceived}</span><b className="ks-green-text">Rs {(Math.round(currentModalPrice * 1.05) || 0).toLocaleString('en-IN')} / {lotUnit} (Shree Foods)</b></div>
+                      <div><span>{t.saleWindow}</span><b>{lot.saleWindow || 'Next 7 days'}</b></div>
+                      <div><span>{t.statusLabel}</span><b>{lotStatus.replaceAll('_', ' ')}</b></div>
+                    </div>
+
+                    {lotTraceabilityUrl && (
+                      <div className="ks-modal-note">
+                        <ShieldCheck size={16} />
+                        <span>Batch traceability linked: <Link to={lotTraceabilityUrl}>{lot.batchIds?.[0] || 'Open record'}</Link>{lot.certificateId ? ' | Certificate ' + lot.certificateId : ''}</span>
+                      </div>
+                    )}
+
+                    <div className="ks-timeline-wrapper">
+                      <h4>{t.timelineTitle}</h4>
+                      <div className="ks-timeline-steps">
+                        <div className="ks-step completed">
+                          <div className="ks-step-node"><Check size={12} /></div>
+                          <span>Lot Created</span>
+                        </div>
+                        <div className="ks-step completed">
+                          <div className="ks-step-node"><Check size={12} /></div>
+                          <span>Quality Verified</span>
+                        </div>
+                        <div className="ks-step completed">
+                          <div className="ks-step-node"><Check size={12} /></div>
+                          <span>Buyer Matched</span>
+                        </div>
+                        <div className="ks-step active">
+                          <div className="ks-step-node">4</div>
+                          <span>Offer Received</span>
+                        </div>
+                        <div className="ks-step">
+                          <div className="ks-step-node">5</div>
+                          <span>Transport</span>
+                        </div>
+                        <div className="ks-step">
+                          <div className="ks-step-node">6</div>
+                          <span>Payment Released</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="ks-lot-actions">
+                      <button
+                        className="ks-button ks-button-dark"
+                        onClick={() => {
+                          setSelectedBuyerForOffer({ companyName: 'Shree Foods Pvt. Ltd.', price: Math.round(currentModalPrice * 1.05), lotNumber: lot.lotNumber });
+                          setOfferModalOpen(true);
+                        }}
+                      >
+                        {t.respondToOffer} <ArrowRight size={15} />
+                      </button>
+                      <button
+                        className="ks-button ks-button-lime"
+                        onClick={() => setPaymentModalOpen(true)}
+                      >
+                        {t.settleUpi} <WalletCards size={15} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+              {woolLots.length === 0 && (
               <div className="ks-card ks-lot-card">
                 <div className="ks-lot-header">
                   <div>
@@ -1759,6 +1934,7 @@ export default function MarketIntelligence() {
                   </button>
                 </div>
               </div>
+              )}
             </div>
           </div>
         )}
@@ -1926,53 +2102,162 @@ export default function MarketIntelligence() {
         <div className="ks-modal-backdrop">
           <form className="ks-modal" onSubmit={(e) => {
             e.preventDefault();
+            const listingQuantity = Number(newLot.quantity);
+            if (!Number.isFinite(listingQuantity) || listingQuantity <= 0) {
+              showToast('Enter a listing quantity greater than 0.');
+              return;
+            }
+
+            if (isWoolCommodity && !selectedBatch) {
+              showToast('Select a registered Wool Batch before creating a sell lot.');
+              return;
+            }
+            if (isWoolCommodity && listingQuantity > selectedBatchAvailableQuantity) {
+              showToast('Listing quantity cannot exceed available batch quantity.');
+              return;
+            }
+            const batchId = isWoolCommodity ? getBatchKey(selectedBatch) : null;
+            const price = Number(newLot.minPrice) || 2400;
+            const genericUnit = commodity.defaultUnit || 'KG';
             setLotModalOpen(false);
             if (createWoolLot) {
-              createWoolLot({
-                cropId: selectedCrop,
-                cropName: newLot.crop,
-                woolType: newLot.crop + ' (' + newLot.grade + ')',
-                variety: newLot.variety,
-                quantity: Number(newLot.quantity) || 100,
-                unit: 'qtl',
-                qualityGrade: newLot.grade,
-                minPrice: Number(newLot.minPrice) || 2400,
+              const lotPayload = isWoolCommodity ? {
+                batchIds: [batchId],
+                farmerId: selectedBatch.farmerId,
+                farmerName: selectedBatch.farmerName,
+                sellerId: selectedBatch.farmerId,
+                sellerName: selectedBatch.farmerName,
+                sellerType: 'FARMER',
+                cropId: selectedBatch.cropId || selectedCrop,
+                cropName: selectedBatch.cropName || newLot.crop,
+                woolType: selectedBatch.woolType || newLot.variety || newLot.crop,
+                variety: selectedBatch.variety || newLot.variety,
+                origin: selectedBatch.origin,
+                currentLocation: selectedBatch.currentLocation || selectedBatch.storageLocation || selectedBatch.origin,
+                qualityGrade: selectedBatch.qualityGrade || newLot.grade,
+                certificateId: selectedBatch.certificateId,
+                traceabilityUrl: '/track/' + batchId,
+                quantity: listingQuantity,
+                totalQuantity: listingQuantity,
+                availableQuantity: listingQuantity,
+                unit: selectedBatch.unit || 'KG',
+                minPrice: price,
+                minAcceptablePrice: price,
+                askingPrice: price,
                 saleWindow: newLot.window
-              });
+              } : {
+                cropId: selectedCrop,
+                cropName: commodity.name,
+                woolType: commodity.name + ' (' + newLot.grade + ')',
+                variety: newLot.variety,
+                quantity: listingQuantity,
+                totalQuantity: listingQuantity,
+                availableQuantity: listingQuantity,
+                unit: genericUnit,
+                qualityGrade: newLot.grade,
+                minPrice: price,
+                minAcceptablePrice: price,
+                askingPrice: price,
+                saleWindow: newLot.window
+              };
+              createWoolLot(lotPayload);
             }
-            showToast('Sell Lot created for ' + newLot.quantity + ' qtl of ' + newLot.crop + '. Matched buyers notified!');
-            setActiveTab('buyers');
+            showToast(
+              isWoolCommodity
+                ? 'Sell Lot created for ' + listingQuantity + ' ' + (selectedBatch.unit || 'KG') + ' from ' + batchId + '. Matched buyers notified!'
+                : 'Sell Lot created for ' + listingQuantity + ' ' + genericUnit + ' of ' + commodity.name + '. Matched buyers notified!'
+            );
+            setActiveTab('lots');
           }}>
             <button type="button" className="ks-close" onClick={() => setLotModalOpen(false)}><X /></button>
             <div className="ks-eyebrow"><PackagePlus size={14} /> SELL-READY LOT</div>
             <h2>Create a Sell Lot</h2>
             <p>Post your produce to KhetSetu matching engine to receive direct buyer offers.</p>
 
-            <label>Crop / Commodity
-              <select value={newLot.crop} onChange={e => setNewLot({ ...newLot, crop: e.target.value })}>
-                {COMMODITIES.map(c => (
-                  <option key={c.id} value={c.name}>{c.name}</option>
-                ))}
-              </select>
-            </label>
+            {isWoolCommodity ? (
+              <>
+                <label>Select Registered Wool Batch
+                  <select required value={newLot.selectedBatchId} onChange={e => handleBatchSelect(e.target.value)}>
+                    <option value="">Choose a registered batch</option>
+                    {registeredBatches.map(batch => {
+                      const batchId = getBatchKey(batch);
+                      return (
+                        <option key={batchId} value={batchId}>
+                          {batchId} - {batch.woolType || batch.variety || 'Wool Batch'} - {getAvailableQuantity(batch)} {batch.unit || 'KG'}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </label>
+
+                <div className="ks-form-grid">
+                  <label>Wool Type / Variety
+                    <input readOnly value={selectedBatch ? (selectedBatch.woolType || selectedBatch.variety || selectedBatch.cropName || '') : ''} />
+                  </label>
+                  <label>Available Quantity
+                    <input readOnly value={selectedBatch ? `${selectedBatchAvailableQuantity} ${selectedBatch.unit || 'KG'}` : ''} />
+                  </label>
+                </div>
+
+                <div className="ks-form-grid">
+                  <label>Origin
+                    <input readOnly value={selectedBatch?.origin || ''} />
+                  </label>
+                  <label>Current Location
+                    <input readOnly value={selectedBatch?.currentLocation || selectedBatch?.storageLocation || ''} />
+                  </label>
+                </div>
+              </>
+            ) : (
+              <>
+                <label>Crop / Commodity
+                  <select value={selectedCrop} onChange={e => setSelectedCrop(e.target.value)}>
+                    {COMMODITIES.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <label>Variety
+                  <select value={newLot.variety} onChange={e => setNewLot({ ...newLot, variety: e.target.value })}>
+                    {(commodity.varieties || [commodity.name]).map(variety => (
+                      <option key={variety} value={variety}>{variety}</option>
+                    ))}
+                  </select>
+                </label>
+              </>
+            )}
 
             <div className="ks-form-grid">
-              <label>Quantity (Quintals)
+              <label>Listing Quantity ({isWoolCommodity ? (selectedBatch?.unit || 'KG') : (commodity.defaultUnit || 'KG')})
                 <input 
                   required 
                   type="number" 
+                  min="0.01"
+                  max={isWoolCommodity && selectedBatch ? selectedBatchAvailableQuantity : undefined}
+                  step="0.01"
                   value={newLot.quantity} 
                   onChange={e => setNewLot({ ...newLot, quantity: e.target.value })} 
                 />
               </label>
               <label>Quality Grade
-                <select value={newLot.grade} onChange={e => setNewLot({ ...newLot, grade: e.target.value })}>
-                  <option value="A">Grade A (Premium)</option>
-                  <option value="FAQ">FAQ (Fair Average Quality)</option>
-                  <option value="B">Grade B (Standard)</option>
-                </select>
+                {isWoolCommodity ? (
+                  <input readOnly value={selectedBatch?.qualityGrade || ''} />
+                ) : (
+                  <select value={newLot.grade} onChange={e => setNewLot({ ...newLot, grade: e.target.value })}>
+                    <option value="A">Grade A (Premium)</option>
+                    <option value="FAQ">FAQ (Fair Average Quality)</option>
+                    <option value="B">Grade B (Standard)</option>
+                  </select>
+                )}
               </label>
             </div>
+
+            {isWoolCommodity && (
+              <label>Certificate ID
+                <input readOnly value={selectedBatch?.certificateId || ''} />
+              </label>
+            )}
 
             <div className="ks-form-grid">
               <label>Min Acceptable Price (₹/qtl)

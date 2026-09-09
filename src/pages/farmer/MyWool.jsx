@@ -104,12 +104,10 @@ const MyWool = () => {
       ]
     };
 
-    if (addBatch) {
-      addBatch(newBatch);
-    }
+    const savedBatch = addBatch ? addBatch(newBatch) : newBatch;
     
     setIsCreating(false);
-    setCreatedBatch(newBatch);
+    setCreatedBatch(savedBatch);
   };
 
   const filteredBatches = batches.filter(b => {

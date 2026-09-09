@@ -4,6 +4,55 @@ const GlobalStateContext = createContext();
 
 export const useGlobalState = () => useContext(GlobalStateContext);
 
+const toNonNegativeNumber = (value, fallback = 0) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(0, number) : fallback;
+};
+
+const normalizeBatchRecord = (batch = {}) => {
+  const quantity = toNonNegativeNumber(batch.quantity);
+  const originalQuantity = toNonNegativeNumber(batch.originalQuantity, quantity);
+  const reservedQuantity = toNonNegativeNumber(batch.reservedQuantity);
+  const soldQuantity = toNonNegativeNumber(batch.soldQuantity);
+  const availableQuantity = toNonNegativeNumber(
+    batch.availableQuantity,
+    Math.max(0, originalQuantity - reservedQuantity - soldQuantity)
+  );
+  const batchId = batch.batchId || batch.id;
+
+  return {
+    ...batch,
+    id: batchId || batch.id,
+    batchId,
+    quantity,
+    originalQuantity,
+    availableQuantity,
+    reservedQuantity,
+    soldQuantity,
+    sheepCount: toNonNegativeNumber(batch.sheepCount),
+    storageStatus: batch.storageStatus || (batch.currentStage === 'WAREHOUSE' ? 'Stored' : 'Not Stored'),
+    storageLocation: batch.storageLocation,
+    storageSince: batch.storageSince || null,
+    currentStage: batch.currentStage || 'FARM',
+    currentStatus: batch.currentStatus || batch.status || 'Harvested at Farm',
+    currentLocation: batch.currentLocation || batch.origin || 'Registered Farm',
+    qualityGrade: batch.qualityGrade || 'Pending QA',
+    certificateStatus: batch.certificateStatus || 'Uninspected',
+    certificateId: batch.certificateId || null,
+    images: batch.images || [],
+    shearingDate: batch.shearingDate || batch.harvestDate || batch.createdAt,
+    createdAt: batch.createdAt || new Date().toISOString(),
+    updatedAt: batch.updatedAt || batch.createdAt || new Date().toISOString()
+  };
+};
+
+const getBatchRecordId = (batch = {}) => batch.batchId || batch.id;
+
+const getBatchAvailableQuantity = (batch = {}) => {
+  const fallbackQuantity = toNonNegativeNumber(batch.quantity);
+  return toNonNegativeNumber(batch.availableQuantity, fallbackQuantity);
+};
+
 // ── Rich Seed Batches with Complete Farm-to-Fabric Traceability ────────────
 const INITIAL_BATCHES = [
   {
@@ -1193,7 +1242,8 @@ const INITIAL_DISPUTES = [
 export const GlobalStateProvider = ({ children }) => {
   const [batches, setBatches] = useState(() => {
     const stored = localStorage.getItem('wt_batches_v2');
-    return stored ? JSON.parse(stored) : INITIAL_BATCHES;
+    const list = stored ? JSON.parse(stored) : INITIAL_BATCHES;
+    return list.map(normalizeBatchRecord);
   });
 
   const [certificates, setCertificates] = useState(() => {
@@ -1384,10 +1434,16 @@ export const GlobalStateProvider = ({ children }) => {
   // ── Batch Operations ──────────────────────────────────────────────────────
   const addBatch = (batch) => {
     const batchId = batch.batchId || batch.id || `WT-KA-2026-${Math.floor(10000 + Math.random() * 90000)}`;
-    const formattedBatch = {
+    const quantity = toNonNegativeNumber(batch.quantity);
+    const formattedBatch = normalizeBatchRecord({
       ...batch,
       id: batchId,
       batchId: batchId,
+      quantity,
+      originalQuantity: batch.originalQuantity ?? quantity,
+      availableQuantity: batch.availableQuantity ?? quantity,
+      reservedQuantity: batch.reservedQuantity ?? 0,
+      soldQuantity: batch.soldQuantity ?? 0,
       currentStage: batch.currentStage || 'FARM',
       currentStatus: batch.currentStatus || 'Harvested at Farm',
       currentLocation: batch.origin || 'Registered Farm, Karnataka',
@@ -1405,14 +1461,21 @@ export const GlobalStateProvider = ({ children }) => {
           description: `Batch #${batchId} created with ${batch.quantity} KG (${batch.woolType || 'Raw Wool'}). Digital Twin & QR Passport generated.`
         }
       ]
-    };
+    });
 
     setBatches(prev => [formattedBatch, ...prev.filter(b => b.id !== formattedBatch.id)]);
     return formattedBatch;
   };
 
   const updateBatch = (id, updates) => {
-    setBatches(prev => prev.map(b => (b.id === id || b.batchId === id) ? { ...b, ...updates } : b));
+    setBatches(prev => prev.map(b => {
+      if (b.id !== id && b.batchId !== id) return b;
+      const nextUpdates = { ...updates };
+      if (updates.quantity !== undefined && updates.availableQuantity === undefined) {
+        nextUpdates.availableQuantity = toNonNegativeNumber(updates.quantity);
+      }
+      return normalizeBatchRecord({ ...b, ...nextUpdates, updatedAt: new Date().toISOString() });
+    }));
   };
 
   // ── Warehouse Operations ──────────────────────────────────────────────────
@@ -1480,7 +1543,9 @@ export const GlobalStateProvider = ({ children }) => {
       currentStatus: 'Checked-In to Warehouse',
       currentLocation: warehouse.name,
       warehouseId: warehouse.id,
-      warehouseName: warehouse.name
+      warehouseName: warehouse.name,
+      storageStatus: 'Stored',
+      storageSince: new Date().toISOString()
     });
 
     // Update warehouse occupied capacity
@@ -1527,6 +1592,8 @@ export const GlobalStateProvider = ({ children }) => {
 
     updateBatch(batchId, {
       storageLocation: locationObj,
+      storageStatus: 'Stored',
+      storageSince: new Date().toISOString(),
       currentStatus: `Stored in ${locationString}`
     });
 
@@ -1673,26 +1740,53 @@ export const GlobalStateProvider = ({ children }) => {
   // ── Market Linkage Action Methods ─────────────────────────────────────────
   const createWoolLot = (lotData) => {
     const randomId = Math.floor(10000 + Math.random() * 90000);
+    const linkedBatches = Array.isArray(lotData.batchIds)
+      ? batches.filter(batch => lotData.batchIds.includes(getBatchRecordId(batch)))
+      : [];
+    const primaryBatch = linkedBatches[0];
+    const listedQuantity = toNonNegativeNumber(
+      lotData.totalQuantity ?? lotData.quantity,
+      primaryBatch ? getBatchAvailableQuantity(primaryBatch) : 0
+    );
     const newLot = {
       id: 'LOT-2026-' + randomId,
       lotNumber: 'LOT-2026-' + randomId,
       status: 'AVAILABLE',
       createdAt: new Date().toISOString(),
       verified: true,
-      ...lotData
+      ...(primaryBatch ? {
+        batchIds: [getBatchRecordId(primaryBatch)],
+        sellerId: primaryBatch.farmerId,
+        sellerName: primaryBatch.farmerName,
+        sellerType: 'FARMER',
+        cropId: primaryBatch.cropId,
+        cropName: primaryBatch.cropName,
+        woolType: primaryBatch.woolType || primaryBatch.variety || primaryBatch.cropName,
+        variety: primaryBatch.variety || primaryBatch.woolType || primaryBatch.cropName,
+        origin: primaryBatch.origin,
+        currentLocation: primaryBatch.currentLocation || primaryBatch.storageLocation || primaryBatch.origin,
+        qualityGrade: primaryBatch.qualityGrade,
+        certificateId: primaryBatch.certificateId,
+        traceabilityUrl: '/track/' + getBatchRecordId(primaryBatch)
+      } : {}),
+      ...lotData,
+      totalQuantity: listedQuantity,
+      availableQuantity: lotData.availableQuantity !== undefined
+        ? toNonNegativeNumber(lotData.availableQuantity)
+        : listedQuantity
     };
 
     setWoolLots(prev => [newLot, ...prev]);
 
     // Append digital trace event to linked batch
-    if (lotData.batchIds && lotData.batchIds.length > 0) {
-      lotData.batchIds.forEach(batchId => {
+    if (newLot.batchIds && newLot.batchIds.length > 0) {
+      newLot.batchIds.forEach(batchId => {
         addTraceEvent(batchId, {
           stage: 'MARKET',
           title: 'Wool Lot Created & Listed for Discovery',
-          location: lotData.currentLocation || 'WoolTrace Market Exchange',
+          location: newLot.currentLocation || 'WoolTrace Market Exchange',
           status: 'Active',
-          actor: (lotData.sellerName || 'Farmer') + ' (Seller)',
+          actor: (newLot.sellerName || 'Farmer') + ' (Seller)',
           description: 'Created Lot #' + newLot.lotNumber + ' (' + newLot.totalQuantity + ' KG, Asking ₹' + newLot.askingPrice + '/KG). Verified quality attached.'
         });
       });

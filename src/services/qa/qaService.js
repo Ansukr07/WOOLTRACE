@@ -3,6 +3,48 @@
  * Handles batch creation, inspection requests, and certificate generation with seamless client persistence.
  */
 
+const toNonNegativeNumber = (value, fallback = 0) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(0, number) : fallback;
+};
+
+const normalizeBatchRecord = (batch = {}) => {
+  const quantity = toNonNegativeNumber(batch.quantity);
+  const originalQuantity = toNonNegativeNumber(batch.originalQuantity, quantity);
+  const reservedQuantity = toNonNegativeNumber(batch.reservedQuantity);
+  const soldQuantity = toNonNegativeNumber(batch.soldQuantity);
+  const availableQuantity = toNonNegativeNumber(
+    batch.availableQuantity,
+    Math.max(0, originalQuantity - reservedQuantity - soldQuantity)
+  );
+  const batchId = batch.batchId || batch.id;
+
+  return {
+    ...batch,
+    id: batchId || batch.id,
+    batchId,
+    quantity,
+    originalQuantity,
+    availableQuantity,
+    reservedQuantity,
+    soldQuantity,
+    sheepCount: toNonNegativeNumber(batch.sheepCount),
+    storageStatus: batch.storageStatus || (batch.currentStage === 'WAREHOUSE' ? 'Stored' : 'Not Stored'),
+    storageLocation: batch.storageLocation,
+    storageSince: batch.storageSince || null,
+    currentStage: batch.currentStage || 'FARM',
+    currentStatus: batch.currentStatus || batch.status || 'Harvested at Farm',
+    currentLocation: batch.currentLocation || batch.origin || 'Registered Farm',
+    qualityGrade: batch.qualityGrade || 'Pending QA',
+    certificateStatus: batch.certificateStatus || 'Uninspected',
+    certificateId: batch.certificateId || null,
+    images: batch.images || [],
+    shearingDate: batch.shearingDate || batch.harvestDate || batch.createdAt,
+    createdAt: batch.createdAt || new Date().toISOString(),
+    updatedAt: batch.updatedAt || batch.createdAt || new Date().toISOString()
+  };
+};
+
 export const qaService = {
   async getBatches(farmerId = 'FARMER-01') {
     try {
@@ -10,7 +52,7 @@ export const qaService = {
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          return data.data;
+          return data.data.map(normalizeBatchRecord);
         }
       }
     } catch (e) {
@@ -22,7 +64,7 @@ export const qaService = {
       const stored = localStorage.getItem('wt_batches_v2');
       if (stored) {
         const list = JSON.parse(stored);
-        return list;
+        return list.map(normalizeBatchRecord);
       }
     } catch (e) {}
 
@@ -34,7 +76,7 @@ export const qaService = {
       const res = await fetch(`/api/batches?id=${id}`);
       if (res.ok) {
         const data = await res.json();
-        if (data.success && data.data) return data.data;
+        if (data.success && data.data) return normalizeBatchRecord(data.data);
       }
     } catch (e) {
       console.warn('API getBatchById fetch bypassed, reading local state');
@@ -45,7 +87,7 @@ export const qaService = {
       if (stored) {
         const list = JSON.parse(stored);
         const match = list.find(b => b.id === id || b.batchId === id);
-        if (match) return match;
+        if (match) return normalizeBatchRecord(match);
       }
     } catch (e) {}
 
@@ -63,13 +105,19 @@ export const qaService = {
     const randomSuffix = Math.floor(10000 + Math.random() * 90000);
     const newBatchId = `WT-${stateCode}-2026-${randomSuffix}`;
 
-    const newBatch = {
+    const quantity = toNonNegativeNumber(payload.quantity, 400);
+    const newBatch = normalizeBatchRecord({
       id: newBatchId,
       batchId: newBatchId,
       farmerId: payload.farmerId || 'FARMER-01',
       farmerName: payload.farmerName || 'Rajesh Gowda',
       origin: payload.origin || 'Mandya, Karnataka',
-      quantity: Number(payload.quantity) || 400,
+      quantity,
+      originalQuantity: payload.originalQuantity ?? quantity,
+      availableQuantity: payload.availableQuantity ?? quantity,
+      reservedQuantity: payload.reservedQuantity ?? 0,
+      soldQuantity: payload.soldQuantity ?? 0,
+      sheepCount: payload.sheepCount ?? 0,
       woolType: payload.woolType || 'Medium Crossbred Wool',
       shearingDate: payload.shearingDate || new Date().toISOString(),
       createdAt: new Date().toISOString(),
@@ -79,6 +127,9 @@ export const qaService = {
       qualityGrade: payload.qualityGrade || 'Pending QA',
       certificateStatus: 'Uninspected',
       certificateId: null,
+      storageStatus: 'Not Stored',
+      storageLocation: undefined,
+      storageSince: null,
       verificationUrl: `http://localhost:5173/track/${newBatchId}`,
       events: [
         {
@@ -93,13 +144,13 @@ export const qaService = {
           description: `Batch #${newBatchId} registered with ${payload.quantity} KG of ${payload.woolType}. QR Passport generated.`
         }
       ]
-    };
+    });
 
     // Save to local storage
     try {
       const stored = localStorage.getItem('wt_batches_v2');
       const list = stored ? JSON.parse(stored) : [];
-      const updated = [newBatch, ...list.filter(b => b.id !== newBatchId)];
+      const updated = [newBatch, ...list.map(normalizeBatchRecord).filter(b => b.id !== newBatchId)];
       localStorage.setItem('wt_batches_v2', JSON.stringify(updated));
     } catch (e) {}
 
