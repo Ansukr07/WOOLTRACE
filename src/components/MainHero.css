@@ -198,6 +198,10 @@
   font-weight: 700;
   text-transform: uppercase;
   transition: all 0.2s ease;
+  display: inline-block;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
 }
 
 .primary-cta:hover {
