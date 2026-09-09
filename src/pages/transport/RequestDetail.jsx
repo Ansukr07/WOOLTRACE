@@ -21,7 +21,7 @@ const RequestDetail = () => {
       try {
         const [reqRes, vehRes] = await Promise.all([
           fetch(`/api/transport/requests`),
-          fetch(`/api/transport/vehicles?transporterId=${user?._id || 'demo'}`)
+          fetch(`/api/transport/vehicles?transporterId=${user?._id || user?.id || 'demo'}`)
         ]);
         
         if (reqRes.ok) {
@@ -57,13 +57,13 @@ const RequestDetail = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          transporterId: user?._id || 'demo',
+          transporterId: user?._id || user?.id || 'demo',
           vehicleId: selectedVehicle || 'V-DEMO-001'
         })
       });
       
       if (response.ok) {
-        navigate('/transport/active');
+        navigate('/logistics/active');
       } else {
         alert('Failed to accept request');
       }
@@ -80,7 +80,7 @@ const RequestDetail = () => {
 
   return (
     <div style={{ padding: '32px', maxWidth: '1000px', margin: '0 auto' }}>
-      <button onClick={() => navigate('/transport/requests')} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', marginBottom: '24px', fontSize: '14px', fontWeight: '600' }}>
+      <button onClick={() => navigate('/logistics/requests')} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', marginBottom: '24px', fontSize: '14px', fontWeight: '600' }}>
         ← Back to Requests
       </button>
 

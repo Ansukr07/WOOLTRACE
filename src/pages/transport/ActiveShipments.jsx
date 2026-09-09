@@ -13,7 +13,7 @@ const ActiveShipments = () => {
   useEffect(() => {
     const fetchShipments = async () => {
       try {
-        const response = await fetch(`/api/transport/shipments?transporterId=${user?._id || 'demo'}`);
+        const response = await fetch(`/api/transport/shipments?transporterId=${user?._id || user?.id || 'demo'}`);
         if (response.ok) {
           const data = await response.json();
           const active = data.filter(s => s.status !== 'DELIVERED' && s.status !== 'CANCELLED');
@@ -67,7 +67,7 @@ const ActiveShipments = () => {
           </div>
           <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#111827', marginBottom: '8px' }}>NO ACTIVE SHIPMENTS</h3>
           <p style={{ color: '#6B7280' }}>You don't have any ongoing transport jobs right now.</p>
-          <button onClick={() => navigate('/transport/requests')} style={{ marginTop: '24px', padding: '12px 24px', backgroundColor: '#0B120D', color: '#DDFF86', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>
+          <button onClick={() => navigate('/logistics/requests')} style={{ marginTop: '24px', padding: '12px 24px', backgroundColor: '#0B120D', color: '#DDFF86', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>
             Find New Requests
           </button>
         </div>
@@ -77,7 +77,7 @@ const ActiveShipments = () => {
             const statusStyle = getStatusColor(shipment.status);
             
             return (
-              <div key={shipment._id} style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E5E5', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', transition: 'all 0.2s', cursor: 'pointer' }} onClick={() => navigate(`/transport/shipment/${shipment._id}`)} className="hover-card">
+              <div key={shipment._id} style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E5E5', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', transition: 'all 0.2s', cursor: 'pointer' }} onClick={() => navigate(`/logistics/shipment/${shipment._id}`)} className="hover-card">
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>

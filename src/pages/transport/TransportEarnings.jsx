@@ -11,7 +11,7 @@ const TransportEarnings = () => {
   useEffect(() => {
     const fetchEarnings = async () => {
       try {
-        const response = await fetch(`/api/transport/dashboard?transporterId=${user?._id || 'demo'}`);
+        const response = await fetch(`/api/transport/dashboard?transporterId=${user?._id || user?.id || 'demo'}`);
         if (response.ok) {
           const data = await response.json();
           setEarningsData(data);

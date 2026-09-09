@@ -11,7 +11,7 @@ const TransportHistory = () => {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await fetch(`/api/transport/shipments?transporterId=${user?._id || 'demo'}`);
+        const response = await fetch(`/api/transport/shipments?transporterId=${user?._id || user?.id || 'demo'}`);
         if (response.ok) {
           const data = await response.json();
           // Filter only completed/delivered shipments

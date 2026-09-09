@@ -71,7 +71,7 @@ export default function OffersTab({
             </div>
 
             {offer.status === 'PENDING' && (
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <div className="offer-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                 <button className="btn-secondary" onClick={() => onRejectOffer(offer)}>
                   <X size={16} style={{ marginRight: '4px' }} />
                   Decline

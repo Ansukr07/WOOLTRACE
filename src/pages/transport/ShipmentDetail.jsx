@@ -16,7 +16,7 @@ const ShipmentDetail = () => {
 
   const fetchShipment = async () => {
     try {
-      const response = await fetch(`/api/transport/shipments?transporterId=${user?._id || 'demo'}`);
+      const response = await fetch(`/api/transport/shipments?transporterId=${user?._id || user?.id || 'demo'}`);
       if (response.ok) {
         const data = await response.json();
         const found = data.find(s => s._id === id);
@@ -82,7 +82,7 @@ const ShipmentDetail = () => {
 
   return (
     <div style={{ padding: '32px', maxWidth: '1000px', margin: '0 auto' }}>
-      <button onClick={() => navigate('/transport/active')} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', marginBottom: '24px', fontSize: '14px', fontWeight: '600' }}>
+      <button onClick={() => navigate('/logistics/active')} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', marginBottom: '24px', fontSize: '14px', fontWeight: '600' }}>
         ← Back to Active Shipments
       </button>
 

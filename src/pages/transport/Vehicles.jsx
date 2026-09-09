@@ -11,7 +11,7 @@ const Vehicles = () => {
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
-        const response = await fetch(`/api/transport/vehicles?transporterId=${user?._id || 'demo'}`);
+        const response = await fetch(`/api/transport/vehicles?transporterId=${user?._id || user?.id || 'demo'}`);
         if (response.ok) {
           const data = await response.json();
           setVehicles(data);

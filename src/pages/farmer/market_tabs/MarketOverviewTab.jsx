@@ -64,7 +64,7 @@ export default function MarketOverviewTab({ selectedCommodityId = 'WHEAT', saleW
             <div className="panel-header-row">
               <h3 className="panel-title">
                 <Sparkles size={20} color="#0B120D" />
-                Market Advisory: {saleWindowAdvisory?.title || ('Market Window for ' + commodity.name)}
+                <span>Market Advisory: {saleWindowAdvisory?.title || ('Market Window for ' + commodity.name)}</span>
               </h3>
               <span style={{
                 background: saleWindowAdvisory?.badgeBg || '#DDFF86', color: saleWindowAdvisory?.badgeColor || '#0B120D',
@@ -89,7 +89,7 @@ export default function MarketOverviewTab({ selectedCommodityId = 'WHEAT', saleW
             <div className="panel-header-row">
               <h3 className="panel-title">
                 <Scale size={20} />
-                Indicative Prices by Variety & Procurement Channel
+                <span>Indicative Prices by Variety &amp; Procurement Channel</span>
               </h3>
               <span style={{ fontSize: '12px', color: '#64748B' }}>Updated Live Today</span>
             </div>

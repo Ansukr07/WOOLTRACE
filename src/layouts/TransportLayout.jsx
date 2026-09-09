@@ -27,7 +27,7 @@ const TransportLayout = () => {
     { name: 'History', path: '/logistics/history', icon: <History size={20} /> },
     { name: 'Vehicles', path: '/logistics/vehicles', icon: <Truck size={20} /> },
     { name: 'Earnings', path: '/logistics/earnings', icon: <Wallet size={20} /> },
-    { name: 'PROFILE', path: '/transport/profile', icon: <UserRoleDropdown /> },
+    { name: 'PROFILE', path: '/logistics/profile', icon: <UserRoleDropdown /> },
   ];
 
   return (

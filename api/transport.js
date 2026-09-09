@@ -190,6 +190,14 @@ export default async function handler(req, res) {
             status: 'AVAILABLE'
           }
         ]);
+        await Vehicle.insertMany([
+          { transporterId: 'demo', vehicleNumber: 'KA-09-TR-4821', registrationNumber: 'KA09TR4821', vehicleType: 'Open body truck', capacity: 1200, status: 'AVAILABLE', insuranceExpiry: new Date('2027-08-31') },
+          { transporterId: 'demo', vehicleNumber: 'RJ-14-GX-9017', registrationNumber: 'RJ14GX9017', vehicleType: 'Covered truck', capacity: 2500, status: 'IN_USE', insuranceExpiry: new Date('2027-03-15') }
+        ]);
+        await Shipment.insertMany([
+          { shipmentId: 'SHP-DEMO-001', transportRequestId: 'TR-DEMO-001', orderId: 'ORD-12340', batchId: 'WT-KA-2026-00120', transporterId: 'demo', vehicleId: 'KA-09-TR-4821', status: 'IN_TRANSIT', currentLocation: 'Tumakuru, Karnataka', estimatedArrival: new Date(Date.now() + 36 * 60 * 60 * 1000), transportFee: 6800 },
+          { shipmentId: 'SHP-DEMO-002', transportRequestId: 'TR-DEMO-002', orderId: 'ORD-12341', batchId: 'WT-RJ-2026-00121', transporterId: 'demo', vehicleId: 'RJ-14-GX-9017', status: 'DELIVERED', currentLocation: 'Ludhiana, Punjab', deliveryTime: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), transportFee: 12400 }
+        ]);
       }
       return res.status(200).json({ message: 'Seed complete' });
     }

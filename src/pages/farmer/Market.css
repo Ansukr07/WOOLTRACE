@@ -793,6 +793,23 @@
   .farmer-market-page, .market-page, .market-hub-container, .market-tab-content { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; overflow-x: hidden; }
   .market-card, .panel, .section-card, .market-header-banner, .market-header-hero { min-width: 0; max-width: 100%; box-sizing: border-box; }
   .market-card p, .panel p, .section-card p, .market-header-banner p { overflow-wrap: anywhere; }
+  .market-card .panel-header-row { width: 100%; min-width: 0; align-items: flex-start; }
+  .market-card .panel-title { width: 100%; min-width: 0; font-size: 16px; line-height: 1.3; overflow-wrap: anywhere; word-break: break-word; }
+  .market-card .panel-title > span { min-width: 0; flex: 1 1 auto; overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
+  .section-two-column > div { min-width: 0; width: 100%; }
+  .market-card { overflow: hidden; }
+  .market-card .panel-title svg { flex: 0 0 auto; }
+  .market-card .panel-header-row > span { align-self: flex-start; white-space: normal; }
+  .market-card .btn-primary { max-width: 100%; white-space: normal; line-height: 1.3; }
+  .offer-actions { width: 100%; flex-wrap: wrap; justify-content: stretch !important; }
+  .offer-actions button { flex: 1 1 100%; min-height: 42px; justify-content: center; white-space: normal; line-height: 1.25; }
+  .transaction-card-header, .transaction-footer { width: 100%; min-width: 0; align-items: flex-start !important; flex-direction: column; gap: 12px; }
+  .transaction-card-header > div:first-child, .transaction-footer > div:first-child { width: 100%; min-width: 0; overflow-wrap: anywhere; }
+  .transaction-card-header h4 { overflow-wrap: anywhere; word-break: break-word; }
+  .transaction-statuses, .transaction-actions { width: 100%; flex-wrap: wrap; }
+  .transaction-statuses span { flex: 1 1 130px; text-align: center; white-space: normal; }
+  .transaction-actions button { flex: 1 1 100%; min-height: 42px; justify-content: center; white-space: normal; line-height: 1.25; }
+  .transaction-footer > div:first-child { font-size: 11px !important; line-height: 1.45; }
   .market-hub-container { padding: 12px; }
   .market-header-hero, .market-header-banner { padding: 16px; border-radius: 12px; }
   .market-header-top, .market-header-actions, .panel-header-row { align-items: flex-start; flex-direction: column; gap: 10px; }

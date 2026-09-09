@@ -31,6 +31,8 @@ const ActiveShipments = React.lazy(() => import('./pages/transport/ActiveShipmen
 const LogisticsHistory = React.lazy(() => import('./pages/transport/TransportHistory'));
 const LogisticsVehicles = React.lazy(() => import('./pages/transport/Vehicles'));
 const LogisticsEarnings = React.lazy(() => import('./pages/transport/TransportEarnings'));
+const TransportRequestDetail = React.lazy(() => import('./pages/transport/RequestDetail'));
+const TransportShipmentDetail = React.lazy(() => import('./pages/transport/ShipmentDetail'));
 const QualityLayout = React.lazy(() => import('./layouts/InspectorLayout'));
 const QualityDashboard = React.lazy(() => import('./pages/inspector/InspectorDashboard'));
 const Certificates = React.lazy(() => import('./pages/inspector/Certificates'));
@@ -79,6 +81,7 @@ function App() {
       <Route index element={<LogisticsDashboard />} /><Route path="requests" element={<LogisticsRequests />} />
       <Route path="active" element={<ActiveShipments />} /><Route path="history" element={<LogisticsHistory />} />
       <Route path="vehicles" element={<LogisticsVehicles />} /><Route path="earnings" element={<LogisticsEarnings />} />
+      <Route path="requests/:id" element={<TransportRequestDetail />} /><Route path="shipment/:id" element={<TransportShipmentDetail />} />
       <Route path="*" element={<Navigate to="/logistics" replace />} />
     </Route>
 

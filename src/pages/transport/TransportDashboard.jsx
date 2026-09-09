@@ -19,7 +19,7 @@ const TransportDashboard = () => {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const response = await fetch(`/api/transport/dashboard?transporterId=${user?._id || 'demo'}`);
+        const response = await fetch(`/api/transport/dashboard?transporterId=${user?._id || user?.id || 'demo'}`);
         if (response.ok) {
           const data = await response.json();
           setStats(data);
@@ -101,7 +101,7 @@ const TransportDashboard = () => {
             <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#0B120D' }}>Quick Actions</h2>
           </div>
           <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <button onClick={() => navigate('/transport/requests')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '16px', backgroundColor: '#FFFFFF', border: '1px solid #E5E5E5', borderRadius: '8px', cursor: 'pointer', textAlign: 'left' }}>
+            <button onClick={() => navigate('/logistics/requests')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '16px', backgroundColor: '#FFFFFF', border: '1px solid #E5E5E5', borderRadius: '8px', cursor: 'pointer', textAlign: 'left' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Package size={16} color="#3B82F6" />
@@ -111,7 +111,7 @@ const TransportDashboard = () => {
               <ArrowRight size={16} color="#666" />
             </button>
 
-            <button onClick={() => navigate('/transport/active')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '16px', backgroundColor: '#FFFFFF', border: '1px solid #E5E5E5', borderRadius: '8px', cursor: 'pointer', textAlign: 'left' }}>
+            <button onClick={() => navigate('/logistics/active')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '16px', backgroundColor: '#FFFFFF', border: '1px solid #E5E5E5', borderRadius: '8px', cursor: 'pointer', textAlign: 'left' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Truck size={16} color="#D97706" />
@@ -121,7 +121,7 @@ const TransportDashboard = () => {
               <ArrowRight size={16} color="#666" />
             </button>
             
-            <button onClick={() => navigate('/transport/vehicles')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '16px', backgroundColor: '#FFFFFF', border: '1px solid #E5E5E5', borderRadius: '8px', cursor: 'pointer', textAlign: 'left' }}>
+            <button onClick={() => navigate('/logistics/vehicles')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '16px', backgroundColor: '#FFFFFF', border: '1px solid #E5E5E5', borderRadius: '8px', cursor: 'pointer', textAlign: 'left' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#F3E8FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Truck size={16} color="#9333EA" />

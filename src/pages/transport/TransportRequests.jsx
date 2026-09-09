@@ -66,7 +66,7 @@ const TransportRequests = () => {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {requests.map(req => (
-            <div key={req._id} style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E5E5', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', transition: 'all 0.2s', cursor: 'pointer' }} onClick={() => navigate(`/transport/requests/${req._id}`)} className="hover-card">
+            <div key={req._id} style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E5E5', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', transition: 'all 0.2s', cursor: 'pointer' }} onClick={() => navigate(`/logistics/requests/${req._id}`)} className="hover-card">
               
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>

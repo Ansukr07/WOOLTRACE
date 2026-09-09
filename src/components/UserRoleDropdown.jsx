@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  User, ChevronDown, Check, LogOut, Globe, Sparkles, 
-  ExternalLink, Warehouse, ShieldCheck, ShoppingCart, Truck, Sprout
+  User, ChevronDown, Check, LogOut, Globe,
+  Warehouse, ShieldCheck, ShoppingCart, Truck, Sprout
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './UserRoleDropdown.css';
@@ -132,7 +132,7 @@ export default function UserRoleDropdown() {
 
           {/* Role Switcher Section */}
           <div className="role-section-label">
-            <Sparkles size={13} color="#166534" /> Switch workspace preview:
+            Switch workspace preview
           </div>
 
           <div className="roles-list-group">
@@ -165,17 +165,8 @@ export default function UserRoleDropdown() {
 
           <div className="dropdown-divider" />
 
-          {/* Quick External Links */}
+          {/* Account actions */}
           <div className="dropdown-footer-actions">
-            <button 
-              type="button"
-              className="footer-link-btn" 
-              onClick={() => { setIsOpen(false); navigate('/track/WT-KA-2026-00124'); }}
-            >
-              <span>Public Passport View</span>
-              <ExternalLink size={13} />
-            </button>
-
             <button 
               type="button"
               className="footer-link-btn logout" 

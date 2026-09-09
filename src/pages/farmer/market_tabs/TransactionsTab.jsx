@@ -23,7 +23,7 @@ export default function TransactionsTab({
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {displayTransactions.map(txn => (
           <div key={txn.id} className="market-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+            <div className="transaction-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
               <div>
                 <h4 style={{ margin: '0 0 4px 0', fontSize: '18px', color: '#0B120D' }}>
                   {txn.transactionNumber}
@@ -33,7 +33,7 @@ export default function TransactionsTab({
                 </span>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div className="transaction-statuses" style={{ display: 'flex', gap: '8px' }}>
                 <span style={{
                   background: txn.deliveryStatus === 'DELIVERED' ? '#DDFF86' : '#EDEDCE',
                   padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '800'
@@ -71,11 +71,11 @@ export default function TransactionsTab({
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="transaction-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ fontSize: '12px', color: '#64748B' }}>
                 Transaction date: {new Date(txn.transactionDate).toLocaleDateString('en-IN')} · {txn.paymentReference || 'Payment request pending'}
               </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div className="transaction-actions" style={{ display: 'flex', gap: '8px' }}>
                 <button
                   className="btn-secondary"
                   style={{ fontSize: '12px', padding: '6px 12px' }}
