@@ -9,6 +9,7 @@
     { "source": "/api/market/(.*)",  "destination": "/api/market"  },
     { "source": "/api/processing/(.*)", "destination": "/api/processing" },
     { "source": "/api/qa/(.*)",      "destination": "/api/qa"      },
-    { "source": "/api/transport/(.*)", "destination": "/api/transport" }
+    { "source": "/api/transport/(.*)", "destination": "/api/transport" },
+    { "source": "/api/warehouse/(.*)", "destination": "/api/warehouse" }
   ]
 }

@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { BrowserQRCodeReader } from '@zxing/browser';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { 
   QrCode, Search, CheckCircle2, Box, Truck, ShieldCheck, 
   Warehouse, ArrowRight, AlertCircle, Sparkles, MapPin, Check
 } from 'lucide-react';
 import { useGlobalState } from '../../context/GlobalStateContext';
+import './WarehouseCheckIn.css';
 
 export default function WarehouseCheckIn() {
   const [searchParams] = useSearchParams();
@@ -16,6 +18,10 @@ export default function WarehouseCheckIn() {
   const [activeBatch, setActiveBatch] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
   const [checkInSuccess, setCheckInSuccess] = useState(false);
+  const videoRef = useRef(null);
+  const scannerStreamRef = useRef(null);
+  const scannerControlsRef = useRef(null);
+  const [scanError, setScanError] = useState('');
 
   // Storage Location Assignment State
   const [zone, setZone] = useState('A');
@@ -30,21 +36,47 @@ export default function WarehouseCheckIn() {
   }, [inputBatchId, batches]);
 
   const handleLookup = (id) => {
+    const normalizedId = String(id || '').trim().toLowerCase();
     const found = batches.find(b => 
-      (b.id || '').toLowerCase() === id.toLowerCase() ||
-      (b.batchId || '').toLowerCase() === id.toLowerCase()
+      String(b.id || '').trim().toLowerCase() === normalizedId ||
+      String(b.batchId || '').trim().toLowerCase() === normalizedId
     );
     setActiveBatch(found || null);
     setCheckInSuccess(false);
   };
 
-  const handleSimulateQRScan = () => {
-    setIsScanning(true);
-    setTimeout(() => {
-      setIsScanning(false);
-      setInputBatchId('WT-KA-2026-00130');
-      handleLookup('WT-KA-2026-00130');
-    }, 800);
+  const stopScanner = () => {
+    scannerControlsRef.current?.stop?.();
+    scannerControlsRef.current = null;
+    scannerStreamRef.current?.getTracks().forEach(track => track.stop());
+    scannerStreamRef.current = null;
+    setIsScanning(false);
+  };
+
+  useEffect(() => () => stopScanner(), []);
+
+  const handleCameraScan = async () => {
+    setScanError('');
+    try {
+      setIsScanning(true);
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      if (!videoRef.current) throw new Error('Scanner preview is unavailable');
+      const reader = new BrowserQRCodeReader();
+      scannerControlsRef.current = await reader.decodeFromConstraints(
+        { video: { facingMode: { ideal: 'environment' } }, audio: false },
+        videoRef.current,
+        (result) => {
+          if (!result) return;
+          const raw = result.getText() || '';
+          const value = raw.match(/\/track\/([^/?#]+)/i)?.[1] || raw.trim();
+          if (value) { setInputBatchId(value); handleLookup(value); }
+          stopScanner();
+        }
+      );
+    } catch (error) {
+      stopScanner();
+      setScanError(error.name === 'NotAllowedError' ? 'Camera permission was denied. Allow camera access or enter the Batch ID manually.' : 'Unable to start the camera scanner. Check camera permissions or enter the Batch ID manually.');
+    }
   };
 
   const handleConfirmCheckIn = () => {
@@ -126,8 +158,8 @@ export default function WarehouseCheckIn() {
           </button>
 
           <button
-            onClick={handleSimulateQRScan}
-            disabled={isScanning}
+            onClick={isScanning ? stopScanner : handleCameraScan}
+            disabled={false}
             style={{
               background: '#EDEDCE',
               border: '1px solid rgba(11, 18, 13, 0.12)',
@@ -142,9 +174,11 @@ export default function WarehouseCheckIn() {
               gap: '8px'
             }}
           >
-            <QrCode size={16} /> {isScanning ? 'Scanning QR...' : 'Simulate Camera QR Scan'}
+            <QrCode size={16} /> {isScanning ? 'Stop camera scan' : 'Scan with camera'}
           </button>
         </div>
+        {isScanning && <div className="camera-scanner"><video ref={videoRef} muted playsInline /><span>Point the camera at a batch QR code</span></div>}
+        {scanError && <div className="scanner-error" role="status"><AlertCircle size={15} /> {scanError}</div>}
 
         {/* Quick Batch Pill Selection for testing */}
         <div style={{ display: 'flex', gap: '8px', marginTop: '16px', alignItems: 'center', flexWrap: 'wrap' }}>

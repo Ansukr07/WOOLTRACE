@@ -36,6 +36,7 @@ const TransportShipmentDetail = React.lazy(() => import('./pages/transport/Shipm
 const QualityLayout = React.lazy(() => import('./layouts/InspectorLayout'));
 const QualityDashboard = React.lazy(() => import('./pages/inspector/InspectorDashboard'));
 const Certificates = React.lazy(() => import('./pages/inspector/Certificates'));
+const InspectionDetail = React.lazy(() => import('./pages/inspector/InspectionDetail'));
 
 function RoleHomeRedirect() {
   const { user } = useAuth();
@@ -87,6 +88,7 @@ function App() {
 
     <Route path="/quality" element={secure(['QUALITY_INSPECTOR'], <QualityLayout />)}>
       <Route index element={<QualityDashboard />} /><Route path="certificates" element={<Certificates />} />
+      <Route path="inspection/:id" element={<InspectionDetail />} />
       <Route path="*" element={<Navigate to="/quality" replace />} />
     </Route>
 

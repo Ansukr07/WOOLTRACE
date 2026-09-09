@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   ArrowUpRight, Check, PackageCheck, AlertTriangle, 
   Boxes, ArrowRight, ShieldCheck, Plus, X, Building2, Truck
@@ -7,6 +7,16 @@ import { useGlobalState } from '../../context/GlobalStateContext';
 
 export default function WarehouseReleases() {
   const { batches, releaseRequests, requestBatchRelease, approveBatchRelease } = useGlobalState();
+  const [apiReleases, setApiReleases] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/warehouse/releases')
+      .then((response) => response.ok ? response.json() : Promise.reject())
+      .then(setApiReleases)
+      .catch(() => setApiReleases(null));
+  }, []);
+
+  const visibleReleases = apiReleases ?? releaseRequests;
 
   const [isInitiatingRelease, setIsInitiatingRelease] = useState(false);
   const [selectedBatchId, setSelectedBatchId] = useState(batches[0]?.id || 'WT-KA-2026-00124');
@@ -33,12 +43,19 @@ export default function WarehouseReleases() {
     e.preventDefault();
     if (!selectedBatch) return;
 
-    requestBatchRelease(selectedBatch.id || selectedBatch.batchId, Number(releaseQuantity), requestedBy, destination);
+    const batchId = selectedBatch.id || selectedBatch.batchId;
+    fetch('/api/warehouse/releases', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ batchId, originalStoredQty: selectedBatch.quantity, releasedQty: Number(releaseQuantity), remainingQty, requestedBy, destination })
+    }).then((response) => response.ok ? response.json() : Promise.reject()).then((release) => setApiReleases((current) => [release, ...(current || [])])).catch(() => requestBatchRelease(batchId, Number(releaseQuantity), requestedBy, destination));
     setIsInitiatingRelease(false);
   };
 
   const handleApprove = (releaseId) => {
-    approveBatchRelease(releaseId, 'K. Somanna (Warehouse Superintendent)');
+    fetch(`/api/warehouse/releases/${releaseId}/approve`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ approvedBy: 'K. Somanna (Warehouse Superintendent)' }) })
+      .then((response) => response.ok ? response.json() : Promise.reject())
+      .then((updated) => setApiReleases((current) => current?.map((release) => (release.releaseId === releaseId ? updated : release))))
+      .catch(() => approveBatchRelease(releaseId, 'K. Somanna (Warehouse Superintendent)'));
   };
 
   return (
@@ -75,7 +92,7 @@ export default function WarehouseReleases() {
 
       {/* Release Queue List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {releaseRequests.length === 0 ? (
+        {visibleReleases.length === 0 ? (
           <div style={{
             background: '#FFFFFF',
             borderRadius: '16px',
@@ -92,9 +109,9 @@ export default function WarehouseReleases() {
             </p>
           </div>
         ) : (
-          releaseRequests.map((rel) => (
+          visibleReleases.map((rel) => (
             <div
-              key={rel.id}
+              key={rel.id || rel.releaseId}
               style={{
                 background: '#FFFFFF',
                 borderRadius: '16px',
@@ -107,7 +124,7 @@ export default function WarehouseReleases() {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span style={{ fontSize: '12px', fontWeight: '800', background: '#0B120D', color: '#FFFFFF', padding: '2px 8px', borderRadius: '4px' }}>
-                      {rel.id}
+                      {rel.id || rel.releaseId}
                     </span>
                     <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0B120D', margin: 0 }}>
                       Batch: {rel.batchId}
@@ -169,7 +186,7 @@ export default function WarehouseReleases() {
 
                 {rel.status === 'Pending' && (
                   <button
-                    onClick={() => handleApprove(rel.id)}
+                    onClick={() => handleApprove(rel.id || rel.releaseId)}
                     style={{
                       background: '#0B120D',
                       color: '#DDFF86',

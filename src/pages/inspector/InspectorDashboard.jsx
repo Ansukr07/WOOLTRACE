@@ -53,29 +53,29 @@ export default function InspectorDashboard() {
         <p>Manage and process agricultural produce quality inspection requests.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '32px' }}>
-        <div style={{ background: '#FFF', padding: '24px', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="inspector-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '32px' }}>
+        <div className="inspector-kpi-card" style={{ background: '#FFF', padding: '24px', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ color: '#64748B', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase' }}>Pending & In Progress</div>
           <div style={{ fontSize: '32px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px' }}>
             {metrics.pending}
             <Clock size={28} color="#F59E0B" />
           </div>
         </div>
-        <div style={{ background: '#FFF', padding: '24px', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className="inspector-kpi-card" style={{ background: '#FFF', padding: '24px', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ color: '#64748B', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase' }}>Completed Inspections</div>
           <div style={{ fontSize: '32px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px' }}>
             {metrics.completed}
             <ClipboardList size={28} color="#3B82F6" />
           </div>
         </div>
-        <div style={{ background: '#FFF', padding: '24px', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className="inspector-kpi-card" style={{ background: '#FFF', padding: '24px', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ color: '#64748B', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase' }}>Certificates Issued</div>
           <div style={{ fontSize: '32px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px' }}>
             {metrics.issued}
             <FileText size={28} color="#10B981" />
           </div>
         </div>
-        <div style={{ background: '#FFF', padding: '24px', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className="inspector-kpi-card" style={{ background: '#FFF', padding: '24px', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ color: '#64748B', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase' }}>Rejected Batches</div>
           <div style={{ fontSize: '32px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px' }}>
             {metrics.rejected}
@@ -125,7 +125,7 @@ export default function InspectorDashboard() {
                       </button>
                     )}
                     {req.status === 'ASSIGNED' && (
-                      <button className="btn-qa" onClick={() => navigate(`/inspector/inspection/${req.requestId}`)}>
+                      <button className="btn-qa" onClick={() => navigate(`/quality/inspection/${req.requestId}`)}>
                         Start Inspection
                       </button>
                     )}

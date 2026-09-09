@@ -36,7 +36,7 @@ export default function WarehouseDashboard() {
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
           <Link
-            to="/warehouse/check-in"
+            to="/storage/check-in"
             style={{
               textDecoration: 'none',
               background: '#0B120D',
@@ -148,7 +148,7 @@ export default function WarehouseDashboard() {
             <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '800', color: '#0B120D', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Truck size={18} /> Incoming Batches ({incomingBatches.length})
             </h3>
-            <Link to="/warehouse/check-in" style={{ fontSize: '12px', fontWeight: '700', color: '#0B120D', textDecoration: 'none' }}>
+            <Link to="/storage/check-in" style={{ fontSize: '12px', fontWeight: '700', color: '#0B120D', textDecoration: 'none' }}>
               Check-In Portal →
             </Link>
           </div>
@@ -168,7 +168,7 @@ export default function WarehouseDashboard() {
                     </div>
                   </div>
                   <Link
-                    to={`/warehouse/check-in?id=${b.id}`}
+                    to={`/storage/check-in?id=${b.id}`}
                     style={{
                       textDecoration: 'none',
                       background: '#0B120D',
