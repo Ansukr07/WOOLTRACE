@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import WoolCloudLoader from '../components/WoolCloudLoader';
+import { applyPageLanguage, getSavedLanguage, saveLanguage } from '../utils/languagePreference';
 
 const AuthContext = createContext();
 const normalizeRole = (role) => role === 'PROCESSING_UNIT' ? 'SELLER' : role;
@@ -90,18 +91,7 @@ export const AuthProvider = ({ children }) => {
     if (user) {
       localStorage.setItem('khetsetu_user', JSON.stringify(user));
       
-      if (user.preferredLanguage && user.preferredLanguage !== 'en') {
-        document.cookie = `googtrans=/en/${user.preferredLanguage}; path=/`;
-        if (!document.getElementById('google-translate-script')) {
-          window.googleTranslateElementInit = function() {
-            new window.google.translate.TranslateElement({pageLanguage: 'en', autoDisplay: false}, 'google_translate_element');
-          };
-          const script = document.createElement('script');
-          script.id = 'google-translate-script';
-          script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-          document.body.appendChild(script);
-        }
-      }
+      applyPageLanguage(user.preferredLanguage || 'en');
     } else {
       localStorage.removeItem('khetsetu_user');
     }
@@ -111,6 +101,7 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     setLoadingText('Authenticating KhetSetu credentials...');
     const cleanId = (identifier || '').trim().toLowerCase();
+    const accountLanguage = getSavedLanguage(cleanId, 'en');
 
     try {
       const response = await fetch('/api/login', {
@@ -124,6 +115,7 @@ export const AuthProvider = ({ children }) => {
       if (response.ok) {
         const data = await response.json();
         if (data.user) {
+          data.user.preferredLanguage = accountLanguage || data.user.preferredLanguage || 'en';
           setUser({ ...data.user, role: normalizeRole(data.user.role) });
           setTimeout(() => setIsLoading(false), 400);
           return { success: true, user: { ...data.user, role: normalizeRole(data.user.role) } };
@@ -142,7 +134,7 @@ export const AuthProvider = ({ children }) => {
 
       if (found) {
         if (found.password === password) {
-          const userObj = { id: found.id, name: found.name, email: found.email, role: normalizeRole(found.role), preferredLanguage: found.preferredLanguage };
+          const userObj = { id: found.id, name: found.name, email: found.email, role: normalizeRole(found.role), preferredLanguage: accountLanguage || found.preferredLanguage || 'en' };
           setUser(userObj);
           setTimeout(() => setIsLoading(false), 400);
           return { success: true, user: userObj };
@@ -153,7 +145,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (DEMO_USERS[cleanId]) {
-        const demoUser = DEMO_USERS[cleanId];
+        const demoUser = { ...DEMO_USERS[cleanId], preferredLanguage: accountLanguage };
         setUser(demoUser);
         setTimeout(() => setIsLoading(false), 400);
         return { success: true, user: demoUser };
@@ -278,6 +270,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updatePreferredLanguage = (language) => {
+    if (!user) return;
+    saveLanguage(user.email || user.mobile || user.id, language);
+    applyPageLanguage(language);
+    setUser({ ...user, preferredLanguage: language });
+  };
+
   const hasRole = (allowedRoles) => {
     if (!user) return false;
     return allowedRoles.includes(user.role);
@@ -292,6 +291,7 @@ export const AuthProvider = ({ children }) => {
       register,
       logout,
       switchRole,
+      updatePreferredLanguage,
       hasRole
     }}>
       {(isLoading || isLoggingOut) && (

@@ -25,20 +25,24 @@
 }
 
 .sidebar-header .logo {
-  font-size: 24px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 26px;
   font-weight: 800;
+  letter-spacing: -0.04em;
   text-decoration: none;
   color: #0B120D;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0;
 }
 
-.sidebar-header .logo span {
-  color: #DDFF86;
-  background: #0B120D;
-  padding: 0 4px;
-  border-radius: 4px;
+.mobile-nav-header .logo {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: #0B120D;
+  text-decoration: none;
 }
 
 .sidebar-nav {
@@ -186,7 +190,7 @@
 /* Content */
 .farmer-content {
   flex: 1;
-  padding: 32px;
+  padding: 20px 24px;
   overflow-y: auto;
 }
 
@@ -223,6 +227,14 @@
   flex-direction: column;
   gap: 8px;
 }
+
+.mobile-nav-section { border-top: 1px solid #ecece7; padding-top: 8px; }
+.mobile-nav-section-toggle { width:100%; display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border:0; background:transparent; color:#667085; font-family:inherit; font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; }
+.mobile-nav-section-toggle svg { transition:transform .18s ease; }
+.mobile-nav-section-toggle svg.open { transform:rotate(180deg); }
+.mobile-nav-submenu { display:flex; flex-direction:column; gap:4px; padding:2px 0 6px 8px; }
+.mobile-nav-submenu .nav-item { padding:10px 12px; font-size:13px; }
+.mobile-nav-badge { margin-left:auto; min-width:20px; padding:2px 6px; border-radius:10px; background:#111; color:#fff; font-size:10px; text-align:center; }
 
 /* Responsive */
 @media (max-width: 768px) {

@@ -6,6 +6,7 @@ import {
 import { useGlobalState } from '../context/GlobalStateContext';
 import { qaService } from '../services/qa/qaService';
 import { buildWoolProvenanceEvents, getCurrentStageFromEvents } from '../services/traceability/woolProvenanceService';
+import './TraceabilityTimeline.css';
 
 const STAGES = [
   { id: 'FARM', label: 'Farm', icon: Sprout },
@@ -145,110 +146,36 @@ export default function TraceabilityTimeline({ batchId, hideEvents = false, onSh
   };
 
   return (
-    <div style={{
-      backgroundColor: '#FFFFFF',
-      borderRadius: '16px',
-      border: '1px solid rgba(11, 18, 13, 0.10)',
-      padding: '24px',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
-    }}>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '24px',
-        paddingBottom: '16px',
-        borderBottom: '1px solid rgba(11, 18, 13, 0.08)'
-      }}>
+    <div className="trace-card">
+      <div className="trace-card-header">
         <div>
-          <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#666' }}>
-            Traceability Chain
-          </span>
-          <h3 style={{ margin: '4px 0 0 0', fontSize: '18px', fontWeight: '800', color: '#0B120D', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            Farm-to-Fabric Journey
-          </h3>
+          <span className="trace-eyebrow">Traceability chain</span>
+          <h3>Batch journey</h3>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            background: '#DDFF86',
-            color: '#0B120D',
-            padding: '6px 12px',
-            borderRadius: '100px',
-            fontSize: '12px',
-            fontWeight: '700'
-          }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0B120D', animation: 'pulse 1.5s infinite' }}></span>
-            Stage: {currentStage}
-          </div>
+        <div className="trace-header-actions">
+          <div className="trace-current-stage">{currentStage}</div>
           {onShowQR && (
-            <button
-              onClick={onShowQR}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: '#F8F8F3',
-                border: '1px solid rgba(11, 18, 13, 0.12)',
-                color: '#0B120D',
-                padding: '6px 12px',
-                borderRadius: '8px',
-                fontSize: '12px',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
-            >
+            <button onClick={onShowQR} className="trace-qr-button">
               <QrCode size={14} /> Batch QR
             </button>
           )}
         </div>
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(7, 1fr)',
-        gap: '4px',
-        alignItems: 'center',
-        margin: '24px 0 28px 0',
-        padding: '16px 8px',
-        background: '#F8F8F3',
-        borderRadius: '12px'
-      }}>
+      <div className="trace-stage-list">
         {STAGES.map((s) => {
           const status = getStageStatus(s.id);
           const isCompleted = status === 'completed';
           const isCurrent = status === 'current';
 
           return (
-            <div key={s.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative' }}>
-              <div style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: isCompleted ? '#0B120D' : isCurrent ? '#DDFF86' : '#FFFFFF',
-                color: isCompleted ? '#DDFF86' : isCurrent ? '#0B120D' : '#999',
-                border: isCurrent ? '2px solid #0B120D' : isCompleted ? 'none' : '1px dashed #CCC',
-                boxShadow: isCurrent ? '0 0 0 4px rgba(221, 255, 134, 0.4)' : 'none',
-                fontWeight: '800',
-                fontSize: '13px',
-                zIndex: 2,
-                transition: 'all 0.3s ease'
-              }}>
-                {isCompleted ? '✓' : isCurrent ? '●' : '○'}
+            <div key={s.id} className={`trace-stage ${status}`}>
+              <div className="trace-stage-marker">{isCompleted ? <CheckCircle2 size={15} /> : <span />}</div>
+              <div className="trace-stage-copy">
+                <span>{s.label}</span>
+                <small>{isCompleted ? 'Completed' : isCurrent ? 'Current stage' : 'Pending'}</small>
               </div>
-              <span style={{
-                fontSize: '11px',
-                fontWeight: isCurrent ? '800' : '600',
-                color: isCurrent ? '#0B120D' : isCompleted ? '#0B120D' : '#888',
-                marginTop: '8px'
-              }}>
-                {s.label}
-              </span>
+              {isCurrent && <span className="trace-current-label">Now</span>}
             </div>
           );
         })}

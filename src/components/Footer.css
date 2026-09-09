@@ -1,5 +1,8 @@
 .footer-wrapper {
   background-color: #032B22;
+  background-image: linear-gradient(90deg, rgba(3,43,34,.97) 0%, rgba(3,43,34,.91) 45%, rgba(3,43,34,.78) 100%), url('../assets/footer.jpg');
+  background-size: cover;
+  background-position: center 42%;
   width: 100%;
   padding-top: 100px;
   position: relative;
@@ -158,7 +161,7 @@
 .footer-watermark {
   font-size: 200px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.08);
   text-transform: uppercase;
   text-align: center;
   line-height: 0.8;

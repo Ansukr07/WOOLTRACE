@@ -3,7 +3,7 @@ import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
 import {
   Home, LineChart, Target, Building2, PackagePlus, FileText,
   Truck, ShieldCheck, Wallet, MessageSquareWarning,
-  Bell, Menu, X, LogOut
+  Bell, Menu, X, LogOut, ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useGlobalState } from '../context/GlobalStateContext';
@@ -12,6 +12,7 @@ import './FarmerLayout.css';
 
 const FarmerLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileSections, setMobileSections] = useState({ market: true, operations: false });
   const location = useLocation();
   const { logout } = useAuth();
   const { marketOffers } = useGlobalState();
@@ -33,6 +34,14 @@ const FarmerLayout = () => {
   const isSelected = (item, isActive) => {
     return item.path.startsWith('/farmer/market/') ? location.pathname === item.path : isActive;
   };
+  const overviewItem = navItems[0];
+  const marketItems = [...navItems.slice(1, 7), navItems[9]];
+  const operationsItems = navItems.slice(7, 9);
+  const renderMobileLink = (item) => (
+    <NavLink key={item.name} to={item.path} end={item.path === '/farmer'} className={({ isActive }) => `nav-item ${isSelected(item, isActive) ? 'active' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
+      {item.icon}<span>{item.name}</span>{item.badge && <span className="mobile-nav-badge">{item.badge}</span>}
+    </NavLink>
+  );
 
   return (
     <div className="farmer-layout">
@@ -40,7 +49,7 @@ const FarmerLayout = () => {
       <aside className="farmer-sidebar">
         <div className="sidebar-header">
           <Link to="/farmer" className="logo">
-            KHET<span>SETU</span>
+            KhetSetu
           </Link>
           <div style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', color: '#166534', marginTop: '4px' }}>
             Farmer &amp; FPO workspace
@@ -104,25 +113,26 @@ const FarmerLayout = () => {
             <div className="mobile-nav-content">
               <div className="mobile-nav-header">
                 <Link to="/farmer" className="logo" onClick={() => setIsMobileMenuOpen(false)}>
-                  KHET<span>SETU</span>
+                  KhetSetu
                 </Link>
                 <button className="icon-btn" onClick={() => setIsMobileMenuOpen(false)}>
                   <X size={24} />
                 </button>
               </div>
               <nav className="mobile-nav-links">
-                {navItems.map((item) => (
-                  <NavLink
-                    key={item.name}
-                    to={item.path}
-                    end={item.path === '/farmer'}
-                    className={({ isActive }) => `nav-item ${isSelected(item, isActive) ? 'active' : ''}`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {item.icon}
-                    <span>{item.name}</span>
-                  </NavLink>
-                ))}
+                {renderMobileLink(overviewItem)}
+                <div className="mobile-nav-section">
+                  <button className="mobile-nav-section-toggle" onClick={() => setMobileSections(value => ({ ...value, market: !value.market }))}>
+                    <span>Market &amp; trade</span><ChevronDown size={17} className={mobileSections.market ? 'open' : ''} />
+                  </button>
+                  {mobileSections.market && <div className="mobile-nav-submenu">{marketItems.map(renderMobileLink)}</div>}
+                </div>
+                <div className="mobile-nav-section">
+                  <button className="mobile-nav-section-toggle" onClick={() => setMobileSections(value => ({ ...value, operations: !value.operations }))}>
+                    <span>Operations</span><ChevronDown size={17} className={mobileSections.operations ? 'open' : ''} />
+                  </button>
+                  {mobileSections.operations && <div className="mobile-nav-submenu">{operationsItems.map(renderMobileLink)}</div>}
+                </div>
               </nav>
             </div>
           </div>

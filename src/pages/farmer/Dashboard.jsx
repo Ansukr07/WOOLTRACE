@@ -13,7 +13,6 @@ import {
   FileText,
   Search,
   CheckCircle2,
-  Sparkles,
   Users,
   Activity,
   Layers
@@ -67,7 +66,7 @@ const Dashboard = () => {
   }, [selectedCropId]);
 
   const filteredCommodities = COMMODITIES.filter(c => 
-    c.id !== 'WOOL' && c.category !== 'FIBER' && (
+    c.id !== 'WOOL' && c.id !== 'APPLE' && c.category !== 'FIBER' && (
     c.name.toLowerCase().includes(cropSearchQuery.toLowerCase()) ||
     c.hindiName.includes(cropSearchQuery)
   ));
@@ -89,22 +88,17 @@ const Dashboard = () => {
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="dashboard-primary-actions">
             <button 
               onClick={() => navigate('/farmer/market?tab=lots')}
-              className="btn-primary"
-              style={{ padding: '10px 18px', borderRadius: '8px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}
+              className="dashboard-action dashboard-action-dark"
             >
               <Plus size={16} />
               <span>Create sell lot</span>
             </button>
             <button 
               onClick={() => navigate('/farmer/market')}
-              style={{
-                background: '#DDFF86', color: '#0B120D', border: '1px solid rgba(11,18,13,0.15)',
-                padding: '10px 18px', borderRadius: '8px', fontWeight: '800', fontSize: '13px',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
-              }}
+              className="dashboard-action dashboard-action-light"
             >
               <Target size={16} />
               <span>Open market intelligence</span>
@@ -114,15 +108,10 @@ const Dashboard = () => {
       </div>
 
       {/* ── Section: What Are You Looking to Sell? ── */}
-      <div style={{
-        background: '#FFFFFF', border: '1px solid rgba(11,18,13,0.10)',
-        borderRadius: '16px', padding: '20px 24px', marginBottom: '24px',
-        boxShadow: '0 2px 8px rgba(11,18,13,0.04)'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+      <div className="crop-selector-panel">
+        <div className="crop-selector-header">
           <div>
-            <h2 style={{ fontSize: '16px', fontWeight: '800', color: '#0B120D', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Sparkles size={18} color="#0B120D" />
+            <h2>
               What are you looking to sell today?
             </h2>
             <p style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 0 0' }}>
@@ -130,45 +119,32 @@ const Dashboard = () => {
             </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#F8F8F3', padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(11,18,13,0.10)' }}>
+          <div className="crop-search">
             <Search size={14} color="#64748B" />
             <input 
               type="text" 
               placeholder="Search crop or variety..." 
               value={cropSearchQuery}
               onChange={(e) => setCropSearchQuery(e.target.value)}
-              style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '12px', width: '160px', color: '#0B120D' }}
             />
           </div>
         </div>
 
         {/* Commodity Chips Ticker */}
-        <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '6px' }}>
+        <div className="commodity-strip">
           {filteredCommodities.map(c => {
             const isSelected = c.id === selectedCropId;
             return (
               <button
                 key={c.id}
                 onClick={() => setSelectedCropId(c.id)}
-                style={{
-                  background: isSelected ? '#0B120D' : '#F8F8F3',
-                  color: isSelected ? '#FFFFFF' : '#0B120D',
-                  border: isSelected ? '1px solid #0B120D' : '1px solid rgba(11,18,13,0.10)',
-                  borderRadius: '10px',
-                  padding: '10px 14px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-start',
-                  minWidth: '140px',
-                  transition: 'all 0.15s ease'
-                }}
+                className={`commodity-chip ${isSelected ? 'selected' : ''}`}
               >
-                <div style={{ fontSize: '13px', fontWeight: '800' }}>{c.name}</div>
-                <div style={{ fontSize: '14px', fontWeight: '800', marginTop: '4px', color: isSelected ? '#DDFF86' : '#0B120D' }}>
+                <div className="commodity-name">{c.name}</div>
+                <div className="commodity-price">
                   ₹{c.basePricePerKg}/kg
                 </div>
-                <div style={{ fontSize: '11px', color: isSelected ? '#BED5E5' : '#64748B', marginTop: '2px' }}>
+                <div className="commodity-demand">
                   {c.demandLevel} Demand
                 </div>
               </button>
@@ -178,7 +154,7 @@ const Dashboard = () => {
       </div>
 
       {/* Metrics Row */}
-      <div className="metrics-row" style={{ marginBottom: '24px' }}>
+      <div className="metrics-row">
         <div className="metric-card" onClick={() => navigate('/farmer/market?tab=transactions')} style={{ cursor: 'pointer' }}>
           <div className="metric-icon bg-green"><Wallet size={24} /></div>
           <div className="metric-info">
@@ -248,19 +224,37 @@ const Dashboard = () => {
           </div>
 
           <div className="chart-container">
+            <div className="chart-meta-row">
+              <span>Six-month market movement</span>
+              <div className="chart-legend">
+                <span><i className="legend-dot benchmark" /> Benchmark</span>
+                <span><i className="legend-dot mandi" /> Mandi</span>
+                <span><i className="legend-dot buyer" /> Direct buyer</span>
+              </div>
+            </div>
             <ResponsiveContainer width="100%" height={240}>
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#DDFF86" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#DDFF86" stopOpacity={0}/>
+                    <stop offset="0%" stopColor="#A9D86E" stopOpacity={0.32}/>
+                    <stop offset="100%" stopColor="#A9D86E" stopOpacity={0.02}/>
+                  </linearGradient>
+                  <linearGradient id="colorMandi" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#8EA4B8" stopOpacity={0.12}/>
+                    <stop offset="100%" stopColor="#8EA4B8" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E5E5" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 12}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 12}} domain={['auto', 'auto']} />
-                <Tooltip formatter={(value) => [`₹${value}/KG`, 'Benchmark Price']} />
-                <Area type="monotone" dataKey="price" stroke="#0B120D" strokeWidth={2} fillOpacity={1} fill="url(#colorPrice)" />
+                <CartesianGrid strokeDasharray="2 6" vertical={false} stroke="#DDE2DA" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#7A827C', fontSize: 11}} dy={8} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#7A827C', fontSize: 11}} domain={['auto', 'auto']} tickFormatter={(value) => `₹${value}`} />
+                <Tooltip
+                  cursor={{ stroke: '#9AA49C', strokeWidth: 1, strokeDasharray: '3 4' }}
+                  contentStyle={{ border: '1px solid #DDE2DA', borderRadius: '9px', boxShadow: '0 10px 30px rgba(11,18,13,.10)', fontSize: '12px' }}
+                  formatter={(value, name) => [`₹${value}/kg`, name === 'price' ? 'Benchmark' : name === 'mandi' ? 'Mandi' : 'Direct buyer']}
+                />
+                <Area type="monotone" dataKey="mandi" stroke="#8EA4B8" strokeWidth={1.5} fill="url(#colorMandi)" dot={false} activeDot={{ r: 4 }} />
+                <Area type="monotone" dataKey="processor" stroke="#4C8A62" strokeWidth={1.5} fill="transparent" dot={false} activeDot={{ r: 4 }} />
+                <Area type="monotone" dataKey="price" stroke="#111814" strokeWidth={2.5} fill="url(#colorPrice)" dot={false} activeDot={{ r: 5, fill: '#111814', stroke: '#fff', strokeWidth: 2 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -328,6 +322,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
     </div>
   );
 };

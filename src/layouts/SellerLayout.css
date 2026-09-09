@@ -282,4 +282,9 @@
   .user-profile-menu .user-info {
     display: none;
   }
+
+  .seller-content { min-width: 0; }
+  .mobile-nav-content { width: min(86vw, 320px); }
+  .mobile-nav-links { padding: 18px 12px; gap: 6px; }
+  .mobile-nav-links .nav-item { min-height: 44px; box-sizing: border-box; }
 }

@@ -365,7 +365,7 @@ const TRANSLATIONS = {
 export default function MarketIntelligence() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, updatePreferredLanguage } = useAuth();
   const requestedView = useMemo(() => new URLSearchParams(location.search).get('view'), [location.search]);
   const isQualityPartner = user?.role === 'QUALITY_INSPECTOR';
   const globalContext = useGlobalState() || {};
@@ -380,8 +380,17 @@ export default function MarketIntelligence() {
     submitOffer
   } = globalContext;
 
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState(() => user?.preferredLanguage || localStorage.getItem('khetsetu_language_guest') || 'en');
   const t = useMemo(() => TRANSLATIONS[language] || TRANSLATIONS.en, [language]);
+
+  useEffect(() => {
+    if (user?.preferredLanguage) setLanguage(user.preferredLanguage);
+  }, [user?.preferredLanguage]);
+
+  const changeWorkspaceLanguage = (nextLanguage) => {
+    setLanguage(nextLanguage);
+    updatePreferredLanguage?.(nextLanguage);
+  };
 
   const [selectedCrop, setSelectedCrop] = useState('WHEAT');
   const [selectedState, setSelectedState] = useState('Rajasthan');
@@ -1315,7 +1324,7 @@ export default function MarketIntelligence() {
               <Globe size={15} />
               <select 
                 value={language} 
-                onChange={(e) => setLanguage(e.target.value)}
+                onChange={(e) => changeWorkspaceLanguage(e.target.value)}
                 className="ks-lang-select"
                 aria-label="Select Language"
               >

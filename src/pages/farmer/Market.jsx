@@ -240,7 +240,7 @@ export default function Market() {
             <strong style={{ fontSize: '13px', color: '#0B120D', textTransform: 'uppercase' }}>Select Commodity Category:</strong>
           </div>
 
-          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
+          <div className="commodity-scroll-row" style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
             {COMMODITY_CATEGORIES.filter(cat => cat.id !== 'FIBER').map(cat => (
               <button
                 key={cat.id}
@@ -263,7 +263,7 @@ export default function Market() {
         </div>
 
         {/* Commodity Horizontal Picker */}
-        <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }}>
+        <div className="commodity-scroll-row" style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }}>
           {availableCategories.map(c => {
             const isSel = c.id === selectedCommodityId;
             return (

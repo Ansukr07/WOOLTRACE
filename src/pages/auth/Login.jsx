@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, Globe, AlertCircle, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getRoleHome } from '../../utils/roleRoutes';
 import './Login.css';
+import { applyPageLanguage, getSavedLanguage, saveLanguage, SUPPORTED_LANGUAGES } from '../../utils/languagePreference';
 
 const DEMO_BUTTONS = [
   { label: 'Farmer / FPO', email: 'farmer@khetsetu.in', role: 'FARMER', color: '#166534', bg: '#DCFCE7' },
@@ -20,8 +21,17 @@ const Login = () => {
   const [password, setPassword] = useState('password123');
   const [errorMessage, setErrorMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [language, setLanguage] = useState('English');
-  const languages = ['English', 'Hindi', 'Kannada', 'Tamil', 'Telugu', 'Marathi', 'Punjabi'];
+  const [language, setLanguage] = useState(() => getSavedLanguage('farmer@khetsetu.in', localStorage.getItem('khetsetu_language_guest') || 'en'));
+
+  useEffect(() => {
+    setLanguage(getSavedLanguage(identifier, localStorage.getItem('khetsetu_language_guest') || 'en'));
+  }, [identifier]);
+
+  const handleLanguageChange = (nextLanguage) => {
+    setLanguage(nextLanguage);
+    saveLanguage(identifier, nextLanguage);
+    applyPageLanguage(nextLanguage);
+  };
 
   const executeLogin = async (idToUse, passToUse) => {
     setErrorMessage('');
@@ -49,14 +59,14 @@ const Login = () => {
       {/* Top Left Home Back Button */}
       <Link to="/" className="top-left-brand-link">
         <ArrowLeft size={16} />
-        <span>KHET<span className="logo-badge">SETU</span> Home</span>
+        <span>Home</span>
       </Link>
 
       <div className="login-container">
         <div className="language-selector">
           <Globe size={18} />
-          <select value={language} onChange={(e) => setLanguage(e.target.value)}>
-            {languages.map((lang) => <option key={lang} value={lang}>{lang}</option>)}
+          <select value={language} onChange={(e) => handleLanguageChange(e.target.value)}>
+            {SUPPORTED_LANGUAGES.map((lang) => <option key={lang.code} value={lang.code}>{lang.label}</option>)}
           </select>
         </div>
 
@@ -148,41 +158,19 @@ const Login = () => {
             <p>Don't have an account? <Link to="/register" className="link-btn">CREATE ACCOUNT</Link></p>
           </div>
           
-          {/* Quick 1-Click Demo Login Panel */}
-          <div style={{ marginTop: '28px', padding: '18px', backgroundColor: '#F8F8F3', borderRadius: '12px', border: '1px solid rgba(11, 18, 13, 0.08)' }}>
-            <div style={{ fontSize: '12px', fontWeight: '800', textTransform: 'uppercase', color: '#777', marginBottom: '10px' }}>
-              Workspace previews
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {DEMO_BUTTONS.map((demo) => (
-                <button
-                  key={demo.email}
-                  type="button"
-                  onClick={() => handleQuickDemoClick(demo)}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    background: demo.bg,
-                    color: demo.color,
-                    border: '1px solid rgba(11, 18, 13, 0.10)',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    fontSize: '13px',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    fontFamily: 'Plus Jakarta Sans, sans-serif',
-                    transition: 'transform 0.15s'
-                  }}
-                >
-                  <span>{demo.label}</span>
-                  <span style={{ fontSize: '11px', fontWeight: '600', opacity: 0.8 }}>{demo.email} →</span>
-                </button>
-              ))}
-            </div>
-          </div>
         </form>
       </div>
+
+      <aside className="workspace-previews">
+        <span className="workspace-previews-label">Preview a workspace</span>
+        <div className="workspace-preview-links">
+          {DEMO_BUTTONS.map((demo) => (
+            <button key={demo.email} type="button" onClick={() => handleQuickDemoClick(demo)}>
+              {demo.label}
+            </button>
+          ))}
+        </div>
+      </aside>
     </div>
   );
 };

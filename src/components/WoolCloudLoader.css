@@ -1,11 +1,11 @@
-/* Minimalist & Elegant Professional Loader */
+/* Quiet, minimal loader */
 
 .minimal-loader-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Satoshi', sans-serif;
   z-index: 99999;
 }
 
@@ -16,15 +16,30 @@
   width: 100vw;
   height: 100vh;
   /* Very clean, slightly translucent dark overlay */
-  background: rgba(11, 18, 13, 0.85); 
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(8px);
   animation: minimalFadeIn 0.4s ease-out;
 }
 
 .minimal-loader-wrapper.inline-loader {
-  padding: 40px;
-  background: transparent;
+  padding: 32px 40px;
+  background: #fff;
+  border-radius: 14px;
+  color: #14291e;
+}
+
+.minimal-loader-wrapper.inline-loader .minimal-brand {
+  color: #000;
+}
+
+.minimal-loader-wrapper.fullscreen-overlay .minimal-spinner {
+  border-color: rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+}
+
+.minimal-loader-wrapper.fullscreen-overlay .minimal-brand span {
+  color: #fff;
 }
 
 @keyframes minimalFadeIn {
@@ -34,28 +49,26 @@
 
 .minimal-loader-container {
   position: relative;
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
-/* Elegant sleek spinner */
 .minimal-spinner {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  border: 2px solid rgba(221, 255, 134, 0.1); /* Subtle lime background track */
-  border-top-color: #DDFF86; /* Sharp lime accent */
-  animation: elegantSpin 1s cubic-bezier(0.6, 0.2, 0.4, 0.8) infinite;
+  border: 1.5px solid rgba(0, 0, 0, 0.14);
+  border-top-color: #000;
+  animation: minimalSpin 0.9s linear infinite;
 }
 
-@keyframes elegantSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+@keyframes minimalSpin {
+  to { transform: rotate(360deg); }
 }
 
 /* Minimalist center logo */
@@ -79,21 +92,22 @@
 }
 
 .minimal-brand {
-  font-size: 16px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.15em;
-  color: #FFFFFF;
+  color: #14291e;
   margin-bottom: 8px;
   text-transform: uppercase;
 }
 
 .minimal-brand span {
-  color: #DDFF86;
+  color: inherit;
 }
 
 .minimal-status {
   font-size: 13px;
   font-weight: 400;
-  color: #A1A1AA; /* Soft neutral gray */
+  color: #666;
   letter-spacing: 0.02em;
 }

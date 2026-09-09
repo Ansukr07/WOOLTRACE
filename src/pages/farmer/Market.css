@@ -741,3 +741,73 @@
   .header-actions button { flex: 1; justify-content: center; }
   .market-nav-tabs { margin-left: -4px; margin-right: -4px; border-radius: 12px; }
 }
+.commodity-scroll-row {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.commodity-scroll-row::-webkit-scrollbar {
+  display: none;
+}
+.disputes-page { width: 100%; max-width: none; margin: 0; }
+.disputes-header { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; padding:22px 24px; margin-bottom:14px; border:1px solid #e3e3de; border-radius:12px; background:#fff; }
+.disputes-eyebrow { color:#777; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.disputes-header h3 { display:flex; align-items:center; gap:8px; margin:4px 0 5px; color:#111; font-size:22px; }
+.disputes-header p { margin:0; color:#667085; font-size:12px; }
+.disputes-summary { min-width:78px; padding-left:18px; border-left:1px solid #e5e5e0; display:flex; flex-direction:column; }
+.disputes-summary strong { color:#111; font-size:24px; line-height:1; }
+.disputes-summary span { margin-top:5px; color:#888; font-size:10px; }
+.disputes-empty { min-height:260px; display:grid; place-items:center; align-content:center; text-align:center; padding:40px; border:1px dashed #d6d6d0; border-radius:12px; background:#fff; color:#555; }
+.disputes-empty svg { color:#111; margin-bottom:10px; }
+.disputes-empty h4 { margin:0 0 5px; color:#111; font-size:17px; }
+.disputes-empty p { max-width:390px; margin:0; color:#777; font-size:12px; line-height:1.55; }
+.disputes-list { display:flex; flex-direction:column; gap:12px; width:100%; }
+.dispute-record { display:flex; align-items:flex-start; gap:16px; width:100%; padding:22px 24px; border:1px solid #deded8; border-radius:10px; background:#fff; }
+.dispute-record-icon { width:38px; height:38px; flex:0 0 38px; display:grid; place-items:center; border-radius:8px; background:#f2f2ee; color:#222; }
+.dispute-record-content { min-width:0; flex:1; }
+.dispute-record-header { display:flex; justify-content:space-between; align-items:center; gap:18px; }
+.dispute-id { display:block; color:#667085; font-size:12px; font-weight:700; letter-spacing:.055em; text-transform:uppercase; }
+.dispute-record h4 { margin:4px 0 0; color:#111; font-size:19px; line-height:1.25; text-transform:capitalize; }
+.dispute-status { flex:0 0 auto; padding:5px 9px; border:1px solid #d8d8d2; border-radius:5px; color:#444; background:#fafaf7; font-size:10px; font-weight:700; letter-spacing:.035em; }
+.dispute-status.resolved { color:#166534; border-color:#bbd7bf; background:#f2f8f2; }
+.dispute-meta { display:flex; flex-wrap:wrap; gap:7px; margin-top:14px; color:#59636f; font-size:11px; }
+.dispute-meta span { padding:5px 8px; border:1px solid #e7e7e2; border-radius:5px; background:#fafaf8; }
+.dispute-description { margin:14px 0 0; max-width:820px; color:#344054; font-size:15px; line-height:1.6; }
+.dispute-resolution { display:flex; gap:10px; margin-top:12px; padding:10px 12px; border-left:2px solid #111; background:#f7f7f4; color:#333; font-size:11px; }
+.dispute-resolution strong { color:#111; }
+
+@media (max-width: 640px) {
+  .disputes-header { flex-direction:column; }
+  .disputes-summary { padding:0; border:0; }
+  .dispute-record-icon { display:none; }
+  .dispute-record { padding:18px; }
+  .dispute-record-header { align-items:flex-start; }
+}
+.upi-utr-field { display:flex; flex-direction:column; gap:6px; margin-top:14px; color:#344054; font-size:11px; font-weight:700; }
+.upi-utr-field input { width:100%; padding:11px 12px; border:1px solid #d5d9d3; border-radius:8px; background:#fff; color:#111; font:500 14px 'Satoshi',sans-serif; letter-spacing:.04em; outline:none; }
+.upi-utr-field input:focus { border-color:#111; box-shadow:0 0 0 3px rgba(17,17,17,.06); }
+.upi-manual-notice { display:flex; gap:8px; margin-top:10px; padding:10px 12px; border:1px solid #e1e4df; border-radius:8px; background:#f7f7f4; color:#59636f; font-size:11px; line-height:1.45; }
+.upi-manual-notice svg { flex:0 0 auto; margin-top:1px; }
+
+@media (max-width: 640px) {
+  .farmer-market-page, .market-page, .market-hub-container, .market-tab-content { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; overflow-x: hidden; }
+  .market-card, .panel, .section-card, .market-header-banner, .market-header-hero { min-width: 0; max-width: 100%; box-sizing: border-box; }
+  .market-card p, .panel p, .section-card p, .market-header-banner p { overflow-wrap: anywhere; }
+  .market-hub-container { padding: 12px; }
+  .market-header-hero, .market-header-banner { padding: 16px; border-radius: 12px; }
+  .market-header-top, .market-header-actions, .panel-header-row { align-items: flex-start; flex-direction: column; gap: 10px; }
+  .market-header-actions, .header-actions { width: 100%; }
+  .market-header-actions > *, .header-actions > * { flex: 1; justify-content: center; }
+  .market-nav-tabs { gap: 2px; padding: 5px; }
+  .market-tab-btn { padding: 9px 11px; font-size: 12px; }
+  .market-metric-grid, .section-two-column, .section-three-column, .channel-cards-grid, .buyer-card-grid { grid-template-columns: 1fr; gap: 10px; }
+  .market-card, .discovery-input-panel, .panel { padding: 15px; border-radius: 10px; }
+  .input-fields-row { grid-template-columns: 1fr; gap: 10px; }
+  .wt-table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .wt-data-table { min-width: 680px; }
+  .wt-modal-overlay { padding: 10px; align-items: flex-end; }
+  .wt-modal-card { max-height: 92vh; padding: 18px; border-radius: 14px 14px 0 0; }
+  .modal-action-row { flex-wrap: wrap; }
+  .modal-action-row > button { flex: 1; min-width: 120px; }
+  .trace-timeline { overflow-x: auto; }
+}

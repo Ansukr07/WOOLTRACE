@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
   Warehouse, MapPin, Star, ShieldCheck, ArrowRight, X, 
   Check, Phone, Mail, Clock, Sparkles, Navigation, Send, AlertCircle
 } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useGlobalState } from '../../context/GlobalStateContext';
@@ -25,6 +25,23 @@ const warehouseIcon = new L.DivIcon({
   iconAnchor: [17, 17]
 });
 
+const distanceInKm = (from, to) => {
+  const toRad = value => value * Math.PI / 180;
+  const latDelta = toRad(to.lat - from.lat);
+  const lngDelta = toRad(to.lng - from.lng);
+  const a = Math.sin(latDelta / 2) ** 2 +
+    Math.cos(toRad(from.lat)) * Math.cos(toRad(to.lat)) * Math.sin(lngDelta / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+const MapRecenter = ({ center }) => {
+  const map = useMap();
+  React.useEffect(() => {
+    if (center) map.flyTo([center.lat, center.lng], 9, { duration: 0.8 });
+  }, [center, map]);
+  return null;
+};
+
 export default function FindWarehouse() {
   const { warehouses, batches, requestStorage } = useGlobalState();
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,6 +50,9 @@ export default function FindWarehouse() {
   const [requestModalWarehouse, setRequestModalWarehouse] = useState(null);
   const [activeFilter, setActiveFilter] = useState('ALL');
   const [requestSuccessMessage, setRequestSuccessMessage] = useState('');
+  const [searchedLocation, setSearchedLocation] = useState(null);
+  const [locationSearchStatus, setLocationSearchStatus] = useState('');
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
 
   // Request Form States
   const [selectedBatchId, setSelectedBatchId] = useState(batches[0]?.id || 'BATCH-001');
@@ -43,15 +63,52 @@ export default function FindWarehouse() {
   const [additionalMessage, setAdditionalMessage] = useState('');
 
   // Filter warehouses
-  const filteredWarehouses = warehouses.filter(wh => {
-    const matchesSearch = wh.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          wh.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          wh.city.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredWarehouses = useMemo(() => warehouses.filter(wh => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const matchesSearch = searchedLocation || !normalizedQuery ||
+                          wh.name.toLowerCase().includes(normalizedQuery) ||
+                          wh.location.toLowerCase().includes(normalizedQuery) ||
+                          wh.city.toLowerCase().includes(normalizedQuery);
     if (!matchesSearch) return false;
     if (activeFilter === 'AVAILABLE') return wh.availableCapacity > 5000;
     if (activeFilter === 'CLIMATE') return wh.storageServices.some(s => s.toLowerCase().includes('climate'));
     return true;
-  });
+  }).map(wh => ({
+    ...wh,
+    searchedDistance: searchedLocation ? distanceInKm(searchedLocation, { lat: Number(wh.lat), lng: Number(wh.lng) }) : null
+  })).sort((a, b) => searchedLocation ? a.searchedDistance - b.searchedDistance : 0), [warehouses, searchQuery, searchedLocation, activeFilter]);
+
+  const handleLocationSearch = async (event) => {
+    event.preventDefault();
+    const query = searchQuery.trim();
+    if (!query) {
+      setSearchedLocation(null);
+      setLocationSearchStatus('');
+      return;
+    }
+
+    setIsSearchingLocation(true);
+    setLocationSearchStatus('Finding location…');
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=in&limit=1&q=${encodeURIComponent(query)}`, {
+        headers: { 'Accept-Language': 'en' }
+      });
+      if (!response.ok) throw new Error('Location service unavailable');
+      const results = await response.json();
+      if (!results.length) {
+        setSearchedLocation(null);
+        setLocationSearchStatus('Location not found. Try a city, district or PIN code.');
+        return;
+      }
+      const match = { lat: Number(results[0].lat), lng: Number(results[0].lon), label: results[0].display_name };
+      setSearchedLocation(match);
+      setLocationSearchStatus(`Showing nearest storage to ${results[0].display_name.split(',').slice(0, 2).join(',')}`);
+    } catch (_error) {
+      setLocationSearchStatus('Could not search that location. Check your connection and try again.');
+    } finally {
+      setIsSearchingLocation(false);
+    }
+  };
 
   const handleBatchSelectChange = (e) => {
     const bId = e.target.value;
@@ -129,14 +186,22 @@ export default function FindWarehouse() {
 
       {/* Search & Filter Toolbar */}
       <div className="wh-toolbar">
-        <div className="wh-search-bar">
+        <form className="wh-search-bar" onSubmit={handleLocationSearch}>
+          <MapPin className="wh-search-icon" size={17} />
           <input
             type="text"
             placeholder="Search by warehouse name, city or location..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setSearchedLocation(null);
+              setLocationSearchStatus('');
+            }}
           />
-        </div>
+          <button type="submit" className="wh-location-search-btn" disabled={isSearchingLocation}>
+            <Navigation size={15} /> {isSearchingLocation ? 'Finding…' : 'Search area'}
+          </button>
+        </form>
         <div className="wh-filter-tabs">
           <button
             className={`wh-filter-tab ${activeFilter === 'ALL' ? 'active' : ''}`}
@@ -159,6 +224,8 @@ export default function FindWarehouse() {
         </div>
       </div>
 
+      {locationSearchStatus && <div className={`wh-search-status ${searchedLocation ? 'success' : ''}`}>{locationSearchStatus}</div>}
+
       {/* Main Grid: Warehouse Cards + Leaflet Map */}
       <div className="wh-layout-grid">
         {/* Left: Warehouse Cards List */}
@@ -173,7 +240,7 @@ export default function FindWarehouse() {
                 <div>
                   <h3 className="wh-name">{wh.name}</h3>
                   <div className="wh-location">
-                    <MapPin size={14} /> {wh.location} ({wh.distance})
+                    <MapPin size={14} /> {wh.location} ({wh.searchedDistance != null ? `${wh.searchedDistance.toFixed(1)} km away` : wh.distance})
                   </div>
                 </div>
                 {wh.verified && (
@@ -232,6 +299,7 @@ export default function FindWarehouse() {
             scrollWheelZoom={false}
             style={{ width: '100%', height: '100%' }}
           >
+            <MapRecenter center={searchedLocation || (selectedWarehouse ? { lat: Number(selectedWarehouse.lat), lng: Number(selectedWarehouse.lng) } : null)} />
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -273,6 +341,11 @@ export default function FindWarehouse() {
                 </Popup>
               </Marker>
             ))}
+            {searchedLocation && (
+              <Marker position={[searchedLocation.lat, searchedLocation.lng]}>
+                <Popup>Your searched location</Popup>
+              </Marker>
+            )}
           </MapContainer>
         </div>
       </div>

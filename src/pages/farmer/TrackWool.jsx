@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { 
   Search, Box, ShieldCheck, MapPin, QrCode, ExternalLink, 
-  ArrowRight, Download, CheckCircle, Clock, Warehouse, Sparkles, X
+  ArrowRight, Download, CheckCircle, Clock, Warehouse, X
 } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { useGlobalState } from '../../context/GlobalStateContext';
@@ -48,7 +48,7 @@ export default function TrackWool() {
       <div className="track-wool-header">
         <div>
           <h1 className="track-wool-title">
-            <Sparkles size={28} color="#0B120D" /> Track Produce Batch Passport
+            Track Produce Batch Passport
           </h1>
           <p className="track-wool-subtitle">
             Every harvest batch has a verified digital identity from farm to market.

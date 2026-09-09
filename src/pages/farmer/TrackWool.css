@@ -268,3 +268,15 @@
   text-align: center;
   box-shadow: 0 20px 40px rgba(0,0,0,0.15);
 }
+
+@media (max-width: 640px) {
+  .track-wool-page { padding: 16px; }
+  .track-wool-title { font-size: 23px; }
+  .search-input-group { flex-direction: column; align-items: stretch; }
+  .btn-search { justify-content: center; }
+  .tracking-layout-grid { gap: 14px; }
+  .batch-overview-card { padding: 16px; border-radius: 12px; }
+  .meta-grid { grid-template-columns: 1fr; gap: 12px; }
+  .qr-preview-box { align-items: flex-start; flex-direction: column; }
+  .qr-btn { width: 100%; justify-content: center; }
+}
