@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
 import { useGlobalState } from '../../context/GlobalStateContext';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -46,6 +46,7 @@ import './Market.css';
 export default function Market() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { view: routeView } = useParams();
   const { user } = useAuth();
 
   const {
@@ -63,9 +64,15 @@ export default function Market() {
     raiseTransactionDispute = () => {}
   } = useGlobalState();
 
-  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
+  const validViews = ['overview', 'discovery', 'trends', 'buyers', 'lots', 'offers', 'transactions', 'disputes'];
+  const routeTab = validViews.includes(routeView) ? routeView : null;
+  const [activeTab, setActiveTab] = useState(routeTab || searchParams.get('tab') || 'overview');
   const openTab = (tab) => {
     setActiveTab(tab);
+    if (routeTab) {
+      navigate(`/farmer/market/${tab}?crop=${selectedCommodityId}`);
+      return;
+    }
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
       next.set('tab', tab);
@@ -75,9 +82,18 @@ export default function Market() {
   };
 
   useEffect(() => {
+    if (routeTab && routeTab !== activeTab) setActiveTab(routeTab);
     const tab = searchParams.get('tab');
-    if (tab && tab !== activeTab) setActiveTab(tab);
-  }, [searchParams, activeTab]);
+    if (!routeTab && tab && tab !== activeTab) setActiveTab(tab);
+  }, [searchParams, activeTab, routeTab]);
+
+  useEffect(() => {
+    const legacyTab = searchParams.get('tab');
+    if (!routeTab && validViews.includes(legacyTab)) {
+      const crop = searchParams.get('crop') || 'WHEAT';
+      navigate(`/farmer/market/${legacyTab}?crop=${crop}`, { replace: true });
+    }
+  }, [navigate, routeTab, searchParams]);
   
   // Commodity & Category Selector State
   const [selectedCategory, setSelectedCategory] = useState('ALL');
@@ -107,6 +123,18 @@ export default function Market() {
   const [toastMessage, setToastMessage] = useState(null);
   const [paymentRequest, setPaymentRequest] = useState(null);
   const [paymentTransaction, setPaymentTransaction] = useState(null);
+
+  const pageCopy = {
+    overview: ['Market intelligence', 'Compare nearby mandi signals, direct buyer quotes and price movement for one crop at a time.'],
+    discovery: ['Price & sale timing', 'Model price, transport, storage and sale timing before you list a lot.'],
+    trends: ['Price & arrivals', 'Read price direction and arrivals without leaving the decision context.'],
+    buyers: ['Buyer demand', 'Review current procurement needs and the quality specifications attached to each demand.'],
+    lots: ['Sell lots & FPO', 'Create an individual lot or pool volume through your FPO.'],
+    offers: ['Offers & negotiation', 'Review one clear commercial offer at a time, then accept, decline or counter.'],
+    transactions: ['Trade & payments', 'Follow delivery milestones and initiate a UPI payment request for each transaction.'],
+    disputes: ['Disputes', 'Raise and track a commercial grievance with its evidence and payment status.']
+  };
+  const [pageTitle, pageDescription] = pageCopy[activeTab] || pageCopy.overview;
 
   const selectedCommodity = getCommodityById(selectedCommodityId);
 
@@ -183,12 +211,12 @@ export default function Market() {
       <div className="market-header-banner">
         <div className="header-left">
           <div className="sih-tag">Market intelligence workspace</div>
-          <h1 className="market-title">KhetSetu Market &amp; Trade Network</h1>
+          <h1 className="market-title">{routeTab ? pageTitle : 'KhetSetu Market & Trade Network'}</h1>
           <p className="market-subtitle">
-            One connected workflow for mandi prices, buyer demand, quality, logistics, offers, settlement, and resolution.
+            {routeTab ? pageDescription : 'One connected workflow for mandi prices, buyer demand, quality, logistics, offers, settlement, and resolution.'}
           </p>
         </div>
-        <div className="header-actions">
+        {activeTab === 'lots' && <div className="header-actions">
           <button className="btn-primary" onClick={() => setShowCreateLotModal(true)}>
             <Plus size={16} />
             <span>Create sell lot</span>
@@ -197,11 +225,11 @@ export default function Market() {
             <Users size={16} />
             <span>Aggregate FPO lots</span>
           </button>
-        </div>
+        </div>}
       </div>
 
       {/* ── Global Commodity Selector Bar ── */}
-      <div style={{
+      {['overview', 'discovery', 'trends', 'buyers'].includes(activeTab) && <div style={{
         background: '#FFFFFF', border: '1px solid rgba(11,18,13,0.10)',
         borderRadius: '14px', padding: '16px 20px', marginBottom: '20px',
         boxShadow: '0 2px 8px rgba(11,18,13,0.04)'
@@ -265,10 +293,10 @@ export default function Market() {
             );
           })}
         </div>
-      </div>
+      </div>}
 
       {/* Navigation Tabs */}
-      <div className="market-nav-tabs">
+      {!routeTab && <div className="market-nav-tabs">
         <button className={`nav-tab ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => openTab('overview')}>
           <LineChart size={16} />
           <span>Mandi prices</span>
@@ -301,7 +329,7 @@ export default function Market() {
           <AlertTriangle size={16} />
           <span>Disputes ({disputes.length})</span>
         </button>
-      </div>
+      </div>}
 
       {/* Tab Content Panes */}
       <div className="market-tab-content">

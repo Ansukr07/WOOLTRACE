@@ -20,19 +20,18 @@ const FarmerLayout = () => {
 
   const navItems = [
     { name: 'Overview', path: '/farmer', icon: <Home size={18} /> },
-    { name: 'Market intelligence', path: '/farmer/market?tab=overview', icon: <LineChart size={18} /> },
-    { name: 'Price & sale timing', path: '/farmer/market?tab=trends', icon: <Target size={18} /> },
-    { name: 'Buyer demand', path: '/farmer/market?tab=buyers', icon: <Building2 size={18} /> },
-    { name: 'Sell lots & FPO', path: '/farmer/market?tab=lots', icon: <PackagePlus size={18} /> },
-    { name: 'Offers & negotiation', path: '/farmer/market?tab=offers', icon: <FileText size={18} />, badge: pendingOffersCount || null },
-    { name: 'Trade & payments', path: '/farmer/market?tab=transactions', icon: <Wallet size={18} /> },
+    { name: 'Market intelligence', path: '/farmer/market/overview', icon: <LineChart size={18} /> },
+    { name: 'Price & sale timing', path: '/farmer/market/trends', icon: <Target size={18} /> },
+    { name: 'Buyer demand', path: '/farmer/market/buyers', icon: <Building2 size={18} /> },
+    { name: 'Sell lots & FPO', path: '/farmer/market/lots', icon: <PackagePlus size={18} /> },
+    { name: 'Offers & negotiation', path: '/farmer/market/offers', icon: <FileText size={18} />, badge: pendingOffersCount || null },
+    { name: 'Trade & payments', path: '/farmer/market/transactions', icon: <Wallet size={18} /> },
     { name: 'Logistics & storage', path: '/farmer/storage', icon: <Truck size={18} /> },
     { name: 'Quality & trust', path: '/farmer/trust', icon: <ShieldCheck size={18} /> },
-    { name: 'Disputes', path: '/farmer/market?tab=disputes', icon: <MessageSquareWarning size={18} /> },
+    { name: 'Disputes', path: '/farmer/market/disputes', icon: <MessageSquareWarning size={18} /> },
   ];
   const isSelected = (item, isActive) => {
-    const query = item.path.split('?')[1];
-    return query ? location.pathname === '/farmer/market' && location.search.slice(1) === query : isActive;
+    return item.path.startsWith('/farmer/market/') ? location.pathname === item.path : isActive;
   };
 
   return (

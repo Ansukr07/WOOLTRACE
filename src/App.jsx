@@ -53,10 +53,10 @@ function App() {
     <Route path="/track" element={<PublicTrackBatch />} />
 
     <Route path="/farmer" element={secure(['FARMER'], <FarmerLayout />)}>
-      <Route index element={<FarmerDashboard />} /><Route path="market" element={<FarmerMarket />} />
+      <Route index element={<FarmerDashboard />} /><Route path="market" element={<FarmerMarket />} /><Route path="market/:view" element={<FarmerMarket />} />
       <Route path="storage" element={<StorageFinder />} /><Route path="trust" element={<TrackProduce />} />
-      <Route path="produce" element={<Navigate to="/farmer/market?tab=lots" replace />} />
-      <Route path="payments" element={<Navigate to="/farmer/market?tab=transactions" replace />} />
+      <Route path="produce" element={<Navigate to="/farmer/market/lots" replace />} />
+      <Route path="payments" element={<Navigate to="/farmer/market/transactions" replace />} />
       <Route path="track" element={<Navigate to="/farmer/trust" replace />} />
       <Route path="*" element={<Navigate to="/farmer" replace />} />
     </Route>

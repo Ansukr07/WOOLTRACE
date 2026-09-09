@@ -7,6 +7,9 @@ export default function TransactionsTab({
   onConfirmDelivery,
   onStartPayment
 }) {
+  const displayTransactions = marketTransactions.filter(txn => (
+    txn?.transactionNumber && txn?.buyerName && txn?.farmerName && Number.isFinite(Number(txn.grossValue))
+  ));
   return (
     <div>
       <div className="panel-header-row">
@@ -18,7 +21,7 @@ export default function TransactionsTab({
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        {marketTransactions.map(txn => (
+        {displayTransactions.map(txn => (
           <div key={txn.id} className="market-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
               <div>
