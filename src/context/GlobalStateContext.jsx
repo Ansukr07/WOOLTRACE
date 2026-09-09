@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { fetchMarketRecords, upsertMarketRecord } from '../services/market/marketRecordsService.js';
 
 const GlobalStateContext = createContext();
 
@@ -1776,6 +1777,42 @@ export const GlobalStateProvider = ({ children }) => {
     return loadSihMarketRecords('wt_disputes_v1', SIH_INITIAL_DISPUTES);
   });
 
+  const [marketSyncStatus, setMarketSyncStatus] = useState('syncing');
+  const mergeRemote = (local, remote) => {
+    if (!remote.length) return local;
+    const byId = new Map(local.map(record => [record.id, record]));
+    remote.forEach(record => byId.set(record.id, record));
+    return Array.from(byId.values()).sort((a, b) => String(b.updatedAt || b.createdAt || '').localeCompare(String(a.updatedAt || a.createdAt || '')));
+  };
+  const syncMarketRecord = (kind, record) => {
+    upsertMarketRecord(kind, record)
+      .then(() => setMarketSyncStatus('online'))
+      .catch(() => setMarketSyncStatus('offline'));
+  };
+
+  // MongoDB is the shared source of truth. Polling keeps two phones/laptops in sync
+  // without requiring a special demo room or a browser-local broadcast channel.
+  useEffect(() => {
+    let cancelled = false;
+    const hydrate = async () => {
+      try {
+        const remote = await fetchMarketRecords();
+        if (cancelled) return;
+        if (remote.lots.length) setWoolLots(local => mergeRemote(local, remote.lots));
+        if (remote.demands.length) setBuyerDemands(local => mergeRemote(local, remote.demands));
+        if (remote.offers.length) setMarketOffers(local => mergeRemote(local, remote.offers));
+        if (remote.transactions.length) setMarketTransactions(local => mergeRemote(local, remote.transactions));
+        if (remote.disputes.length) setDisputes(local => mergeRemote(local, remote.disputes));
+        setMarketSyncStatus('online');
+      } catch (error) {
+        if (!cancelled) setMarketSyncStatus('offline');
+      }
+    };
+    hydrate();
+    const timer = window.setInterval(hydrate, 4000);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, []);
+
   useEffect(() => {
     try {
       localStorage.setItem('wt_wool_lots_v1', JSON.stringify(woolLots));
@@ -1828,6 +1865,7 @@ export const GlobalStateProvider = ({ children }) => {
     };
 
     setWoolLots(prev => [newLot, ...prev]);
+    syncMarketRecord('LOT', newLot);
 
     // Append digital trace event to linked batch
     if (newLot.batchIds && newLot.batchIds.length > 0) {
@@ -1894,6 +1932,7 @@ export const GlobalStateProvider = ({ children }) => {
     };
 
     setWoolLots(prev => [fpoLot, ...prev]);
+    syncMarketRecord('LOT', fpoLot);
 
     // Add trace events
     linkedBatches.forEach(b => {
@@ -1932,6 +1971,7 @@ export const GlobalStateProvider = ({ children }) => {
     };
 
     setMarketOffers(prev => [newOffer, ...prev]);
+    syncMarketRecord('OFFER', newOffer);
 
     // Update lot status
     setWoolLots(prev => prev.map(l => l.id === offerData.lotId ? { ...l, status: 'OFFER_RECEIVED' } : l));
@@ -1961,15 +2001,16 @@ export const GlobalStateProvider = ({ children }) => {
       };
 
       setMarketOffers(prev => prev.map(o => o.id === offerId ? updatedOffer : o));
+      syncMarketRecord('OFFER', updatedOffer);
 
       // Create transaction automatically
       createTransactionFromOffer(updatedOffer);
     } else if (action === 'REJECT') {
-      setMarketOffers(prev => prev.map(o => o.id === offerId ? {
-        ...o,
+      const rejectedOffer = {
+        ...targetOffer,
         status: 'REJECTED',
         history: [
-          ...o.history,
+          ...targetOffer.history,
           {
             action: 'OFFER_REJECTED',
             by: payload.actor || 'Seller',
@@ -1977,19 +2018,21 @@ export const GlobalStateProvider = ({ children }) => {
             timestamp: new Date().toISOString()
           }
         ]
-      } : o));
+      };
+      setMarketOffers(prev => prev.map(o => o.id === offerId ? rejectedOffer : o));
+      syncMarketRecord('OFFER', rejectedOffer);
     } else if (action === 'COUNTER') {
       const counterPrice = payload.counterPricePerKg || targetOffer.offeredPricePerKg;
       const counterQty = payload.counterQuantityKg || targetOffer.quantityKg;
 
-      setMarketOffers(prev => prev.map(o => o.id === offerId ? {
-        ...o,
+      const counteredOffer = {
+        ...targetOffer,
         status: 'COUNTERED',
         offeredPricePerKg: counterPrice,
         quantityKg: counterQty,
         totalGrossAmount: counterPrice * counterQty,
         history: [
-          ...o.history,
+          ...targetOffer.history,
           {
             action: 'COUNTER_OFFER',
             by: payload.actor || 'Seller',
@@ -1999,7 +2042,9 @@ export const GlobalStateProvider = ({ children }) => {
             timestamp: new Date().toISOString()
           }
         ]
-      } : o));
+      };
+      setMarketOffers(prev => prev.map(o => o.id === offerId ? counteredOffer : o));
+      syncMarketRecord('OFFER', counteredOffer);
 
       setWoolLots(prev => prev.map(l => l.id === targetOffer.lotId ? { ...l, status: 'NEGOTIATING' } : l));
     }
@@ -2045,6 +2090,7 @@ export const GlobalStateProvider = ({ children }) => {
     };
 
     setMarketTransactions(prev => [newTxn, ...prev]);
+    syncMarketRecord('TRANSACTION', newTxn);
 
     // Update lot available quantity & status
     setWoolLots(prev => prev.map(l => {
@@ -2067,13 +2113,15 @@ export const GlobalStateProvider = ({ children }) => {
       if (t.id === txnId) {
         const paid = paidAmount !== undefined ? paidAmount : t.grossValue;
         const outstanding = Math.max(0, t.grossValue - paid);
-        return {
+        const updated = {
           ...t,
           paymentStatus,
           paidAmount: paid,
           outstandingAmount: outstanding,
           updatedAt: new Date().toISOString()
         };
+        syncMarketRecord('TRANSACTION', updated);
+        return updated;
       }
       return t;
     }));
@@ -2084,7 +2132,7 @@ export const GlobalStateProvider = ({ children }) => {
     setMarketTransactions(prev => prev.map(transaction => {
       if (transaction.id !== txnId) return transaction;
       const paid = toNonNegativeNumber(paidAmount, transaction.grossValue);
-      return {
+      const updated = {
         ...transaction,
         paymentStatus: payment.status || 'PAID',
         paidAmount: paid,
@@ -2095,18 +2143,22 @@ export const GlobalStateProvider = ({ children }) => {
         paidAt: payment.paidAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
+      syncMarketRecord('TRANSACTION', updated);
+      return updated;
     }));
   };
 
   const updateTransactionDelivery = (txnId, deliveryStatus) => {
     setMarketTransactions(prev => prev.map(t => {
       if (t.id === txnId) {
-        return {
+        const updated = {
           ...t,
           deliveryStatus,
           completionDate: deliveryStatus === 'DELIVERED' ? new Date().toISOString() : t.completionDate,
           updatedAt: new Date().toISOString()
         };
+        syncMarketRecord('TRANSACTION', updated);
+        return updated;
       }
       return t;
     }));
@@ -2128,6 +2180,7 @@ export const GlobalStateProvider = ({ children }) => {
     };
 
     setDisputes(prev => [newDispute, ...prev]);
+    syncMarketRecord('DISPUTE', newDispute);
 
     setMarketTransactions(prev => prev.map(t => t.id === txnId ? { ...t, disputeStatus: 'OPEN' } : t));
 
@@ -2137,12 +2190,14 @@ export const GlobalStateProvider = ({ children }) => {
   const resolveDispute = (disputeId, resolution) => {
     setDisputes(prev => prev.map(d => {
       if (d.id === disputeId) {
-        return {
+        const updated = {
           ...d,
           status: 'RESOLVED',
           resolutionNote: resolution.note || 'Dispute resolved mutually.',
           resolvedAt: new Date().toISOString()
         };
+        syncMarketRecord('DISPUTE', updated);
+        return updated;
       }
       return d;
     }));
@@ -2161,6 +2216,7 @@ export const GlobalStateProvider = ({ children }) => {
     };
 
     setBuyerDemands(prev => [newDemand, ...prev]);
+    syncMarketRecord('DEMAND', newDemand);
     return newDemand;
   };
   
@@ -2188,7 +2244,7 @@ export const GlobalStateProvider = ({ children }) => {
       buyerDemands, publishBuyerDemand,
       marketOffers, submitOffer, respondOffer,
       marketTransactions, createTransactionFromOffer, updateTransactionPayment, recordTransactionPayment, updateTransactionDelivery,
-      disputes, raiseTransactionDispute, resolveDispute
+      disputes, raiseTransactionDispute, resolveDispute, marketSyncStatus
     }}>
       {children}
     </GlobalStateContext.Provider>

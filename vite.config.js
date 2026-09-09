@@ -5,6 +5,7 @@ import registerHandler from './api/register.js';
 import marketHandler from './api/market.js';
 import marketAdvisorHandler from './api/ai/market-advisor.js';
 import paymentsHandler from './api/payments.js';
+import marketRecordsHandler from './api/market-records.js';
 
 const LOCAL_HANDLERS = [
   ['/api/ai/market-advisor', marketAdvisorHandler],
@@ -12,6 +13,7 @@ const LOCAL_HANDLERS = [
   ['/api/register', registerHandler],
   ['/api/payments', paymentsHandler],
   ['/api/market', marketHandler]
+  ,['/api/market-records', marketRecordsHandler]
 ];
 
 async function readBody(req) {
@@ -32,7 +34,7 @@ function localApiBridge() {
 
         try {
           req.query = Object.fromEntries(url.searchParams.entries());
-          req.body = ['POST', 'PUT', 'PATCH'].includes(req.method || '') ? await readBody(req) : {};
+          req.body = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method || '') ? await readBody(req) : {};
           let statusCode = 200;
           let responseBody;
           const adapter = {
