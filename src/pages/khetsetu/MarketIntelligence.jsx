@@ -14,6 +14,7 @@ import { COMMODITIES, getCommodityById } from '../../services/market/cropCommodi
 import { calculateNetRealization, getMarketChannelsForCommodity } from '../../services/market/marketIntelligenceService';
 import { calculateMatchScore } from '../../services/market/matchingEngine';
 import { getPriceForecastAndRecommendation } from '../../services/market/priceforecastService';
+import { getMandiForecast } from '../../services/market/mandiForecastService';
 import { agmarknetService, formatDate, getDateOffset } from '../../services/market/agmarknetService';
 import { crop50Service, CROP50_METADATA } from '../../services/market/crop50Service';
 import { calculateWoolQualityPrice, compareOfferToQualityReference } from '../../services/market/woolQualityPricingService';
@@ -709,7 +710,8 @@ export default function MarketIntelligence() {
             arrivals: latest.quantity ? latest.quantity * 10 : 1240,
             trendPct: Number(trendPct) >= 0 ? '+' + trendPct + '%' : trendPct + '%',
             isPositive: Number(trendPct) >= 0,
-            marketName: latest.market_name || (selectedDistrict + ' Mandi')
+            marketName: latest.market_name || (selectedDistrict + ' Mandi'),
+            history: records
           });
           setDataSource(records.source === 'ceda' ? 'CEDA / Agmarknet API' : 'KhetSetu demo dataset');
         }
@@ -1224,6 +1226,14 @@ export default function MarketIntelligence() {
     setAiAssistantLoading(true);
 
     try {
+      let trainedModelForecast = null;
+      try { trainedModelForecast = await getMandiForecast(livePriceData?.history || []); } catch (_) { /* model is optional when the serverless Python runtime is unavailable */ }
+      const aiEvidence = trainedModelForecast ? [...evidence, {
+        id: 'trained-mandi-model', type: 'ml_forecast', label: 'Trained mandi forecast',
+        value: `Predicted next reported modal price Rs ${trainedModelForecast.predictedNextModalPrice}/quintal (delta ${trainedModelForecast.predictedDelta >= 0 ? '+' : ''}${trainedModelForecast.predictedDelta})`,
+        source: `${trainedModelForecast.modelVersion} trained on AGMARKNET historical observations`
+      }] : evidence;
+      setAiAssistantEvidence(aiEvidence);
       const response = await fetch('/api/ai/market-advisor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1235,7 +1245,7 @@ export default function MarketIntelligence() {
             district: selectedDistrict,
             state: selectedState
           },
-          evidence
+          evidence: aiEvidence
         })
       });
       const text = await response.text();
