@@ -21,12 +21,12 @@ const TransportLayout = () => {
   const { logout } = useAuth();
 
   const navItems = [
-    { name: 'DASHBOARD', path: '/transport', icon: <Home size={20} /> },
-    { name: 'REQUESTS', path: '/transport/requests', icon: <List size={20} /> },
-    { name: 'ACTIVE', path: '/transport/active', icon: <MapPin size={20} /> },
-    { name: 'HISTORY', path: '/transport/history', icon: <History size={20} /> },
-    { name: 'VEHICLES', path: '/transport/vehicles', icon: <Truck size={20} /> },
-    { name: 'EARNINGS', path: '/transport/earnings', icon: <Wallet size={20} /> },
+    { name: 'Dashboard', path: '/logistics', icon: <Home size={20} /> },
+    { name: 'Requests', path: '/logistics/requests', icon: <List size={20} /> },
+    { name: 'Active shipments', path: '/logistics/active', icon: <MapPin size={20} /> },
+    { name: 'History', path: '/logistics/history', icon: <History size={20} /> },
+    { name: 'Vehicles', path: '/logistics/vehicles', icon: <Truck size={20} /> },
+    { name: 'Earnings', path: '/logistics/earnings', icon: <Wallet size={20} /> },
     { name: 'PROFILE', path: '/transport/profile', icon: <UserRoleDropdown /> },
   ];
 
@@ -35,17 +35,17 @@ const TransportLayout = () => {
       {/* Sidebar for Desktop */}
       <aside className="transport-sidebar">
         <div className="sidebar-header">
-          <Link to="/transport" className="logo">
-            WOOL<span>TRACE</span>
+          <Link to="/logistics" className="logo">
+            KHET<span>SETU</span>
           </Link>
-          <div className="role-badge">TRANSPORT</div>
+          <div className="role-badge">Logistics partner</div>
         </div>
         <nav className="sidebar-nav">
           {navItems.filter(item => item.name !== 'PROFILE').map((item) => (
             <NavLink
               key={item.name}
               to={item.path}
-              end={item.path === '/transport'}
+              end={item.path === '/logistics'}
               className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
               style={{ position: 'relative' }}
             >
@@ -84,8 +84,8 @@ const TransportLayout = () => {
           <div className="mobile-nav-overlay">
             <div className="mobile-nav-content">
               <div className="mobile-nav-header">
-                <Link to="/transport" className="logo" onClick={() => setIsMobileMenuOpen(false)}>
-                  WOOL<span>TRACE</span>
+                <Link to="/logistics" className="logo" onClick={() => setIsMobileMenuOpen(false)}>
+                  KHET<span>SETU</span>
                 </Link>
                 <button className="icon-btn" onClick={() => setIsMobileMenuOpen(false)}>
                   <X size={24} />
@@ -96,7 +96,7 @@ const TransportLayout = () => {
                   <NavLink
                     key={item.name}
                     to={item.path}
-                    end={item.path === '/transport'}
+                    end={item.path === '/logistics'}
                     className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >

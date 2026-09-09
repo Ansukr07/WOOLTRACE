@@ -11,9 +11,9 @@ const ROLES_LIST = [
   {
     role: 'FARMER',
     name: 'Rajesh Gowda',
-    email: 'farmer@wooltrace.com',
-    label: 'Farmer Portal',
-    sub: 'Harvest, shearing & traceability',
+    email: 'farmer@khetsetu.in',
+    label: 'Farmer & FPO',
+    sub: 'Prices, lots, offers and settlements',
     path: '/farmer',
     icon: Sprout,
     badgeColor: '#166534',
@@ -22,10 +22,10 @@ const ROLES_LIST = [
   {
     role: 'WAREHOUSE',
     name: 'K. Somanna',
-    email: 'warehouse@wooltrace.com',
-    label: 'Warehouse Partner',
-    sub: 'Storage, slotting & QR check-in',
-    path: '/warehouse',
+    email: 'storage@khetsetu.in',
+    label: 'Storage Partner',
+    sub: 'Capacity, check-in and releases',
+    path: '/storage',
     icon: Warehouse,
     badgeColor: '#0B120D',
     badgeBg: '#DDFF86'
@@ -33,32 +33,32 @@ const ROLES_LIST = [
   {
     role: 'QUALITY_INSPECTOR',
     name: 'Dr. Anita Desai',
-    email: 'inspector@wooltrace.com',
-    label: 'Quality Inspector',
-    sub: 'Lab testing & grade certificates',
-    path: '/inspector',
+    email: 'quality@khetsetu.in',
+    label: 'Quality Partner',
+    sub: 'Grading and quality certificates',
+    path: '/quality',
     icon: ShieldCheck,
     badgeColor: '#0B120D',
     badgeBg: '#BED5E5'
   },
   {
     role: 'SELLER',
-    name: 'Himalayan Wool Co.',
-    email: 'seller@wooltrace.com',
-    label: 'Buyer / Marketplace',
-    sub: 'WoolKart bidding & orders',
-    path: '/seller',
+    name: 'Shree Foods Pvt. Ltd.',
+    email: 'buyer@khetsetu.in',
+    label: 'Verified Buyer',
+    sub: 'Demand, offers and procurement orders',
+    path: '/buyer',
     icon: ShoppingCart,
     badgeColor: '#0B120D',
     badgeBg: '#EDEDCE'
   },
   {
     role: 'PROCESSING_UNIT',
-    name: 'Bikaner Wool Mill',
-    email: 'processing@wooltrace.com',
-    label: 'Processing Mill',
-    sub: 'Scouring, carding & spinning',
-    path: '/processing',
+    name: 'Kota Food Processing',
+    email: 'processor@khetsetu.in',
+    label: 'Processor',
+    sub: 'Procurement demand and operations',
+    path: '/processor',
     icon: Factory,
     badgeColor: '#1E3A8A',
     badgeBg: '#DBEAFE'
@@ -66,10 +66,10 @@ const ROLES_LIST = [
   {
     role: 'TRANSPORT',
     name: 'Rapid Farm Logistics',
-    email: 'transport@wooltrace.com',
-    label: 'Transport Operator',
-    sub: 'Fleet dispatch & GPS tracking',
-    path: '/transport',
+    email: 'logistics@khetsetu.in',
+    label: 'Logistics Partner',
+    sub: 'Collection, dispatch and tracking',
+    path: '/logistics',
     icon: Truck,
     badgeColor: '#92400E',
     badgeBg: '#FEF3C7'
@@ -143,7 +143,7 @@ export default function UserRoleDropdown() {
 
           {/* Role Switcher Section */}
           <div className="role-section-label">
-            <Sparkles size={13} color="#166534" /> Switch Stakeholder Portal:
+            <Sparkles size={13} color="#166534" /> Switch workspace preview:
           </div>
 
           <div className="roles-list-group">

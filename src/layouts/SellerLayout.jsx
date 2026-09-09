@@ -23,14 +23,11 @@ const SellerLayout = () => {
   const { logout } = useAuth();
 
   const navItems = [
-    { name: 'HOME', path: '/seller', icon: <Home size={20} /> },
-    { name: 'MARKETPLACE', path: '/seller/market', icon: <Store size={20} /> },
-    { name: 'BIDS', path: '/seller/bids', icon: <Gavel size={20} /> },
-    { name: 'ORDERS', path: '/seller/orders', icon: <ShoppingCart size={20} /> },
-    { name: 'CART', path: '/seller/cart', icon: <Package size={20} /> },
-    { name: 'WISHLIST', path: '/seller/wishlist', icon: <List size={20} /> },
-    { name: 'WALLET', path: '/seller/wallet', icon: <Wallet size={20} /> },
-    { name: 'PROFILE', path: '/seller/profile', icon: <User size={20} /> },
+    { name: 'Home', path: '/buyer', icon: <Home size={20} /> },
+    { name: 'Produce marketplace', path: '/buyer/marketplace', icon: <Store size={20} /> },
+    { name: 'Offers & negotiations', path: '/buyer/bids', icon: <Gavel size={20} /> },
+    { name: 'Orders', path: '/buyer/orders', icon: <ShoppingCart size={20} /> },
+    { name: 'Payments', path: '/buyer/payments', icon: <Wallet size={20} /> },
   ];
 
   return (
@@ -38,17 +35,17 @@ const SellerLayout = () => {
       {/* Sidebar for Desktop */}
       <aside className="seller-sidebar">
         <div className="sidebar-header">
-          <Link to="/seller" className="logo">
-            WOOL<span>TRACE</span>
+          <Link to="/buyer" className="logo">
+            KHET<span>SETU</span>
           </Link>
-          <div className="role-badge">SELLER / BUYER</div>
+          <div className="role-badge">Verified buyer workspace</div>
         </div>
         <nav className="sidebar-nav">
           {navItems.map((item) => (
             <NavLink
               key={item.name}
               to={item.path}
-              end={item.path === '/seller'}
+              end={item.path === '/buyer'}
               className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
               style={{ position: 'relative' }}
             >
@@ -94,8 +91,8 @@ const SellerLayout = () => {
           <div className="mobile-nav-overlay">
             <div className="mobile-nav-content">
               <div className="mobile-nav-header">
-                <Link to="/seller" className="logo" onClick={() => setIsMobileMenuOpen(false)}>
-                  WOOL<span>TRACE</span>
+                <Link to="/buyer" className="logo" onClick={() => setIsMobileMenuOpen(false)}>
+                  KHET<span>SETU</span>
                 </Link>
                 <button className="icon-btn" onClick={() => setIsMobileMenuOpen(false)}>
                   <X size={24} />
@@ -106,7 +103,7 @@ const SellerLayout = () => {
                   <NavLink
                     key={item.name}
                     to={item.path}
-                    end={item.path === '/seller'}
+                    end={item.path === '/buyer'}
                     className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >

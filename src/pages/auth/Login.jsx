@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, Globe, AlertCircle, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { getRoleHome } from '../../utils/roleRoutes';
 import './Login.css';
 
 const DEMO_BUTTONS = [
@@ -10,6 +11,7 @@ const DEMO_BUTTONS = [
   { label: 'Quality Partner', email: 'quality@khetsetu.in', role: 'QUALITY_INSPECTOR', color: '#0B120D', bg: '#BED5E5' },
   { label: 'Storage Partner', email: 'storage@khetsetu.in', role: 'WAREHOUSE', color: '#0B120D', bg: '#DDFF86' },
   { label: 'Logistics Partner', email: 'logistics@khetsetu.in', role: 'TRANSPORT', color: '#92400E', bg: '#FEF3C7' },
+  { label: 'Processor', email: 'processor@khetsetu.in', role: 'PROCESSING_UNIT', color: '#1E3A8A', bg: '#DBEAFE' },
 ];
 
 const Login = () => {
@@ -26,7 +28,7 @@ const Login = () => {
     setErrorMessage('');
     const result = await login(idToUse, passToUse);
     if (result.success) {
-      navigate('/platform');
+      navigate(getRoleHome(result.user?.role));
     } else {
       setErrorMessage(result.message || 'Login failed. Please check your credentials.');
     }

@@ -61,6 +61,20 @@ export default function Market() {
   } = useGlobalState();
 
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
+  const openTab = (tab) => {
+    setActiveTab(tab);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('tab', tab);
+      next.set('crop', selectedCommodityId);
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && tab !== activeTab) setActiveTab(tab);
+  }, [searchParams, activeTab]);
   
   // Commodity & Category Selector State
   const [selectedCategory, setSelectedCategory] = useState('ALL');
@@ -249,35 +263,35 @@ export default function Market() {
 
       {/* Navigation Tabs */}
       <div className="market-nav-tabs">
-        <button className={`nav-tab ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
+        <button className={`nav-tab ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => openTab('overview')}>
           <LineChart size={16} />
           <span>Market Overview</span>
         </button>
-        <button className={`nav-tab ${activeTab === 'discovery' ? 'active' : ''}`} onClick={() => setActiveTab('discovery')}>
+        <button className={`nav-tab ${activeTab === 'discovery' ? 'active' : ''}`} onClick={() => openTab('discovery')}>
           <Target size={16} />
           <span>Price Discovery & Net Return</span>
         </button>
-        <button className={`nav-tab ${activeTab === 'trends' ? 'active' : ''}`} onClick={() => setActiveTab('trends')}>
+        <button className={`nav-tab ${activeTab === 'trends' ? 'active' : ''}`} onClick={() => openTab('trends')}>
           <BarChart2 size={16} />
           <span>Price Trends</span>
         </button>
-        <button className={`nav-tab ${activeTab === 'buyers' ? 'active' : ''}`} onClick={() => setActiveTab('buyers')}>
+        <button className={`nav-tab ${activeTab === 'buyers' ? 'active' : ''}`} onClick={() => openTab('buyers')}>
           <Building size={16} />
           <span>Buyer Discovery & Demand</span>
         </button>
-        <button className={`nav-tab ${activeTab === 'lots' ? 'active' : ''}`} onClick={() => setActiveTab('lots')}>
+        <button className={`nav-tab ${activeTab === 'lots' ? 'active' : ''}`} onClick={() => openTab('lots')}>
           <Layers size={16} />
           <span>My Lots & Aggregation</span>
         </button>
-        <button className={`nav-tab ${activeTab === 'offers' ? 'active' : ''}`} onClick={() => setActiveTab('offers')}>
+        <button className={`nav-tab ${activeTab === 'offers' ? 'active' : ''}`} onClick={() => openTab('offers')}>
           <FileText size={16} />
           <span>Digital Offers ({marketOffers.filter(o => o.status === 'PENDING').length})</span>
         </button>
-        <button className={`nav-tab ${activeTab === 'transactions' ? 'active' : ''}`} onClick={() => setActiveTab('transactions')}>
+        <button className={`nav-tab ${activeTab === 'transactions' ? 'active' : ''}`} onClick={() => openTab('transactions')}>
           <CreditCard size={16} />
           <span>Transactions & Escrow</span>
         </button>
-        <button className={`nav-tab ${activeTab === 'disputes' ? 'active' : ''}`} onClick={() => setActiveTab('disputes')}>
+        <button className={`nav-tab ${activeTab === 'disputes' ? 'active' : ''}`} onClick={() => openTab('disputes')}>
           <AlertTriangle size={16} />
           <span>Disputes ({disputes.length})</span>
         </button>
@@ -290,7 +304,7 @@ export default function Market() {
             selectedCommodityId={selectedCommodityId}
             saleWindowAdvisory={saleWindowAdvisory}
             marketTransactions={marketTransactions}
-            onLaunchDiscovery={() => setActiveTab('discovery')}
+            onLaunchDiscovery={() => openTab('discovery')}
           />
         )}
 
@@ -313,7 +327,7 @@ export default function Market() {
             channelsComparison={channelsComparison}
             onSelectChannel={(ch) => {
               showToast(`Initiated lot connection with ${ch.buyerName} at ₹${ch.pricePerKg}/KG.`);
-              setActiveTab('lots');
+              openTab('lots');
             }}
           />
         )}
@@ -333,7 +347,7 @@ export default function Market() {
             buyerDemands={matchedDemands}
             onQuoteBuyer={(buyer) => {
               showToast(`Direct lot quote submitted to ${buyer.buyerName}.`);
-              setActiveTab('offers');
+              openTab('offers');
             }}
           />
         )}
@@ -353,7 +367,7 @@ export default function Market() {
             onAcceptOffer={(offer) => {
               createTransactionFromOffer(offer.id);
               showToast(`Offer ${offer.id} accepted. Escrow transaction created!`);
-              setActiveTab('transactions');
+              openTab('transactions');
             }}
             onRejectOffer={(offer) => {
               respondOffer(offer.id, 'REJECTED');
@@ -409,7 +423,7 @@ export default function Market() {
               });
               setShowCreateLotModal(false);
               showToast('Produce lot published to national buyer marketplace!');
-              setActiveTab('lots');
+              openTab('lots');
             }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
@@ -481,7 +495,7 @@ export default function Market() {
               });
               setShowFPOModal(false);
               showToast('FPO Aggregated Lot created successfully!');
-              setActiveTab('lots');
+              openTab('lots');
             }}>
               <div style={{ background: '#F8F8F3', padding: '14px', borderRadius: '10px', marginBottom: '14px', fontSize: '13px' }}>
                 <div style={{ fontWeight: '800', marginBottom: '6px' }}>Selected Batches to Aggregate:</div>
@@ -589,7 +603,7 @@ export default function Market() {
                 raiseTransactionDispute(activeTxnForDispute.id, { reasonCategory: disputeReasonCategory, description: disputeDesc });
                 setShowDisputeModal(false);
                 showToast(`Dispute raised for ${activeTxnForDispute.id}. Escrow locked pending mediation.`);
-                setActiveTab('disputes');
+                openTab('disputes');
               }}>
                 Submit for CEDA / APMC Mediation
               </button>

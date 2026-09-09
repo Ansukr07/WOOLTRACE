@@ -19,22 +19,32 @@ export default async function handler(req, res) {
       $or: [{ email: identifier }, { mobile: identifier }]
     });
 
-    // Fallback: If it's a demo account and doesn't exist, create it on the fly
-    if (!user && identifier.endsWith('@wooltrace.com')) {
-      let role = 'FARMER';
-      if (identifier.includes('seller')) role = 'SELLER';
-      if (identifier.includes('inspector')) role = 'QUALITY_INSPECTOR';
-      if (identifier.includes('warehouse')) role = 'WAREHOUSE';
-      if (identifier.includes('transport')) role = 'TRANSPORT';
-      if (identifier.includes('processing')) role = 'PROCESSING_UNIT';
-      if (identifier.includes('educator') || identifier.includes('teacher')) role = 'EDUCATOR';
+    const inferDemoRole = (email) => {
+      if (email.includes('seller') || email.includes('buyer')) return 'SELLER';
+      if (email.includes('inspector') || email.includes('quality')) return 'QUALITY_INSPECTOR';
+      if (email.includes('warehouse') || email.includes('storage')) return 'WAREHOUSE';
+      if (email.includes('transport') || email.includes('logistics')) return 'TRANSPORT';
+      if (email.includes('processing') || email.includes('processor')) return 'PROCESSING_UNIT';
+      if (email.includes('educator') || email.includes('teacher')) return 'EDUCATOR';
+      return 'FARMER';
+    };
 
+    // Demo profiles are provisioned on demand for each KhetSetu workspace.
+    const isDemoProfile = identifier.endsWith('@wooltrace.com') || identifier.endsWith('@khetsetu.in');
+    const demoRole = inferDemoRole(identifier);
+    if (!user && isDemoProfile) {
       user = await User.create({
         name: identifier.split('@')[0].toUpperCase(),
         email: identifier,
         password: password,
-        role: role
+        role: demoRole
       });
+    }
+
+    // Correct locally seeded demo accounts from older role names.
+    if (user && isDemoProfile && user.role !== demoRole) {
+      user.role = demoRole;
+      await user.save();
     }
 
     if (!user) {
@@ -42,7 +52,7 @@ export default async function handler(req, res) {
     }
 
     if (user.password !== password) {
-      if (identifier.endsWith('@wooltrace.com')) {
+      if (isDemoProfile) {
         // bypass
       } else {
         return res.status(401).json({ message: 'Incorrect password.' });

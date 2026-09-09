@@ -77,8 +77,8 @@ const ProcessingLayout = () => {
   }, []);
 
   const navItems = [
-    { name: 'DASHBOARD', path: '/processing', icon: <LayoutDashboard size={20} />, end: true },
-    { name: 'RESOURCE & SUSTAINABILITY', path: '/processing/sustainability', icon: <Leaf size={20} /> }
+    { name: 'Dashboard', path: '/processor', icon: <LayoutDashboard size={20} />, end: true },
+    { name: 'Resource & sustainability', path: '/processor/sustainability', icon: <Leaf size={20} /> }
   ];
 
   return (
@@ -86,12 +86,12 @@ const ProcessingLayout = () => {
       {/* Sidebar for Desktop */}
       <aside className="processing-sidebar">
         <div className="processing-sidebar-header">
-          <Link to="/processing" className="processing-logo">
-            WOOL<span>TRACE</span>
+          <Link to="/processor" className="processing-logo">
+            KHET<span>SETU</span>
           </Link>
           <div className="processing-unit-badge">
             <Factory size={12} />
-            <span>Processing Unit</span>
+            <span>Processor workspace</span>
           </div>
         </div>
         <nav className="processing-sidebar-nav">

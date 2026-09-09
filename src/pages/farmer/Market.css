@@ -670,3 +670,74 @@
   font-size: 14px;
   cursor: pointer;
 }
+
+/* KhetSetu farmer market workspace: keeps each tool focused and readable. */
+.farmer-market-page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 8px 0 32px;
+  color: #10251a;
+}
+
+.market-header-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 28px;
+  padding: 28px 30px;
+  margin-bottom: 20px;
+  border: 1px solid #dce8d7;
+  border-radius: 20px;
+  background: linear-gradient(120deg, #f8fff4 0%, #ffffff 65%);
+  box-shadow: 0 12px 30px rgba(25, 65, 33, 0.07);
+}
+
+.market-header-banner h1 {
+  margin: 8px 0 8px;
+  font-size: clamp(24px, 3vw, 34px);
+  letter-spacing: -0.035em;
+}
+
+.market-header-banner p { margin: 0; max-width: 680px; color: #577060; font-size: 15px; line-height: 1.55; }
+.sih-tag { display: inline-flex; padding: 6px 10px; border-radius: 999px; background: #dff3d5; color: #21643a; font-size: 11px; font-weight: 800; letter-spacing: .06em; }
+.header-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.header-actions button { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; border-radius: 10px; }
+
+.market-nav-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  margin: 0 0 20px;
+  overflow-x: auto;
+  border: 1px solid #e3ece0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(24, 58, 31, 0.04);
+}
+
+.market-nav-tabs .nav-tab {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 9px;
+  padding: 10px 13px;
+  color: #50655a;
+  background: transparent;
+  font: 700 13px/1.2 inherit;
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease, transform .16s ease;
+}
+
+.market-nav-tabs .nav-tab:hover { background: #f1f8ee; color: #153a22; }
+.market-nav-tabs .nav-tab.active { background: #173c25; color: #fff; box-shadow: 0 5px 12px rgba(23,60,37,.18); }
+.market-tab-content { min-width: 0; }
+
+@media (max-width: 760px) {
+  .farmer-market-page { padding-bottom: 20px; }
+  .market-header-banner { padding: 22px 18px; align-items: flex-start; flex-direction: column; border-radius: 16px; }
+  .header-actions { width: 100%; }
+  .header-actions button { flex: 1; justify-content: center; }
+  .market-nav-tabs { margin-left: -4px; margin-right: -4px; border-radius: 12px; }
+}

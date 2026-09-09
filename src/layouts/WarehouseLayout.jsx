@@ -18,18 +18,18 @@ export default function WarehouseLayout() {
   const pendingReleaseCount = releaseRequests.filter(r => r.status === 'Pending').length;
 
   const navItems = [
-    { name: 'Dashboard', path: '/warehouse', icon: <LayoutDashboard size={18} />, end: true },
-    { name: 'Check-In & Scan', path: '/warehouse/check-in', icon: <QrCode size={18} /> },
-    { name: 'Inventory & Slots', path: '/warehouse/inventory', icon: <Boxes size={18} /> },
+    { name: 'Dashboard', path: '/storage', icon: <LayoutDashboard size={18} />, end: true },
+    { name: 'Check-in & scan', path: '/storage/check-in', icon: <QrCode size={18} /> },
+    { name: 'Capacity & slots', path: '/storage/inventory', icon: <Boxes size={18} /> },
     { 
       name: 'Storage Requests', 
-      path: '/warehouse/requests', 
+      path: '/storage/requests',
       icon: <Inbox size={18} />, 
       badge: pendingStorageCount > 0 ? pendingStorageCount : null 
     },
     { 
       name: 'Release Requests', 
-      path: '/warehouse/releases', 
+      path: '/storage/releases',
       icon: <ArrowUpRight size={18} />, 
       badge: pendingReleaseCount > 0 ? pendingReleaseCount : null 
     },
@@ -40,11 +40,11 @@ export default function WarehouseLayout() {
       {/* Sidebar */}
       <aside className="warehouse-sidebar">
         <div className="warehouse-sidebar-header">
-          <Link to="/warehouse" className="warehouse-logo">
-            WOOL<span>TRACE</span>
+          <Link to="/storage" className="warehouse-logo">
+            KHET<span>SETU</span>
           </Link>
           <div className="warehouse-role-tag">
-            Warehouse Operator Portal
+            Storage partner workspace
           </div>
         </div>
 
@@ -91,8 +91,8 @@ export default function WarehouseLayout() {
         <div className="mobile-nav-overlay" onClick={() => setIsMobileMenuOpen(false)}>
           <div className="mobile-nav-content" onClick={e => e.stopPropagation()}>
             <div className="mobile-nav-header">
-              <Link to="/warehouse" className="logo" onClick={() => setIsMobileMenuOpen(false)}>
-                WOOL<span>TRACE</span>
+              <Link to="/storage" className="logo" onClick={() => setIsMobileMenuOpen(false)}>
+                KHET<span>SETU</span>
               </Link>
               <button onClick={() => setIsMobileMenuOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                 <X size={24} color="#0B120D" />

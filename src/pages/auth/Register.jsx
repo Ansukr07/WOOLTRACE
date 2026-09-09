@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, Box, Store, ShieldCheck, Warehouse, Truck, Combine, BookOpen, AlertCircle, CheckCircle, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { getRoleHome } from '../../utils/roleRoutes';
 import './Login.css';
 
 const ROLES = [
@@ -46,7 +47,7 @@ const Register = () => {
     if (result.success) {
       setSuccessMessage('Account created successfully! Redirecting to your dashboard...');
       setTimeout(() => {
-        navigate('/platform');
+        navigate(getRoleHome(result.user?.role));
       }, 1000);
     } else {
       setErrorMessage(result.message || 'Registration failed. Please check your information.');

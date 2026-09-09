@@ -28,15 +28,14 @@ const FarmerLayout = () => {
   const pendingOffersCount = (marketOffers || []).filter(o => o.status === 'PENDING').length;
 
   const navItems = [
-    { name: 'HOME', path: '/farmer', icon: <Home size={18} /> },
-    { name: 'MARKET & PRICES', path: '/farmer/market', icon: <LineChart size={18} />, badge: pendingOffersCount > 0 ? pendingOffersCount : null },
-    { name: 'MY PRODUCE', path: '/farmer/my-wool', icon: <Box size={18} /> },
-    { name: 'TRACK PASSPORT', path: '/farmer/track', icon: <QrCode size={18} /> },
-    { name: 'STORAGE & SILOS', path: '/farmer/warehouses', icon: <Warehouse size={18} /> },
-    { name: 'SERVICES & QA', path: '/farmer/services', icon: <Wrench size={18} /> },
-    { name: 'WALLET', path: '/farmer/wallet', icon: <Wallet size={18} /> },
-    { name: 'ACADEMY', path: '/farmer/academy', icon: <BookOpen size={18} /> },
-    { name: 'AGRI-STORE', path: '/farmer/woolkart', icon: <ShoppingCart size={18} /> },
+    { name: 'Home', path: '/farmer', icon: <Home size={18} /> },
+    { name: 'Market intelligence', path: '/farmer/market', icon: <LineChart size={18} />, badge: pendingOffersCount > 0 ? pendingOffersCount : null },
+    { name: 'My produce & lots', path: '/farmer/produce', icon: <Box size={18} /> },
+    { name: 'Quality & traceability', path: '/farmer/track', icon: <QrCode size={18} /> },
+    { name: 'Storage options', path: '/farmer/storage', icon: <Warehouse size={18} /> },
+    { name: 'Services & quality support', path: '/farmer/services', icon: <Wrench size={18} /> },
+    { name: 'Payments', path: '/farmer/payments', icon: <Wallet size={18} /> },
+    { name: 'Market learning', path: '/farmer/academy', icon: <BookOpen size={18} /> },
   ];
 
   return (
@@ -45,10 +44,10 @@ const FarmerLayout = () => {
       <aside className="farmer-sidebar">
         <div className="sidebar-header">
           <Link to="/farmer" className="logo">
-            WOOL<span>TRACE</span>
+            KHET<span>SETU</span>
           </Link>
           <div style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', color: '#166534', marginTop: '4px' }}>
-            Farmer Portal ✓
+            Farmer &amp; FPO workspace
           </div>
         </div>
         <nav className="sidebar-nav">
@@ -109,7 +108,7 @@ const FarmerLayout = () => {
             <div className="mobile-nav-content">
               <div className="mobile-nav-header">
                 <Link to="/farmer" className="logo" onClick={() => setIsMobileMenuOpen(false)}>
-                  WOOL<span>TRACE</span>
+                  KHET<span>SETU</span>
                 </Link>
                 <button className="icon-btn" onClick={() => setIsMobileMenuOpen(false)}>
                   <X size={24} />

@@ -15,15 +15,15 @@ const InspectorLayout = () => {
       <aside className="inspector-sidebar">
         <div className="sidebar-brand">
           <ShieldCheck size={24} color="#DDFF86" />
-          <span>WoolTrace QA</span>
+          <span>KhetSetu Quality</span>
         </div>
         <nav className="sidebar-nav">
           <button 
-            className={`nav-item ${location.pathname === '/inspector' ? 'active' : ''}`}
-            onClick={() => navigate('/inspector')}
+            className={`nav-item ${location.pathname === '/quality' ? 'active' : ''}`}
+            onClick={() => navigate('/quality')}
           >
             <ClipboardList size={18} />
-            Inspection Requests
+            Produce grading queue
           </button>
         </nav>
         <div className="sidebar-footer">
