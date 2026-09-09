@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Bot, ChevronDown, Loader2, MessageCircle, Send, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ChevronDown, Loader2, MessageCircle, Send, X } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './MarketChatbot.css';
 
@@ -10,17 +11,22 @@ const ROLE_CONTENT = {
 };
 
 export default function MarketChatbot() {
+  const { pathname } = useLocation();
   const { user } = useAuth(); const roleContent = ROLE_CONTENT[user?.role] || ROLE_CONTENT.FARMER;
   const [open, setOpen] = useState(false); const [language, setLanguage] = useState('English'); const [input, setInput] = useState(''); const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState([{ role: 'assistant', content: roleContent.greeting }]);
+  const visible = ((pathname === '/farmer' || pathname.startsWith('/farmer/')) && user?.role === 'FARMER')
+    || ((pathname === '/buyer' || pathname.startsWith('/buyer/')) && user?.role === 'SELLER');
+  useEffect(() => { setOpen(false); }, [pathname]);
   const send = async (event) => {
     event?.preventDefault(); const text = input.trim(); if (!text || loading) return;
     const next = [...messages, { role: 'user', content: text }]; setMessages(next); setInput('');
     if (roleContent.quick[text]) { setMessages(current => [...current, { role: 'assistant', content: roleContent.quick[text] }]); return; }
     setLoading(true);
-    try { const controller = new AbortController(); const timeout = window.setTimeout(() => controller.abort(), 8000); const response = await fetch('/api/ai/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: controller.signal, body: JSON.stringify({ messages: next, language, context: { role: user?.role, name: user?.name, state: user?.state } }) }); window.clearTimeout(timeout); const payload = await response.json(); if (!response.ok || !payload.success) throw new Error(payload.message || 'Chat is unavailable'); setMessages(current => [...current, { role: 'assistant', content: payload.answer }]); }
+    try { const controller = new AbortController(); const timeout = window.setTimeout(() => controller.abort(), 12000); const response = await fetch('/api/ai/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: controller.signal, body: JSON.stringify({ messages: next, language, context: { role: user?.role, name: user?.name, state: user?.state } }) }); window.clearTimeout(timeout); const payload = await response.json(); if (!response.ok || !payload.success) throw new Error(payload.message || 'Chat is unavailable'); setMessages(current => [...current, { role: 'assistant', content: payload.answer }]); }
     catch (error) { setMessages(current => [...current, { role: 'assistant', content: error.name === 'AbortError' ? 'The assistant is taking longer than expected. Try a suggested question for an instant answer.' : `I couldn't connect right now. ${error.message}` }]); } finally { setLoading(false); }
   };
   const useSuggestion = (text) => { if (roleContent.quick[text]) setMessages(current => [...current, { role: 'user', content: text }, { role: 'assistant', content: roleContent.quick[text] }]); else setInput(text); };
-  return <>{!open && <button className="market-chat-launcher" onClick={() => setOpen(true)} aria-label="Open market assistant"><MessageCircle size={21} /><span>Market Assistant</span></button>}{open && <section className="market-chat" aria-label="KhetSetu Market Assistant"><header><div className="market-chat-title"><span className="market-chat-icon"><Bot size={18} /></span><div><strong>Market Assistant</strong><small>{user?.name ? `For ${user.name}` : 'AI guidance for your next sale'}</small></div></div><button onClick={() => setOpen(false)} aria-label="Close chat"><X size={18} /></button></header><div className="market-chat-toolbar"><span>Reply language</span><label><select value={language} onChange={event => setLanguage(event.target.value)}>{LANGUAGES.map(item => <option key={item}>{item}</option>)}</select><ChevronDown size={14} /></label></div><div className="market-chat-suggestions">{roleContent.suggestions.map(item => <button key={item} type="button" onClick={() => useSuggestion(item)}>{item}</button>)}</div><div className="market-chat-messages">{messages.map((message, index) => <div key={`${message.role}-${index}`} className={`market-chat-message ${message.role}`}>{message.content}</div>)}{loading && <div className="market-chat-message assistant"><Loader2 className="market-chat-spin" size={15} /> Thinking…</div>}</div><form onSubmit={send}><input value={input} onChange={event => setInput(event.target.value)} placeholder="Ask about your market…" aria-label="Message" /><button type="submit" disabled={!input.trim() || loading} aria-label="Send message"><Send size={17} /></button></form></section>}</>;
+  if (!visible) return null;
+  return <>{!open && <button className="market-chat-launcher" onClick={() => setOpen(true)} aria-label="Open market assistant"><MessageCircle size={20} /><span>Market Assistant</span></button>}{open && <section className="market-chat" aria-label="KhetSetu Market Assistant"><header><div className="market-chat-title"><div><strong>Market Assistant</strong><small>{user?.name ? `Guidance for ${user.name}` : 'Practical market guidance'}</small></div></div><button onClick={() => setOpen(false)} aria-label="Close chat"><X size={18} /></button></header><div className="market-chat-toolbar"><span>Response language</span><label><select value={language} onChange={event => setLanguage(event.target.value)}>{LANGUAGES.map(item => <option key={item}>{item}</option>)}</select><ChevronDown size={14} /></label></div><div className="market-chat-suggestions">{roleContent.suggestions.map(item => <button key={item} type="button" onClick={() => useSuggestion(item)}>{item}</button>)}</div><div className="market-chat-messages">{messages.map((message, index) => <div key={`${message.role}-${index}`} className={`market-chat-message ${message.role}`}>{message.content}</div>)}{loading && <div className="market-chat-message assistant"><Loader2 className="market-chat-spin" size={15} /> Preparing an answer…</div>}</div><form onSubmit={send}><input value={input} onChange={event => setInput(event.target.value)} placeholder="Ask about prices, offers or payments" aria-label="Message" /><button type="submit" disabled={!input.trim() || loading} aria-label="Send message"><Send size={17} /></button></form></section>}</>;
 }
