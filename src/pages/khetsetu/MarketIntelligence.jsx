@@ -438,6 +438,11 @@ export default function MarketIntelligence() {
   // Expandable accordions
   const [expandedReasoning, setExpandedReasoning] = useState(false);
   const [expandedBuyerId, setExpandedBuyerId] = useState(null);
+  const [aiEvidenceOpen, setAiEvidenceOpen] = useState(false);
+  const [aiAssistantLoading, setAiAssistantLoading] = useState(false);
+  const [aiAssistantResult, setAiAssistantResult] = useState(null);
+  const [aiAssistantEvidence, setAiAssistantEvidence] = useState([]);
+  const [aiAssistantError, setAiAssistantError] = useState('');
 
   // Lot Creation Form State
   const [newLot, setNewLot] = useState({
@@ -1071,6 +1076,159 @@ export default function MarketIntelligence() {
     });
     return top;
   }, [marketChannels]);
+
+  const buildAiEvidence = useCallback(() => {
+    const sourceLabel = livePriceData ? dataSource : 'KhetSetu demo data';
+    const evidence = [
+      {
+        id: 'commodity-selected',
+        type: 'commodity',
+        label: 'Selected commodity',
+        value: `${commodity.name} in ${selectedDistrict}, ${selectedState}`,
+        source: 'KhetSetu UI selection'
+      },
+      {
+        id: 'market-reference-price',
+        type: 'price',
+        label: 'Market/reference price',
+        value: `Rs ${(currentModalPrice || 0).toLocaleString('en-IN')} per quintal`,
+        source: sourceLabel
+      },
+      {
+        id: 'price-trend',
+        type: 'trend',
+        label: '7-day price trend',
+        value: livePriceData?.trendPct || 'Demo trend +3.8%',
+        source: sourceLabel
+      },
+      {
+        id: 'arrival-volume',
+        type: 'supply',
+        label: 'Arrival volume',
+        value: `${(livePriceData?.arrivals || 1240).toLocaleString('en-IN')} tonnes`,
+        source: livePriceData ? sourceLabel : 'KhetSetu demo data'
+      },
+      {
+        id: 'forecast-recommendation',
+        type: 'forecast',
+        label: 'Sale-window recommendation',
+        value: forecast.recommendation,
+        source: 'KhetSetu forecast service'
+      },
+      {
+        id: 'forecast-range',
+        type: 'forecast',
+        label: 'Expected price range',
+        value: forecast.expectedPriceRange,
+        source: 'KhetSetu forecast service'
+      },
+      {
+        id: 'forecast-confidence',
+        type: 'forecast',
+        label: 'Forecast confidence',
+        value: forecast.confidence,
+        source: 'KhetSetu forecast service'
+      }
+    ];
+
+    if (bestChannel) {
+      evidence.push({
+        id: 'best-net-realization-channel',
+        type: 'net_realization',
+        label: 'Best net realization channel',
+        value: `${bestChannel.name || bestChannel.channelName || bestChannel.channelId}: Rs ${(bestChannel.netRealizationPerQtl || 0).toLocaleString('en-IN')} per quintal`,
+        source: 'KhetSetu net realization calculation'
+      });
+    }
+
+    matchedBuyers.slice(0, 3).forEach((buyer, index) => {
+      evidence.push({
+        id: `buyer-offer-${index + 1}`,
+        type: 'buyer_offer',
+        label: `${buyer.companyName} offer signal`,
+        value: `Rs ${(buyer.offeredPricePerQtl || 0).toLocaleString('en-IN')} per quintal; match ${buyer.matchScore}%; required grade ${buyer.requiredGrade}`,
+        source: 'KhetSetu buyer demand/demo data'
+      });
+      if (buyer.qualityReference) {
+        evidence.push({
+          id: `buyer-quality-reference-${index + 1}`,
+          type: 'quality_offer_comparison',
+          label: `${buyer.companyName} quality reference comparison`,
+          value: `${buyer.qualityReference.label}; difference Rs ${(buyer.qualityReference.diff * 100).toLocaleString('en-IN')} per quintal`,
+          source: 'KhetSetu quality-aware offer comparison'
+        });
+      }
+    });
+
+    if (isWoolCommodity && woolQualityPrice?.hasVerifiedCertificate) {
+      evidence.push({
+        id: 'wool-quality-adjusted-reference',
+        type: 'wool_quality_price',
+        label: 'Verified wool quality-adjusted reference',
+        value: `Certificate ${woolQualityPrice.certificateId}; base Rs ${woolQualityPrice.basePrice.toLocaleString('en-IN')}/kg; adjustments ${woolQualityPrice.totalAdjustment >= 0 ? '+' : ''}Rs ${woolQualityPrice.totalAdjustment.toLocaleString('en-IN')}/kg; adjusted Rs ${woolQualityPrice.adjustedPrice.toLocaleString('en-IN')}/kg; fair range Rs ${woolQualityPrice.fairPriceRange.low.toLocaleString('en-IN')}-${woolQualityPrice.fairPriceRange.high.toLocaleString('en-IN')}/kg`,
+        source: 'Verified QualityCertificate and KhetSetu wool quality pricing rules'
+      });
+    } else if (isWoolCommodity) {
+      evidence.push({
+        id: 'wool-quality-unverified',
+        type: 'wool_quality_status',
+        label: 'Wool quality verification status',
+        value: 'Quality verification required for quality-adjusted estimate.',
+        source: 'KhetSetu quality status'
+      });
+    }
+
+    return evidence;
+  }, [
+    bestChannel,
+    commodity,
+    currentModalPrice,
+    dataSource,
+    forecast,
+    isWoolCommodity,
+    livePriceData,
+    matchedBuyers,
+    selectedDistrict,
+    selectedState,
+    woolQualityPrice
+  ]);
+
+  const handleAnalyzeMarketWithAi = async () => {
+    const evidence = buildAiEvidence();
+    setAiAssistantEvidence(evidence);
+    setAiAssistantResult(null);
+    setAiAssistantError('');
+    setAiEvidenceOpen(false);
+    setAiAssistantLoading(true);
+
+    try {
+      const response = await fetch('/api/ai/market-advisor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          context: {
+            assistantName: 'KhetSetu AI Market Assistant',
+            commodityId: selectedCrop,
+            commodityName: commodity.name,
+            district: selectedDistrict,
+            state: selectedState
+          },
+          evidence
+        })
+      });
+      const text = await response.text();
+      const payload = text ? JSON.parse(text) : {};
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.message || payload.error || `AI assistant unavailable (${response.status})`);
+      }
+      setAiAssistantResult(payload.data);
+      setAiAssistantEvidence(payload.evidence || evidence);
+    } catch (error) {
+      setAiAssistantError(error.message || 'KhetSetu AI Market Assistant is unavailable.');
+    } finally {
+      setAiAssistantLoading(false);
+    }
+  };
 
   return (
     <div className="ks-platform-root">
@@ -1827,6 +1985,104 @@ export default function MarketIntelligence() {
                   </div>
                 )}
               </div>
+            </section>
+
+            <section className="ks-card ks-forecast-banner">
+              <div className="ks-forecast-header">
+                <div>
+                  <div className="ks-eyebrow">
+                    <Sparkles size={14} /> ANALYTICAL HELPER
+                  </div>
+                  <h2>KhetSetu AI Market Assistant</h2>
+                  <p className="ks-mini-hint">
+                    Uses only the KhetSetu evidence listed below; it does not fetch news or invent market data.
+                  </p>
+                </div>
+                <button
+                  className="ks-button ks-button-dark"
+                  onClick={handleAnalyzeMarketWithAi}
+                  disabled={aiAssistantLoading}
+                >
+                  {aiAssistantLoading ? 'Analyzing...' : 'Analyze Market'} <Sparkles size={15} />
+                </button>
+              </div>
+
+              {aiAssistantError && (
+                <div className="ks-modal-note" style={{ marginBottom: 12 }}>
+                  <Info size={16} />
+                  <span>{aiAssistantError}</span>
+                </div>
+              )}
+
+              {aiAssistantResult && (
+                <div className="ks-accordion-body">
+                  <div className="ks-forecast-metrics">
+                    <div>
+                      <span>Recommendation</span>
+                      <b>{aiAssistantResult.recommendation.replaceAll('_', ' ')}</b>
+                    </div>
+                    <div>
+                      <span>Confidence</span>
+                      <b className="ks-confidence-tag"><CheckCircle2 size={14} /> {aiAssistantResult.confidence}</b>
+                    </div>
+                  </div>
+                  <p style={{ marginTop: 12 }}>{aiAssistantResult.summary}</p>
+
+                  <ul>
+                    {aiAssistantResult.reasons.map((reason, index) => (
+                      <li key={index}>
+                        <Check size={15} /> {reason.text}
+                        {reason.evidenceIds?.length > 0 && (
+                          <span style={{ color: '#666', marginLeft: 6 }}>
+                            Evidence: {reason.evidenceIds.join(', ')}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <p><b>Suggested action:</b> {aiAssistantResult.suggestedAction}</p>
+
+                  {aiAssistantResult.limitations?.length > 0 && (
+                    <ul>
+                      {aiAssistantResult.limitations.map((item, index) => (
+                        <li key={index}><Info size={15} /> {item}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+
+              <div className="ks-forecast-accordion">
+                <button
+                  className="ks-accordion-toggle"
+                  onClick={() => {
+                    if (aiAssistantEvidence.length === 0) {
+                      setAiAssistantEvidence(buildAiEvidence());
+                    }
+                    setAiEvidenceOpen(!aiEvidenceOpen);
+                  }}
+                >
+                  <span>View Evidence Used</span>
+                  {aiEvidenceOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+
+                {aiEvidenceOpen && (
+                  <div className="ks-accordion-body">
+                    <ul>
+                      {(aiAssistantEvidence.length > 0 ? aiAssistantEvidence : buildAiEvidence()).map(item => (
+                        <li key={item.id}>
+                          <Info size={15} /> <b>{item.id}</b> - {item.label}: {item.value} <span style={{ color: '#666' }}>({item.source})</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              <p className="ks-disclaimer">
+                <Info size={13} /> AI-generated analytical assistance based on available KhetSetu data. Not financial advice. Verify current market conditions before making a sale decision.
+              </p>
             </section>
 
             <section className="ks-card ks-nearby-section">
