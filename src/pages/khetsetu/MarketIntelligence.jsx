@@ -27,7 +27,7 @@ import {
   ShieldCheck, ArrowRight, PackagePlus, WalletCards,
   MessageSquareWarning, Gavel, X, Sparkles, Filter, Info, Building2,
   Truck, Award, FileText, CheckCircle2, BarChart3, Globe, ArrowLeft,
-  Compass, Activity, HelpCircle, ClipboardList
+  Compass, Activity, HelpCircle, ClipboardList, Users
 } from 'lucide-react';
 
 const TRANSLATIONS = {
@@ -387,6 +387,28 @@ export default function MarketIntelligence() {
   const [selectedDistrict, setSelectedDistrict] = useState('Kota');
   const [activeTab, setActiveTab] = useState(requestedView || (isQualityPartner ? 'trust' : 'overview'));
 
+  const normalizeView = useCallback((view) => {
+    const aliases = {
+      market: 'overview',
+      prices: 'overview',
+      forecast: 'overview',
+      logistics: 'comparison',
+      transaction: 'payments',
+      transactions: 'payments',
+      grievance: 'disputes',
+      demand: 'demand'
+    };
+    return aliases[view] || ['overview', 'crop50', 'comparison', 'logistics', 'demand', 'buyers', 'trust', 'lots', 'fpo', 'payments', 'disputes'].includes(view)
+      ? (aliases[view] || view)
+      : 'overview';
+  }, []);
+
+  const selectTab = useCallback((tab) => {
+    const nextTab = normalizeView(tab);
+    setActiveTab(nextTab);
+    navigate(`/platform?view=${nextTab}`);
+  }, [navigate, normalizeView]);
+
   // Derived Commodity Data from Registry
   const commodity = useMemo(() => {
     return getCommodityById(selectedCrop) || COMMODITIES[0];
@@ -598,11 +620,11 @@ export default function MarketIntelligence() {
 
   useEffect(() => {
     if (requestedView) {
-      setActiveTab(requestedView);
+      setActiveTab(normalizeView(requestedView));
     } else if (isQualityPartner) {
       setActiveTab('trust');
     }
-  }, [isQualityPartner, requestedView]);
+  }, [isQualityPartner, requestedView, normalizeView]);
 
   useEffect(() => {
     if (!(isWoolCommodity || isQualityPartner || activeTab === 'trust')) {
@@ -1241,7 +1263,7 @@ export default function MarketIntelligence() {
 
       {/* TOP CROP50 NATIONAL PULSE TICKER STRIP */}
       <aside className="ks-crop50-ticker-strip">
-        <div className="ks-ticker-content" onClick={() => setActiveTab('crop50')}>
+        <div className="ks-ticker-content" onClick={() => selectTab('crop50')}>
           <div className="ks-ticker-badge">
             <Activity size={13} />
             <b>CROP50 INDEX</b>
@@ -1257,7 +1279,7 @@ export default function MarketIntelligence() {
             <span>Market Breadth: <b>{crop50Index.gainersCount} Advancing, {crop50Index.losersCount} Softening</b></span>
           </div>
         </div>
-        <button className="ks-ticker-view-btn" onClick={() => setActiveTab('crop50')}>
+        <button className="ks-ticker-view-btn" onClick={() => selectTab('crop50')}>
           Explore CROP50 Index <ArrowRight size={13} />
         </button>
       </aside>
@@ -1353,7 +1375,7 @@ export default function MarketIntelligence() {
               <button 
                 type="button"
                 className={'ks-sidebar-btn ' + (activeTab === 'overview' ? 'active' : '')} 
-                onClick={() => setActiveTab('overview')}
+                onClick={() => selectTab('overview')}
               >
                 <BarChart3 size={17} />
                 <span className="ks-sidebar-btn-label">{t.tabOverview}</span>
@@ -1362,7 +1384,7 @@ export default function MarketIntelligence() {
               <button 
                 type="button"
                 className={'ks-sidebar-btn ' + (activeTab === 'crop50' ? 'active' : '')} 
-                onClick={() => setActiveTab('crop50')}
+                onClick={() => selectTab('crop50')}
               >
                 <Activity size={17} />
                 <span className="ks-sidebar-btn-label">CROP50 Index</span>
@@ -1372,16 +1394,25 @@ export default function MarketIntelligence() {
               <button 
                 type="button"
                 className={'ks-sidebar-btn ' + (activeTab === 'comparison' ? 'active' : '')} 
-                onClick={() => setActiveTab('comparison')}
+                onClick={() => selectTab('comparison')}
               >
                 <Building2 size={17} />
                 <span className="ks-sidebar-btn-label">{t.tabChannels}</span>
               </button>
 
+              <button
+                type="button"
+                className={'ks-sidebar-btn ' + (activeTab === 'logistics' ? 'active' : '')}
+                onClick={() => selectTab('logistics')}
+              >
+                <Truck size={17} />
+                <span className="ks-sidebar-btn-label">Logistics &amp; Storage</span>
+              </button>
+
               <button 
                 type="button"
                 className={'ks-sidebar-btn ' + (activeTab === 'demand' ? 'active' : '')} 
-                onClick={() => setActiveTab('demand')}
+                onClick={() => selectTab('demand')}
               >
                 <Award size={17} />
                 <span className="ks-sidebar-btn-label">{t.tabDemand}</span>
@@ -1396,7 +1427,7 @@ export default function MarketIntelligence() {
                 <button 
                   type="button"
                   className={'ks-sidebar-btn ' + (activeTab === 'trust' ? 'active' : '')} 
-                  onClick={() => setActiveTab('trust')}
+                  onClick={() => selectTab('trust')}
                 >
                   <ClipboardList size={17} />
                   <span className="ks-sidebar-btn-label">Quality Partner</span>
@@ -1407,7 +1438,7 @@ export default function MarketIntelligence() {
               <button 
                 type="button"
                 className={'ks-sidebar-btn ' + (activeTab === 'buyers' ? 'active' : '')} 
-                onClick={() => setActiveTab('buyers')}
+                onClick={() => selectTab('buyers')}
               >
                 <ShieldCheck size={17} />
                 <span className="ks-sidebar-btn-label">{t.tabBuyers}</span>
@@ -1417,17 +1448,26 @@ export default function MarketIntelligence() {
               <button 
                 type="button"
                 className={'ks-sidebar-btn ' + (activeTab === 'lots' ? 'active' : '')} 
-                onClick={() => setActiveTab('lots')}
+                onClick={() => selectTab('lots')}
               >
                 <PackagePlus size={17} />
                 <span className="ks-sidebar-btn-label">{t.tabLots}</span>
                 <span className="ks-sidebar-count-badge">{woolLots ? woolLots.length : 1}</span>
               </button>
 
+              <button
+                type="button"
+                className={'ks-sidebar-btn ' + (activeTab === 'fpo' ? 'active' : '')}
+                onClick={() => selectTab('fpo')}
+              >
+                <Users size={17} />
+                <span className="ks-sidebar-btn-label">FPO Aggregation</span>
+              </button>
+
               <button 
                 type="button"
                 className={'ks-sidebar-btn ' + (activeTab === 'payments' ? 'active' : '')} 
-                onClick={() => setActiveTab('payments')}
+                onClick={() => selectTab('payments')}
               >
                 <WalletCards size={17} />
                 <span className="ks-sidebar-btn-label">{t.tabPayments}</span>
@@ -1436,7 +1476,7 @@ export default function MarketIntelligence() {
               <button 
                 type="button"
                 className={'ks-sidebar-btn ' + (activeTab === 'disputes' ? 'active' : '')} 
-                onClick={() => setActiveTab('disputes')}
+                onClick={() => selectTab('disputes')}
               >
                 <MessageSquareWarning size={17} />
                 <span className="ks-sidebar-btn-label">{t.tabDisputes}</span>
@@ -1559,7 +1599,7 @@ export default function MarketIntelligence() {
                     <button 
                       type="button" 
                       className="ks-btn-view-advisory" 
-                      onClick={() => setActiveTab('overview')}
+                      onClick={() => selectTab('overview')}
                     >
                       <span>View {commodity.name} Advisory</span>
                       <ArrowRight size={13} />
@@ -2112,7 +2152,7 @@ export default function MarketIntelligence() {
                       <td><b>₹{(currentModalPrice || 0).toLocaleString('en-IN')} / qtl</b></td>
                       <td>1,240 t</td>
                       <td><span className="ks-badge blue">0 km</span></td>
-                      <td><button className="ks-link-btn" onClick={() => setActiveTab('comparison')}>Compare Net</button></td>
+                      <td><button className="ks-link-btn" onClick={() => selectTab('comparison')}>Compare Net</button></td>
                     </tr>
                     <tr>
                       <td><b>Ramganj Mandi</b></td>
@@ -2120,7 +2160,7 @@ export default function MarketIntelligence() {
                       <td><b>₹{(Math.round(currentModalPrice * 1.016) || 0).toLocaleString('en-IN')} / qtl</b></td>
                       <td>850 t</td>
                       <td>32 km</td>
-                      <td><button className="ks-link-btn" onClick={() => setActiveTab('comparison')}>Compare Net</button></td>
+                      <td><button className="ks-link-btn" onClick={() => selectTab('comparison')}>Compare Net</button></td>
                     </tr>
                     <tr>
                       <td><b>Baran Mandi</b></td>
@@ -2128,7 +2168,7 @@ export default function MarketIntelligence() {
                       <td><b>₹{(Math.round(currentModalPrice * 0.98) || 0).toLocaleString('en-IN')} / qtl</b></td>
                       <td>1,100 t</td>
                       <td>45 km</td>
-                      <td><button className="ks-link-btn" onClick={() => setActiveTab('comparison')}>Compare Net</button></td>
+                      <td><button className="ks-link-btn" onClick={() => selectTab('comparison')}>Compare Net</button></td>
                     </tr>
                     <tr>
                       <td><b>Bundi APMC</b></td>
@@ -2136,7 +2176,7 @@ export default function MarketIntelligence() {
                       <td><b>₹{(Math.round(currentModalPrice * 1.004) || 0).toLocaleString('en-IN')} / qtl</b></td>
                       <td>620 t</td>
                       <td>38 km</td>
-                      <td><button className="ks-link-btn" onClick={() => setActiveTab('comparison')}>Compare Net</button></td>
+                      <td><button className="ks-link-btn" onClick={() => selectTab('comparison')}>Compare Net</button></td>
                     </tr>
                   </tbody>
                 </table>
@@ -2146,11 +2186,11 @@ export default function MarketIntelligence() {
         )}
 
         {/* TAB 2: PRICE COMPARISON & NET REALIZATION */}
-        {activeTab === 'comparison' && (
+        {(activeTab === 'comparison' || activeTab === 'logistics') && (
           <div className="ks-tab-content">
             <section className="ks-card ks-intro-banner">
               <div className="ks-eyebrow"><Building2 size={14} /> {t.netIntroEyebrow}</div>
-              <h2>{t.netIntroTitle}</h2>
+              <h2>{activeTab === 'logistics' ? 'Coordinate transport and storage with confidence' : t.netIntroTitle}</h2>
               <p>{t.netIntroDesc}</p>
             </section>
 
@@ -2769,6 +2809,27 @@ export default function MarketIntelligence() {
           </div>
         )}
 
+        {/* TAB: FPO AGGREGATION */}
+        {activeTab === 'fpo' && (
+          <div className="ks-tab-content">
+            <section className="ks-card ks-intro-banner">
+              <div className="ks-eyebrow"><Users size={14} /> COLLECTIVE SELLING WORKSPACE</div>
+              <h2>FPO aggregation &amp; shared bargaining power</h2>
+              <p>Pool member lots, standardise quality, and take one verified offer to market with transparent settlement records.</p>
+            </section>
+            <div className="ks-grid-3">
+              <div className="ks-card"><span className="ks-eyebrow">ACTIVE MEMBERS</span><strong className="ks-metric-value">128</strong><p>Farmers contributing this season</p></div>
+              <div className="ks-card"><span className="ks-eyebrow">AGGREGATED VOLUME</span><strong className="ks-metric-value">486 qtl</strong><p>Sell-ready across 14 lots</p></div>
+              <div className="ks-card"><span className="ks-eyebrow">NEGOTIATION LIFT</span><strong className="ks-metric-value ks-green-text">+8.4%</strong><p>Average premium vs. local mandi</p></div>
+            </div>
+            <section className="ks-card">
+              <h3>Recommended aggregation action</h3>
+              <p>Combine Grade A wheat lots from Kota and Bundi to meet Shree Foods’ 200 qtl tender. KhetSetu predicts a ₹90/qtl premium after shared transport.</p>
+              <button className="ks-button ks-button-dark" onClick={() => selectTab('buyers')}>Review matched buyers <ArrowRight size={15} /></button>
+            </section>
+          </div>
+        )}
+
         {/* TAB 6: PAYMENTS */}
         {activeTab === 'payments' && (
           <div className="ks-tab-content">
@@ -2866,7 +2927,7 @@ export default function MarketIntelligence() {
                 onClick={() => {
                   setSelectedCrop(selectedCrop50Detail.id);
                   setSelectedCrop50Detail(null);
-                  setActiveTab('overview');
+                  selectTab('overview');
                 }}
               >
                 Analyze {selectedCrop50Detail.name} Advisory <ArrowRight size={15} />
@@ -2876,7 +2937,7 @@ export default function MarketIntelligence() {
                 onClick={() => {
                   setSelectedCrop(selectedCrop50Detail.id);
                   setSelectedCrop50Detail(null);
-                  setActiveTab('buyers');
+                  selectTab('buyers');
                 }}
               >
                 View Buyers &amp; Net Realization
@@ -3090,7 +3151,7 @@ export default function MarketIntelligence() {
                 ? 'Sell Lot created for ' + listingQuantity + ' ' + (selectedBatch.unit || 'KG') + ' from ' + batchId + '. Matched buyers notified!'
                 : 'Sell Lot created for ' + listingQuantity + ' ' + genericUnit + ' of ' + commodity.name + '. Matched buyers notified!'
             );
-            setActiveTab('lots');
+            selectTab('lots');
           }}>
             <button type="button" className="ks-close" onClick={() => setLotModalOpen(false)}><X /></button>
             <div className="ks-eyebrow"><PackagePlus size={14} /> SELL-READY LOT</div>
