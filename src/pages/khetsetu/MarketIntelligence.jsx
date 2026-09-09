@@ -11,11 +11,12 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useGlobalState } from '../../context/GlobalStateContext';
 import { useAuth } from '../../context/AuthContext';
 import { COMMODITIES, getCommodityById } from '../../services/market/cropCommodityRegistry';
-import { getMarketChannelsForCommodity } from '../../services/market/marketIntelligenceService';
+import { calculateNetRealization, getMarketChannelsForCommodity } from '../../services/market/marketIntelligenceService';
 import { calculateMatchScore } from '../../services/market/matchingEngine';
 import { getPriceForecastAndRecommendation } from '../../services/market/priceforecastService';
 import { agmarknetService, formatDate, getDateOffset } from '../../services/market/agmarknetService';
 import { crop50Service, CROP50_METADATA } from '../../services/market/crop50Service';
+import { calculateWoolQualityPrice, compareOfferToQualityReference } from '../../services/market/woolQualityPricingService';
 import { qaService } from '../../services/qa/qaService';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import QRCode from 'react-qr-code';
@@ -516,6 +517,16 @@ export default function MarketIntelligence() {
     allCertificates.find(cert => cert.batchId === batchId || cert.id === batchId || cert.certificateId === batchId)
   ), [allCertificates]);
 
+  const qualityPricingBatch = useMemo(() => {
+    if (!isWoolCommodity) return null;
+    if (selectedBatch) return selectedBatch;
+    return allRegisteredWoolBatches.find(batch => findCertificateForBatch(getBatchKey(batch))) || null;
+  }, [allRegisteredWoolBatches, findCertificateForBatch, isWoolCommodity, selectedBatch]);
+
+  const qualityPricingCertificate = useMemo(() => (
+    qualityPricingBatch ? findCertificateForBatch(getBatchKey(qualityPricingBatch)) : null
+  ), [findCertificateForBatch, qualityPricingBatch]);
+
   const isWoolInspectionRequest = useCallback((request = {}) => {
     const batch = allRegisteredWoolBatches.find(item => getBatchKey(item) === request.batchId);
     if (batch) return true;
@@ -687,6 +698,23 @@ export default function MarketIntelligence() {
 
   // Current effective modal price
   const currentModalPrice = livePriceData?.modalPrice || (commodity.mandiPricePerKg * 100) || 2400;
+  const currentModalPricePerKg = Number((currentModalPrice / 100).toFixed(2));
+  const woolQualityPrice = useMemo(() => (
+    isWoolCommodity
+      ? calculateWoolQualityPrice({
+          basePrice: currentModalPricePerKg,
+          certificate: qualityPricingCertificate
+        })
+      : null
+  ), [currentModalPricePerKg, isWoolCommodity, qualityPricingCertificate]);
+  const selectedBatchWoolQualityPrice = useMemo(() => (
+    isWoolCommodity && selectedBatch
+      ? calculateWoolQualityPrice({
+          basePrice: currentModalPricePerKg,
+          certificate: findCertificateForBatch(getBatchKey(selectedBatch))
+        })
+      : null
+  ), [currentModalPricePerKg, findCertificateForBatch, isWoolCommodity, selectedBatch]);
 
   // Derived Channels & Net Realization
   const marketChannels = useMemo(() => {
@@ -786,7 +814,7 @@ export default function MarketIntelligence() {
           || (b.minPrice ? Math.round(b.minPrice * 100) : null)
           || Math.round(currentModalPrice * 1.04);
 
-        return {
+        const normalizedBuyer = {
           id: b.id || ('B-' + Math.random()),
           companyName: b.companyName || b.buyerName || 'Verified Procurement Partner',
           buyerType: b.buyerType || 'Agro Processor',
@@ -809,9 +837,16 @@ export default function MarketIntelligence() {
           matchBreakdown: matchResult.breakdown || [],
           matchWarnings: matchResult.warnings || []
         };
+        if (isWoolCommodity && woolQualityPrice?.hasVerifiedCertificate) {
+          normalizedBuyer.qualityReference = compareOfferToQualityReference(calcOfferedPrice / 100, woolQualityPrice);
+          normalizedBuyer.qualityRequirementMatch = (normalizedBuyer.requiredGrade === (woolQualityPrice.metrics?.grade || normalizedBuyer.requiredGrade))
+            ? 'Exact grade match'
+            : `Buyer asks Grade ${normalizedBuyer.requiredGrade}; certificate Grade ${woolQualityPrice.metrics?.grade || 'verified'}`;
+        }
+        return normalizedBuyer;
       })
       .sort((a, b) => b.matchScore - a.matchScore);
-  }, [buyerDemands, selectedCrop, commodity, selectedDistrict, currentModalPrice]);
+  }, [buyerDemands, selectedCrop, commodity, selectedDistrict, currentModalPrice, isWoolCommodity, woolQualityPrice]);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -1673,6 +1708,63 @@ export default function MarketIntelligence() {
               </div>
             </section>
 
+            {isWoolCommodity && (
+              <section className="ks-card ks-forecast-banner">
+                <div className="ks-forecast-header">
+                  <div>
+                    <div className="ks-eyebrow"><Award size={14} /> WOOL QUALITY PRICE DISCOVERY</div>
+                    <h2>Quality-adjusted reference for {qualityPricingBatch?.batchId || 'registered wool lot'}</h2>
+                    <p className="ks-mini-hint">
+                      {woolQualityPrice?.hasVerifiedCertificate
+                        ? `Using verified certificate ${woolQualityPrice.certificateId}.`
+                        : 'Quality verification required for quality-adjusted estimate.'}
+                    </p>
+                  </div>
+                  <span className={'ks-badge ' + (woolQualityPrice?.hasVerifiedCertificate ? 'green' : 'blue')}>
+                    {woolQualityPrice?.hasVerifiedCertificate ? 'Verified Quality' : 'Base Reference'}
+                  </span>
+                </div>
+
+                <div className="ks-forecast-metrics">
+                  <div>
+                    <span>Market reference</span>
+                    <b>&#8377;{(woolQualityPrice?.basePrice || currentModalPricePerKg).toLocaleString('en-IN')} / kg</b>
+                  </div>
+                  <div>
+                    <span>Quality adjustments</span>
+                    <b className={(woolQualityPrice?.totalAdjustment || 0) >= 0 ? 'ks-green-text' : ''}>
+                      {(woolQualityPrice?.totalAdjustment || 0) >= 0 ? '+' : ''}&#8377;{(woolQualityPrice?.totalAdjustment || 0).toLocaleString('en-IN')} / kg
+                    </b>
+                  </div>
+                  <div>
+                    <span>Quality-adjusted value</span>
+                    <b>&#8377;{(woolQualityPrice?.adjustedPrice || currentModalPricePerKg).toLocaleString('en-IN')} / kg</b>
+                  </div>
+                  <div>
+                    <span>Fair range</span>
+                    <b>
+                      &#8377;{(woolQualityPrice?.fairPriceRange?.low || currentModalPricePerKg * 0.97).toLocaleString('en-IN')} - &#8377;{(woolQualityPrice?.fairPriceRange?.high || currentModalPricePerKg * 1.03).toLocaleString('en-IN')} / kg
+                    </b>
+                  </div>
+                </div>
+
+                {woolQualityPrice?.hasVerifiedCertificate && (
+                  <div className="ks-accordion-body">
+                    <ul>
+                      {woolQualityPrice.breakdown.map(item => (
+                        <li key={item.label}>
+                          <Check size={15} /> {item.label}: {item.value} ({item.percent >= 0 ? '+' : ''}{item.percent}%) - {item.reason}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="ks-disclaimer">
+                      <Info size={13} /> {woolQualityPrice.explanation} {woolQualityPrice.confidence}.
+                    </p>
+                  </div>
+                )}
+              </section>
+            )}
+
             <section className="ks-card ks-forecast-banner">
               <div className="ks-forecast-header">
                 <div>
@@ -1842,6 +1934,9 @@ export default function MarketIntelligence() {
                 const fees = c.channelId === 'APMC_MANDI' ? Math.round(grossQtl * 0.015) : 20;
                 const storage = c.channelId === 'PROCESSING_UNIT' ? 40 : 0;
                 const net = Math.round(grossQtl - freight - fees - storage);
+                const qualityReference = isWoolCommodity && woolQualityPrice?.hasVerifiedCertificate
+                  ? compareOfferToQualityReference(c.pricePerKg, woolQualityPrice)
+                  : null;
 
                 return (
                   <div key={c.channelId} className={'ks-card ks-channel-card ' + (c.channelId === bestChannel?.channelId ? 'featured' : '')}>
@@ -1873,6 +1968,12 @@ export default function MarketIntelligence() {
                         <span>{t.estimatedNet}</span>
                         <b>₹{(net || 0).toLocaleString('en-IN')} / qtl</b>
                       </div>
+                      {qualityReference && (
+                        <div className="ks-math-row">
+                          <span>{qualityReference.label}</span>
+                          <b>{qualityReference.diff >= 0 ? '+' : ''}&#8377;{(qualityReference.diff * 100).toLocaleString('en-IN')} / qtl</b>
+                        </div>
+                      )}
                     </div>
 
                     <div className="ks-channel-footer">
@@ -1946,6 +2047,39 @@ export default function MarketIntelligence() {
                       <b>Within {b.deliveryDeadline}</b>
                     </div>
                   </div>
+
+                  {isWoolCommodity && b.qualityReference && (() => {
+                    const buyerNet = calculateNetRealization({
+                      pricePerKg: (b.offeredPricePerQtl || 0) / 100,
+                      quantityKg: 100,
+                      distanceKm: b.distanceKm || 20,
+                      transportCostPerKm: 2.5,
+                      platformFeePercent: 1
+                    });
+                    const buyerNetPerQtl = Math.round(buyerNet.netRealizationPerKg * 100);
+                    return (
+                      <div className="ks-buyer-specs-grid">
+                        <div>
+                          <span>Quality requirement match</span>
+                          <b>{b.qualityRequirementMatch}</b>
+                        </div>
+                        <div>
+                          <span>Net realization</span>
+                          <b>&#8377;{buyerNetPerQtl.toLocaleString('en-IN')} / qtl</b>
+                        </div>
+                        <div>
+                          <span>Quality reference position</span>
+                          <b>{b.qualityReference.label}</b>
+                        </div>
+                        <div>
+                          <span>Difference vs reference</span>
+                          <b>
+                            {b.qualityReference.diff >= 0 ? '+' : ''}&#8377;{(b.qualityReference.diff * 100).toLocaleString('en-IN')} / qtl ({b.qualityReference.diffPct}%)
+                          </b>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   <div className="ks-buyer-trust-metrics">
                     <div className="ks-trust-item">
@@ -2790,6 +2924,29 @@ export default function MarketIntelligence() {
               <label>Certificate ID
                 <input readOnly value={selectedBatch?.certificateId || ''} />
               </label>
+            )}
+
+            {isWoolCommodity && (
+              <div className="ks-modal-note" style={{ alignItems: 'flex-start' }}>
+                <Award size={16} />
+                <span>
+                  {selectedBatchWoolQualityPrice?.hasVerifiedCertificate ? (
+                    <>
+                      <b>Quality-adjusted reference: &#8377;{selectedBatchWoolQualityPrice.adjustedPrice.toLocaleString('en-IN')} / kg</b>
+                      <br />
+                      Market reference &#8377;{selectedBatchWoolQualityPrice.basePrice.toLocaleString('en-IN')} / kg;
+                      adjustments {selectedBatchWoolQualityPrice.totalAdjustment >= 0 ? '+' : ''}&#8377;{selectedBatchWoolQualityPrice.totalAdjustment.toLocaleString('en-IN')} / kg;
+                      fair range &#8377;{selectedBatchWoolQualityPrice.fairPriceRange.low.toLocaleString('en-IN')} - &#8377;{selectedBatchWoolQualityPrice.fairPriceRange.high.toLocaleString('en-IN')} / kg.
+                    </>
+                  ) : (
+                    <>
+                      <b>Market reference: &#8377;{currentModalPricePerKg.toLocaleString('en-IN')} / kg</b>
+                      <br />
+                      Quality verification required for quality-adjusted estimate.
+                    </>
+                  )}
+                </span>
+              </div>
             )}
 
             <div className="ks-form-grid">
