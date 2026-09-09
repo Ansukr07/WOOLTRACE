@@ -1,9 +1,11 @@
-import React from 'react';
-import { 
-  Sprout, ShieldCheck, Store, Truck, Warehouse, Cog, Shirt, 
-  CheckCircle2, Clock, MapPin, User, Calendar, QrCode
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  Sprout, ShieldCheck, Store, Truck, Warehouse, Cog,
+  CheckCircle2, Clock, MapPin, User, QrCode
 } from 'lucide-react';
 import { useGlobalState } from '../context/GlobalStateContext';
+import { qaService } from '../services/qa/qaService';
+import { buildWoolProvenanceEvents, getCurrentStageFromEvents } from '../services/traceability/woolProvenanceService';
 
 const STAGES = [
   { id: 'FARM', label: 'Farm', icon: Sprout },
@@ -15,29 +17,113 @@ const STAGES = [
   { id: 'DELIVERED', label: 'Delivery', icon: CheckCircle2 },
 ];
 
-const STAGE_ORDER = ['FARM', 'QUALITY', 'MARKET', 'TRANSPORT', 'WAREHOUSE', 'PROCESSING', 'DELIVERED'];
+const isWoolBatch = (batch = {}) => (
+  batch.cropId === 'WOOL' ||
+  /wool|fleece/i.test(`${batch.cropName || ''} ${batch.woolType || ''} ${batch.variety || ''}`)
+);
 
-export default function TraceabilityTimeline({ batchId, hideEvents = false, onShowQR }) {
-  const { 
-    batches, certificates, listings, orders, transportJobs, 
-    warehouseBookings, processingRecords, processingRequests 
+const getBatchKey = (batch = {}) => batch.batchId || batch.id;
+
+const getStorageLocationText = (storageLocation) => {
+  if (!storageLocation) return null;
+  if (typeof storageLocation === 'string') return storageLocation;
+  return [
+    storageLocation.zone ? `Zone ${storageLocation.zone}` : null,
+    storageLocation.rack ? `Rack ${storageLocation.rack}` : null,
+    storageLocation.section ? `Sec ${storageLocation.section}` : null,
+    storageLocation.position ? `Pos ${storageLocation.position}` : null
+  ].filter(Boolean).join(' - ');
+};
+
+export default function TraceabilityTimeline({ batchId, hideEvents = false, onShowQR, publicView = false, batchOverride = null }) {
+  const {
+    batches, certificates, listings, orders, transportJobs,
+    warehouseBookings, processingRecords, processingRequests,
+    woolLots, marketOffers, marketTransactions, transactions
   } = useGlobalState();
-  
-  const batch = batches.find(b => b.id === batchId || b.batchId === batchId);
+  const [qaRequests, setQaRequests] = useState([]);
+  const [backendCertificate, setBackendCertificate] = useState(null);
+
+  const batch = batchOverride || batches.find(b => b.id === batchId || b.batchId === batchId);
+  const batchKey = getBatchKey(batch) || batchId;
+  const woolBatch = isWoolBatch(batch);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!batchKey || !woolBatch) {
+      setQaRequests([]);
+      setBackendCertificate(null);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    Promise.all([
+      qaService.getRequests({ batchId: batchKey }),
+      qaService.getCertificateByBatch(batchKey)
+    ])
+      .then(([requests, certificate]) => {
+        if (!isMounted) return;
+        setQaRequests(Array.isArray(requests) ? requests : []);
+        setBackendCertificate(certificate || null);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setQaRequests([]);
+        setBackendCertificate(null);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [batchKey, woolBatch]);
+
+  const events = useMemo(() => buildWoolProvenanceEvents({
+    batch,
+    certificates: backendCertificate ? [backendCertificate, ...(certificates || [])] : certificates,
+    qaRequests,
+    woolLots,
+    listings,
+    orders,
+    transportJobs,
+    warehouseBookings,
+    processingRecords,
+    processingRequests,
+    marketOffers,
+    marketTransactions,
+    transactions,
+    publicView
+  }), [
+    batch,
+    backendCertificate,
+    certificates,
+    qaRequests,
+    woolLots,
+    listings,
+    orders,
+    transportJobs,
+    warehouseBookings,
+    processingRecords,
+    processingRequests,
+    marketOffers,
+    marketTransactions,
+    transactions,
+    publicView
+  ]);
+
   if (!batch) return null;
 
-  const currentStageIndex = STAGE_ORDER.indexOf(batch.currentStage || 'FARM');
+  const currentStage = woolBatch ? getCurrentStageFromEvents(events) : (batch.currentStage || 'FARM');
+  const completedStages = new Set(events.map(event => event.stage).filter(Boolean));
+  const storageLocationText = getStorageLocationText(batch.storageLocation);
 
   const getStageStatus = (stageId) => {
-    const idx = STAGE_ORDER.indexOf(stageId);
-    if (idx < currentStageIndex) return 'completed';
-    if (idx === currentStageIndex) return 'current';
-    return 'upcoming';
+    if (!completedStages.has(stageId)) return 'upcoming';
+    return stageId === currentStage ? 'current' : 'completed';
   };
 
-  // Integration with processing records from upstream pull
-  const processingRequest = (processingRequests || []).find(r => r.batchId === batchId);
-  const batchProcessingRecords = (processingRecords || []).filter(r => r.batchId === batchId);
+  const processingRequest = (processingRequests || []).find(r => r.batchId === batchKey);
+  const batchProcessingRecords = (processingRecords || []).filter(r => r.batchId === batchKey);
   const hasCompletedProcessing = batchProcessingRecords.some(r => r.status === 'COMPLETED');
 
   const getProcessingDesc = () => {
@@ -58,8 +144,6 @@ export default function TraceabilityTimeline({ batchId, hideEvents = false, onSh
     return 'Requested to ' + (processingRequest.processingUnitName || 'processing unit') + '.';
   };
 
-  const events = batch.events || [];
-
   return (
     <div style={{
       backgroundColor: '#FFFFFF',
@@ -68,7 +152,6 @@ export default function TraceabilityTimeline({ batchId, hideEvents = false, onSh
       padding: '24px',
       boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
     }}>
-      {/* Header with Current Stage Prominence */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -98,7 +181,7 @@ export default function TraceabilityTimeline({ batchId, hideEvents = false, onSh
             fontWeight: '700'
           }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0B120D', animation: 'pulse 1.5s infinite' }}></span>
-            Stage: {batch.currentStage || 'FARM'}
+            Stage: {currentStage}
           </div>
           {onShowQR && (
             <button
@@ -123,7 +206,6 @@ export default function TraceabilityTimeline({ batchId, hideEvents = false, onSh
         </div>
       </div>
 
-      {/* Visual Farm-to-Fabric Stepper (7 Stages) */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(7, 1fr)',
@@ -134,9 +216,8 @@ export default function TraceabilityTimeline({ batchId, hideEvents = false, onSh
         background: '#F8F8F3',
         borderRadius: '12px'
       }}>
-        {STAGES.map((s, idx) => {
+        {STAGES.map((s) => {
           const status = getStageStatus(s.id);
-          const Icon = s.icon;
           const isCompleted = status === 'completed';
           const isCurrent = status === 'current';
 
@@ -173,7 +254,6 @@ export default function TraceabilityTimeline({ batchId, hideEvents = false, onSh
         })}
       </div>
 
-      {/* Storage Slot Info Box if in Warehouse */}
       {batch.storageLocation && (
         <div style={{
           background: '#EDEDCE',
@@ -198,28 +278,23 @@ export default function TraceabilityTimeline({ batchId, hideEvents = false, onSh
               </div>
             </div>
           </div>
-          <div style={{
-            display: 'flex',
-            gap: '8px',
-            background: '#FFFFFF',
-            padding: '4px 10px',
-            borderRadius: '6px',
-            border: '1px solid rgba(11, 18, 13, 0.10)',
-            fontSize: '12px',
-            fontWeight: '700'
-          }}>
-            <span>Zone: <strong>{batch.storageLocation.zone}</strong></span>
-            <span>·</span>
-            <span>Rack: <strong>{batch.storageLocation.rack}</strong></span>
-            <span>·</span>
-            <span>Sec: <strong>{batch.storageLocation.section}</strong></span>
-            <span>·</span>
-            <span>Pos: <strong>{batch.storageLocation.position}</strong></span>
-          </div>
+          {storageLocationText && (
+            <div style={{
+              display: 'flex',
+              gap: '8px',
+              background: '#FFFFFF',
+              padding: '4px 10px',
+              borderRadius: '6px',
+              border: '1px solid rgba(11, 18, 13, 0.10)',
+              fontSize: '12px',
+              fontWeight: '700'
+            }}>
+              <span>{storageLocationText}</span>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Processing Integration Summary */}
       {processingRequest && (
         <div style={{
           background: '#F8F8F3',
@@ -238,26 +313,26 @@ export default function TraceabilityTimeline({ batchId, hideEvents = false, onSh
         </div>
       )}
 
-      {/* Detailed Event History */}
       {!hideEvents && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: '#0B120D' }}>
               Trace Event History ({events.length})
             </h4>
-            <span style={{ fontSize: '11px', color: '#666', fontWeight: '600' }}>Immutable Ledger</span>
+            <span style={{ fontSize: '11px', color: '#666', fontWeight: '600' }}>
+              {publicView ? 'Public Provenance' : 'Immutable Ledger'}
+            </span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-            {events.slice().reverse().map((evt, idx) => (
+            {events.map((evt, idx) => (
               <div key={evt.id || idx} style={{ display: 'flex', gap: '16px' }}>
-                {/* Line & Bullet */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <div style={{
                     width: '12px',
                     height: '12px',
                     borderRadius: '50%',
-                    backgroundColor: idx === 0 ? '#0B120D' : '#BED5E5',
+                    backgroundColor: idx === events.length - 1 ? '#0B120D' : '#BED5E5',
                     marginTop: '6px',
                     border: '2px solid #FFFFFF',
                     boxShadow: '0 0 0 2px rgba(11, 18, 13, 0.2)'
@@ -267,11 +342,7 @@ export default function TraceabilityTimeline({ batchId, hideEvents = false, onSh
                   )}
                 </div>
 
-                {/* Event Card */}
-                <div style={{
-                  paddingBottom: '20px',
-                  flex: 1
-                }}>
+                <div style={{ paddingBottom: '20px', flex: 1 }}>
                   <div style={{
                     background: '#F8F8F3',
                     border: '1px solid rgba(11, 18, 13, 0.08)',
@@ -308,6 +379,19 @@ export default function TraceabilityTimeline({ batchId, hideEvents = false, onSh
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                         <User size={12} color="#0B120D" /> {evt.actor}
                       </span>
+                      {evt.status && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <Clock size={12} color="#0B120D" /> {evt.status}
+                        </span>
+                      )}
+                      {evt.metadata?.certificateId && (
+                        <a
+                          href={`/verify/${evt.metadata.certificateId}`}
+                          style={{ color: '#0B120D', fontWeight: '700', textDecoration: 'underline' }}
+                        >
+                          Certificate {evt.metadata.certificateId}
+                        </a>
+                      )}
                     </div>
                   </div>
                 </div>
