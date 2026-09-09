@@ -8,16 +8,16 @@ export default function MyLotsTab({ woolLots, onOpenFpoAggregator, onOpenCreateL
         <div className="panel-header-row">
           <h3 className="panel-title">
             <Layers size={20} />
-            My Listed Lots & Collective FPO Lots
+            Sell lots & FPO aggregation
           </h3>
           <div style={{ display: 'flex', gap: '10px' }}>
             <button className="btn-secondary" onClick={onOpenFpoAggregator}>
               <Users size={16} style={{ marginRight: '6px' }} />
-              <span>FPO Multi-Batch Aggregator</span>
+              <span>Aggregate FPO lots</span>
             </button>
             <button className="btn-primary" onClick={() => onOpenCreateLot(450)}>
               <PlusCircle size={16} style={{ marginRight: '6px' }} />
-              <span>Create Individual Lot</span>
+              <span>Create sell lot</span>
             </button>
           </div>
         </div>
@@ -28,7 +28,7 @@ export default function MyLotsTab({ woolLots, onOpenFpoAggregator, onOpenCreateL
               <tr>
                 <th>Lot Number</th>
                 <th>Type / Seller</th>
-                <th>Wool Variety</th>
+                <th>Produce / variety</th>
                 <th>Grade</th>
                 <th>Total Qty</th>
                 <th>Available Qty</th>
@@ -49,7 +49,7 @@ export default function MyLotsTab({ woolLots, onOpenFpoAggregator, onOpenCreateL
                     )}
                   </td>
                   <td>{lot.sellerName} ({lot.sellerType})</td>
-                  <td>{lot.woolType}</td>
+                  <td>{lot.cropName || lot.woolType}</td>
                   <td>
                     <span style={{
                       background: '#EDEDCE', padding: '2px 8px', borderRadius: '4px', fontWeight: '700', fontSize: '11px'

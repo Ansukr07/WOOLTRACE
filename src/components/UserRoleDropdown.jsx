@@ -58,7 +58,7 @@ const ROLES_LIST = [
     email: 'processor@khetsetu.in',
     label: 'Processor',
     sub: 'Procurement demand and operations',
-    path: '/processor',
+    path: '/buyer',
     icon: Factory,
     badgeColor: '#1E3A8A',
     badgeBg: '#DBEAFE'

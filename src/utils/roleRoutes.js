@@ -4,7 +4,7 @@ export const ROLE_HOME = {
   QUALITY_INSPECTOR: '/quality',
   WAREHOUSE: '/storage',
   TRANSPORT: '/logistics',
-  PROCESSING_UNIT: '/processor',
+  PROCESSING_UNIT: '/buyer',
   EDUCATOR: '/farmer'
 };
 

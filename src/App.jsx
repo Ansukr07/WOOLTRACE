@@ -14,11 +14,8 @@ const PublicTrackBatch = React.lazy(() => import('./pages/public/PublicTrackBatc
 const FarmerLayout = React.lazy(() => import('./layouts/FarmerLayout'));
 const FarmerDashboard = React.lazy(() => import('./pages/farmer/Dashboard'));
 const FarmerMarket = React.lazy(() => import('./pages/farmer/Market'));
-const MyProduce = React.lazy(() => import('./pages/farmer/MyWool'));
 const TrackProduce = React.lazy(() => import('./pages/farmer/TrackWool'));
 const StorageFinder = React.lazy(() => import('./pages/farmer/FindWarehouse'));
-const FarmerServices = React.lazy(() => import('./pages/farmer/Services'));
-const Academy = React.lazy(() => import('./pages/farmer/Academy'));
 const BuyerLayout = React.lazy(() => import('./layouts/SellerLayout'));
 const BuyerDashboard = React.lazy(() => import('./pages/seller/SellerDashboard'));
 const BuyerMarketplace = React.lazy(() => import('./pages/seller/Marketplace'));
@@ -41,9 +38,6 @@ const LogisticsEarnings = React.lazy(() => import('./pages/transport/TransportEa
 const QualityLayout = React.lazy(() => import('./layouts/InspectorLayout'));
 const QualityDashboard = React.lazy(() => import('./pages/inspector/InspectorDashboard'));
 const Certificates = React.lazy(() => import('./pages/inspector/Certificates'));
-const ProcessorLayout = React.lazy(() => import('./layouts/ProcessingLayout'));
-const ProcessorDashboard = React.lazy(() => import('./pages/processing/ProcessingDashboard'));
-const ProcessorSustainability = React.lazy(() => import('./pages/processing/ResourceSustainabilityView'));
 
 function RoleHomeRedirect() {
   const { user } = useAuth();
@@ -64,13 +58,14 @@ function App() {
 
     <Route path="/farmer" element={secure(['FARMER'], <FarmerLayout />)}>
       <Route index element={<FarmerDashboard />} /><Route path="market" element={<FarmerMarket />} />
-      <Route path="produce" element={<MyProduce />} /><Route path="track" element={<TrackProduce />} />
-      <Route path="storage" element={<StorageFinder />} /><Route path="services" element={<FarmerServices />} />
-      <Route path="academy" element={<Academy />} /><Route path="payments" element={<Navigate to="/farmer/market?tab=transactions" replace />} />
+      <Route path="storage" element={<StorageFinder />} /><Route path="trust" element={<TrackProduce />} />
+      <Route path="produce" element={<Navigate to="/farmer/market?tab=lots" replace />} />
+      <Route path="payments" element={<Navigate to="/farmer/market?tab=transactions" replace />} />
+      <Route path="track" element={<Navigate to="/farmer/trust" replace />} />
       <Route path="*" element={<Navigate to="/farmer" replace />} />
     </Route>
 
-    <Route path="/buyer" element={secure(['SELLER'], <BuyerLayout />)}>
+    <Route path="/buyer" element={secure(['SELLER', 'PROCESSING_UNIT'], <BuyerLayout />)}>
       <Route index element={<BuyerDashboard />} /><Route path="marketplace" element={<BuyerMarketplace />} />
       <Route path="bids" element={<BuyerBids />} /><Route path="orders" element={<BuyerOrders />} />
       <Route path="payments" element={<BuyerWallet />} /><Route path="*" element={<Navigate to="/buyer" replace />} />
@@ -94,10 +89,7 @@ function App() {
       <Route path="*" element={<Navigate to="/quality" replace />} />
     </Route>
 
-    <Route path="/processor" element={secure(['PROCESSING_UNIT'], <ProcessorLayout />)}>
-      <Route index element={<ProcessorDashboard />} /><Route path="sustainability" element={<ProcessorSustainability />} />
-      <Route path="*" element={<Navigate to="/processor" replace />} />
-    </Route>
+    <Route path="/processor/*" element={<Navigate to="/buyer" replace />} />
 
     <Route path="/seller/*" element={<Navigate to="/buyer" replace />} /><Route path="/warehouse/*" element={<Navigate to="/storage" replace />} />
     <Route path="/transport/*" element={<Navigate to="/logistics" replace />} /><Route path="/inspector/*" element={<Navigate to="/quality" replace />} />

@@ -90,12 +90,12 @@ const Dashboard = () => {
 
           <div style={{ display: 'flex', gap: '10px' }}>
             <button 
-              onClick={() => navigate('/farmer/my-wool')}
+              onClick={() => navigate('/farmer/market?tab=lots')}
               className="btn-primary"
               style={{ padding: '10px 18px', borderRadius: '8px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}
             >
               <Plus size={16} />
-              <span>Register Produce Batch</span>
+              <span>Create sell lot</span>
             </button>
             <button 
               onClick={() => navigate('/farmer/market')}
@@ -106,7 +106,7 @@ const Dashboard = () => {
               }}
             >
               <Target size={16} />
-              <span>Price Discovery Hub</span>
+              <span>Open market intelligence</span>
             </button>
           </div>
         </div>
@@ -178,31 +178,31 @@ const Dashboard = () => {
 
       {/* Metrics Row */}
       <div className="metrics-row" style={{ marginBottom: '24px' }}>
-        <div className="metric-card" onClick={() => navigate('/farmer/wallet')} style={{ cursor: 'pointer' }}>
+        <div className="metric-card" onClick={() => navigate('/farmer/market?tab=transactions')} style={{ cursor: 'pointer' }}>
           <div className="metric-icon bg-green"><Wallet size={24} /></div>
           <div className="metric-info">
             <span className="label">Total Produce Revenue</span>
             <span className="value">₹1,48,500</span>
           </div>
         </div>
-        <div className="metric-card" onClick={() => navigate('/farmer/wallet')} style={{ cursor: 'pointer' }}>
+        <div className="metric-card" onClick={() => navigate('/farmer/market?tab=transactions')} style={{ cursor: 'pointer' }}>
           <div className="metric-icon bg-yellow"><Clock size={24} /></div>
           <div className="metric-info">
             <span className="label">Escrow Secured</span>
             <span className="value">₹52,000</span>
           </div>
         </div>
-        <div className="metric-card" onClick={() => navigate('/farmer/my-wool')} style={{ cursor: 'pointer' }}>
+        <div className="metric-card" onClick={() => navigate('/farmer/market?tab=lots')} style={{ cursor: 'pointer' }}>
           <div className="metric-icon bg-blue"><Box size={24} /></div>
           <div className="metric-info">
-            <span className="label">Active Registered Batches</span>
+              <span className="label">Active sell lots</span>
             <span className="value">{activeBatches}</span>
           </div>
         </div>
-        <div className="metric-card" onClick={() => navigate('/farmer/my-wool')} style={{ cursor: 'pointer' }}>
+        <div className="metric-card" onClick={() => navigate('/farmer/market?tab=lots')} style={{ cursor: 'pointer' }}>
           <div className="metric-icon bg-primary"><Layers size={24} /></div>
           <div className="metric-info">
-            <span className="label">Total Harvest Volume</span>
+              <span className="label">Sell-ready volume</span>
             <span className="value">{totalProduceQuantity.toLocaleString('en-IN')} KG</span>
           </div>
         </div>
@@ -311,17 +311,17 @@ const Dashboard = () => {
           <div className="quick-actions panel">
             <h2>Quick Produce Actions</h2>
             <div className="action-buttons">
-              <button className="action-btn primary" onClick={() => navigate('/farmer/my-wool')}>
+              <button className="action-btn primary" onClick={() => navigate('/farmer/market?tab=lots')}>
                 <Plus size={18} />
                 <span>Register Produce Batch</span>
               </button>
-              <button className="action-btn secondary" onClick={() => navigate('/farmer/track')}>
+              <button className="action-btn secondary" onClick={() => navigate('/farmer/trust')}>
                 <MapPin size={18} />
-                <span>Trace Passport & QR</span>
+                    <span>Quality & trust record</span>
               </button>
-              <button className="action-btn secondary" onClick={() => navigate('/farmer/warehouses')}>
+              <button className="action-btn secondary" onClick={() => navigate('/farmer/storage')}>
                 <Warehouse size={18} />
-                <span>Locate Storage & Silos</span>
+                <span>Compare storage options</span>
               </button>
             </div>
           </div>

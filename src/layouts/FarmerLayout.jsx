@@ -1,19 +1,9 @@
 import React, { useState } from 'react';
-import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
-import { 
-  Home, 
-  LineChart, 
-  Box, 
-  Wrench, 
-  BookOpen, 
-  Bell, 
-  Menu, 
-  X, 
-  LogOut, 
-  ShoppingCart,
-  QrCode,
-  Warehouse,
-  Wallet
+import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
+import {
+  Home, LineChart, Target, Building2, PackagePlus, FileText,
+  Truck, ShieldCheck, Wallet, MessageSquareWarning,
+  Bell, Menu, X, LogOut
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useGlobalState } from '../context/GlobalStateContext';
@@ -22,21 +12,28 @@ import './FarmerLayout.css';
 
 const FarmerLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
   const { logout } = useAuth();
   const { marketOffers } = useGlobalState();
 
   const pendingOffersCount = (marketOffers || []).filter(o => o.status === 'PENDING').length;
 
   const navItems = [
-    { name: 'Home', path: '/farmer', icon: <Home size={18} /> },
-    { name: 'Market intelligence', path: '/farmer/market', icon: <LineChart size={18} />, badge: pendingOffersCount > 0 ? pendingOffersCount : null },
-    { name: 'My produce & lots', path: '/farmer/produce', icon: <Box size={18} /> },
-    { name: 'Quality & traceability', path: '/farmer/track', icon: <QrCode size={18} /> },
-    { name: 'Storage options', path: '/farmer/storage', icon: <Warehouse size={18} /> },
-    { name: 'Services & quality support', path: '/farmer/services', icon: <Wrench size={18} /> },
-    { name: 'Payments', path: '/farmer/payments', icon: <Wallet size={18} /> },
-    { name: 'Market learning', path: '/farmer/academy', icon: <BookOpen size={18} /> },
+    { name: 'Overview', path: '/farmer', icon: <Home size={18} /> },
+    { name: 'Market intelligence', path: '/farmer/market?tab=overview', icon: <LineChart size={18} /> },
+    { name: 'Price & sale timing', path: '/farmer/market?tab=trends', icon: <Target size={18} /> },
+    { name: 'Buyer demand', path: '/farmer/market?tab=buyers', icon: <Building2 size={18} /> },
+    { name: 'Sell lots & FPO', path: '/farmer/market?tab=lots', icon: <PackagePlus size={18} /> },
+    { name: 'Offers & negotiation', path: '/farmer/market?tab=offers', icon: <FileText size={18} />, badge: pendingOffersCount || null },
+    { name: 'Trade & payments', path: '/farmer/market?tab=transactions', icon: <Wallet size={18} /> },
+    { name: 'Logistics & storage', path: '/farmer/storage', icon: <Truck size={18} /> },
+    { name: 'Quality & trust', path: '/farmer/trust', icon: <ShieldCheck size={18} /> },
+    { name: 'Disputes', path: '/farmer/market?tab=disputes', icon: <MessageSquareWarning size={18} /> },
   ];
+  const isSelected = (item, isActive) => {
+    const query = item.path.split('?')[1];
+    return query ? location.pathname === '/farmer/market' && location.search.slice(1) === query : isActive;
+  };
 
   return (
     <div className="farmer-layout">
@@ -56,7 +53,7 @@ const FarmerLayout = () => {
               key={item.name}
               to={item.path}
               end={item.path === '/farmer'}
-              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+              className={({ isActive }) => `nav-item ${isSelected(item, isActive) ? 'active' : ''}`}
               style={{ position: 'relative' }}
             >
               {item.icon}
@@ -120,7 +117,7 @@ const FarmerLayout = () => {
                     key={item.name}
                     to={item.path}
                     end={item.path === '/farmer'}
-                    className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                    className={({ isActive }) => `nav-item ${isSelected(item, isActive) ? 'active' : ''}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {item.icon}
