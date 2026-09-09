@@ -154,6 +154,7 @@ export default function Market() {
   }).sort((a, b) => b.matchResult.score - a.matchResult.score);
 
   const availableCategories = COMMODITIES.filter(c => 
+    c.id !== 'WOOL' && c.category !== 'FIBER' &&
     (selectedCategory === 'ALL' || c.category === selectedCategory) &&
     (c.name.toLowerCase().includes(commoditySearch.toLowerCase()) || c.hindiName.includes(commoditySearch))
   );
@@ -177,19 +178,19 @@ export default function Market() {
       <div className="market-header-banner">
         <div className="header-left">
           <div className="sih-tag">SIH 2026 · Problem Statement 26132</div>
-          <h1 className="market-title">Market Linkages & Price Discovery Hub</h1>
+          <h1 className="market-title">KhetSetu Market &amp; Trade Network</h1>
           <p className="market-subtitle">
-            Crop-agnostic market intelligence, multi-channel price discovery, and escrow transaction enablement for farmers and FPOs.
+            One connected workflow for mandi prices, buyer demand, quality, logistics, offers, settlement, and resolution.
           </p>
         </div>
         <div className="header-actions">
           <button className="btn-primary" onClick={() => setShowCreateLotModal(true)}>
             <Plus size={16} />
-            <span>Create Produce Lot</span>
+            <span>Create sell lot</span>
           </button>
           <button className="btn-accent" onClick={() => setShowFPOModal(true)}>
             <Users size={16} />
-            <span>FPO Aggregator</span>
+            <span>Aggregate FPO lots</span>
           </button>
         </div>
       </div>
@@ -207,7 +208,7 @@ export default function Market() {
           </div>
 
           <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
-            {COMMODITY_CATEGORIES.map(cat => (
+            {COMMODITY_CATEGORIES.filter(cat => cat.id !== 'FIBER').map(cat => (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
@@ -265,31 +266,31 @@ export default function Market() {
       <div className="market-nav-tabs">
         <button className={`nav-tab ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => openTab('overview')}>
           <LineChart size={16} />
-          <span>Market Overview</span>
+          <span>Mandi prices</span>
         </button>
         <button className={`nav-tab ${activeTab === 'discovery' ? 'active' : ''}`} onClick={() => openTab('discovery')}>
           <Target size={16} />
-          <span>Price Discovery & Net Return</span>
+          <span>Sale decision</span>
         </button>
         <button className={`nav-tab ${activeTab === 'trends' ? 'active' : ''}`} onClick={() => openTab('trends')}>
           <BarChart2 size={16} />
-          <span>Price Trends</span>
+          <span>Price &amp; arrivals</span>
         </button>
         <button className={`nav-tab ${activeTab === 'buyers' ? 'active' : ''}`} onClick={() => openTab('buyers')}>
           <Building size={16} />
-          <span>Buyer Discovery & Demand</span>
+          <span>Buyer demand</span>
         </button>
         <button className={`nav-tab ${activeTab === 'lots' ? 'active' : ''}`} onClick={() => openTab('lots')}>
           <Layers size={16} />
-          <span>My Lots & Aggregation</span>
+          <span>Sell lots &amp; FPO</span>
         </button>
         <button className={`nav-tab ${activeTab === 'offers' ? 'active' : ''}`} onClick={() => openTab('offers')}>
           <FileText size={16} />
-          <span>Digital Offers ({marketOffers.filter(o => o.status === 'PENDING').length})</span>
+          <span>Offers ({marketOffers.filter(o => o.status === 'PENDING').length})</span>
         </button>
         <button className={`nav-tab ${activeTab === 'transactions' ? 'active' : ''}`} onClick={() => openTab('transactions')}>
           <CreditCard size={16} />
-          <span>Transactions & Escrow</span>
+          <span>Trade &amp; payments</span>
         </button>
         <button className={`nav-tab ${activeTab === 'disputes' ? 'active' : ''}`} onClick={() => openTab('disputes')}>
           <AlertTriangle size={16} />

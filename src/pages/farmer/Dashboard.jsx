@@ -67,9 +67,10 @@ const Dashboard = () => {
   }, [selectedCropId]);
 
   const filteredCommodities = COMMODITIES.filter(c => 
+    c.id !== 'WOOL' && c.category !== 'FIBER' && (
     c.name.toLowerCase().includes(cropSearchQuery.toLowerCase()) ||
     c.hindiName.includes(cropSearchQuery)
-  );
+  ));
 
   return (
     <div className="farmer-dashboard">

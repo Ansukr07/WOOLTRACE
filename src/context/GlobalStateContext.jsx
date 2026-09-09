@@ -1239,6 +1239,62 @@ const INITIAL_DISPUTES = [
   }
 ];
 
+const SIH_INITIAL_LOTS = [
+  {
+    id: 'LOT-2026-WHT-014', lotNumber: 'LOT-KOTA-WHT-014', sellerId: 'FARMER-01', sellerName: 'Rajesh Gowda', sellerType: 'FARMER',
+    cropId: 'WHEAT', cropName: 'Wheat — Sharbati', woolType: 'Wheat — Sharbati', qualityGrade: 'A', totalQuantity: 1200,
+    availableQuantity: 1200, askingPrice: 29.5, minAcceptablePrice: 28.8, certificateId: 'QA-KS-WHT-014',
+    traceabilityUrl: '/track/LOT-KOTA-WHT-014', status: 'OFFER_RECEIVED', isFpoAggregate: false
+  },
+  {
+    id: 'LOT-2026-FPO-028', lotNumber: 'LOT-FPO-KOTA-028', sellerId: 'FPO-KOTA-01', sellerName: 'Kota Growers FPO', sellerType: 'FPO',
+    cropId: 'MUSTARD', cropName: 'Mustard — Grade A', woolType: 'Mustard — Grade A', qualityGrade: 'A', totalQuantity: 4800,
+    availableQuantity: 4800, askingPrice: 59, minAcceptablePrice: 57.5, certificateId: 'QA-KS-MUS-028',
+    traceabilityUrl: '/track/LOT-FPO-KOTA-028', status: 'AVAILABLE', isFpoAggregate: true
+  }
+];
+
+const SIH_INITIAL_OFFERS = [
+  {
+    id: 'OFF-2026-WHT-018', offerNumber: 'OFF-2026-WHT-018', lotId: 'LOT-2026-WHT-014', lotNumber: 'LOT-KOTA-WHT-014',
+    sellerId: 'FARMER-01', sellerName: 'Rajesh Gowda', buyerId: 'BUYER-FOOD-01', buyerName: 'Shree Foods Pvt. Ltd.', buyerType: 'PROCESSOR',
+    woolType: 'Wheat — Sharbati', qualityGrade: 'A', offeredPricePerKg: 30.2, quantityKg: 1200, totalGrossAmount: 36240,
+    paymentTerms: '100% UPI / bank escrow on pickup confirmation', deliveryTerms: 'Collection from Kota storage hub', status: 'PENDING',
+    validUntil: '2026-09-15T18:00:00Z', history: [], createdAt: '2026-09-09T09:00:00Z'
+  }
+];
+
+const SIH_INITIAL_TRANSACTIONS = [
+  {
+    id: 'TXN-2026-MUS-011', transactionNumber: 'TXN-2026-MUS-011', offerId: 'OFF-2026-MUS-009', lotId: 'LOT-2026-FPO-028',
+    lotNumber: 'LOT-FPO-KOTA-028', batchId: 'BATCH-MUS-028', farmerId: 'FPO-KOTA-01', farmerName: 'Kota Growers FPO',
+    buyerId: 'BUYER-OIL-02', buyerName: 'Rajasthan Oil Mills', woolType: 'Mustard — Grade A', qualityGrade: 'A', quantityKg: 3000,
+    agreedPricePerKg: 60.5, grossValue: 181500, transportCost: 5400, storageCost: 1200, transactionFee: 1815,
+    netRealization: 173085, netRealizationPerKg: 57.7, deliveryStatus: 'IN_TRANSIT', paymentStatus: 'IN_ESCROW',
+    paidAmount: 181500, outstandingAmount: 0, disputeStatus: 'NONE', transactionDate: '2026-09-08T10:00:00Z', expectedDeliveryDate: '2026-09-11',
+    notes: 'FPO aggregation with transport and payment milestones recorded.'
+  }
+];
+
+const SIH_INITIAL_DISPUTES = [
+  {
+    id: 'DISP-2026-TOM-004', transactionId: 'TXN-2026-TOM-004', lotNumber: 'LOT-NASHIK-TOM-004', raisedBy: 'BUYER',
+    raisedByName: 'FreshRoute Retail', reasonCategory: 'Quality grading variance', description: 'Arrival grade needs a joint review against the digital quality record.',
+    claimedAmount: 3200, status: 'UNDER_REVIEW', resolutionNote: '', createdAt: '2026-09-08T12:30:00Z'
+  }
+];
+
+const isLegacyWoolRecord = (record = {}) => /wool|fleece|sheep|weaver/i.test(`${record.woolType || ''} ${record.cropName || ''} ${record.buyerName || ''} ${record.sellerName || ''}`);
+const loadSihMarketRecords = (key, fallback) => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(key) || '[]');
+    const clean = Array.isArray(stored) ? stored.filter(record => !isLegacyWoolRecord(record)) : [];
+    return clean.length ? clean : fallback;
+  } catch (_error) {
+    return fallback;
+  }
+};
+
 export const GlobalStateProvider = ({ children }) => {
   const [batches, setBatches] = useState(() => {
     const stored = localStorage.getItem('wt_batches_v2');
@@ -1701,28 +1757,23 @@ export const GlobalStateProvider = ({ children }) => {
   
   // ── Market Linkage & Price Discovery State (SIH 2026 PS 26132) ──────────
   const [woolLots, setWoolLots] = useState(() => {
-    const stored = localStorage.getItem('wt_wool_lots_v1');
-    return stored ? JSON.parse(stored) : INITIAL_WOOL_LOTS;
+    return loadSihMarketRecords('wt_wool_lots_v1', SIH_INITIAL_LOTS);
   });
 
   const [buyerDemands, setBuyerDemands] = useState(() => {
-    const stored = localStorage.getItem('wt_buyer_demands_v1');
-    return stored ? JSON.parse(stored) : INITIAL_BUYER_DEMANDS;
+    return loadSihMarketRecords('wt_buyer_demands_v1', INITIAL_BUYER_DEMANDS.filter(demand => demand.cropId !== 'WOOL'));
   });
 
   const [marketOffers, setMarketOffers] = useState(() => {
-    const stored = localStorage.getItem('wt_market_offers_v1');
-    return stored ? JSON.parse(stored) : INITIAL_MARKET_OFFERS;
+    return loadSihMarketRecords('wt_market_offers_v1', SIH_INITIAL_OFFERS);
   });
 
   const [marketTransactions, setMarketTransactions] = useState(() => {
-    const stored = localStorage.getItem('wt_market_transactions_v1');
-    return stored ? JSON.parse(stored) : INITIAL_MARKET_TRANSACTIONS;
+    return loadSihMarketRecords('wt_market_transactions_v1', SIH_INITIAL_TRANSACTIONS);
   });
 
   const [disputes, setDisputes] = useState(() => {
-    const stored = localStorage.getItem('wt_disputes_v1');
-    return stored ? JSON.parse(stored) : INITIAL_DISPUTES;
+    return loadSihMarketRecords('wt_disputes_v1', SIH_INITIAL_DISPUTES);
   });
 
   useEffect(() => {
