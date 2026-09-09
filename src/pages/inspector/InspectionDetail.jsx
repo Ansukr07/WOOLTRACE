@@ -11,11 +11,14 @@ export default function InspectionDetail() {
   
   const [form, setForm] = useState({
     fiberDiameter: '',
+    stapleLength: '',
+    cleanYield: '',
     cleanliness: '',
     moisture: '',
     color: 'Natural White',
     strength: 'Good',
     contamination: 'Low',
+    vegetableMatter: '',
     foreignMatter: 'Low',
     overallScore: '',
     grade: '',
@@ -116,6 +119,14 @@ export default function InspectionDetail() {
             <input type="number" placeholder="e.g. 92" value={form.cleanliness} onChange={e => setForm({...form, cleanliness: e.target.value})} />
           </div>
           <div className="qa-form-group">
+            <label>Staple Length (mm)</label>
+            <input type="number" placeholder="e.g. 75" value={form.stapleLength} onChange={e => setForm({...form, stapleLength: e.target.value})} />
+          </div>
+          <div className="qa-form-group">
+            <label>Clean Yield (%)</label>
+            <input type="number" placeholder="e.g. 72" value={form.cleanYield} onChange={e => setForm({...form, cleanYield: e.target.value})} />
+          </div>
+          <div className="qa-form-group">
             <label>Moisture (%)</label>
             <input type="number" placeholder="e.g. 8" value={form.moisture} onChange={e => setForm({...form, moisture: e.target.value})} />
           </div>
@@ -132,6 +143,16 @@ export default function InspectionDetail() {
           <div className="qa-form-group">
             <label>Contamination</label>
             <select value={form.contamination} onChange={e => setForm({...form, contamination: e.target.value})}>
+              <option>None</option><option>Low</option><option>Moderate</option><option>High</option>
+            </select>
+          </div>
+          <div className="qa-form-group">
+            <label>Vegetable Matter</label>
+            <input type="text" placeholder="e.g. 1.2%" value={form.vegetableMatter} onChange={e => setForm({...form, vegetableMatter: e.target.value})} />
+          </div>
+          <div className="qa-form-group">
+            <label>Foreign Matter</label>
+            <select value={form.foreignMatter} onChange={e => setForm({...form, foreignMatter: e.target.value})}>
               <option>None</option><option>Low</option><option>Moderate</option><option>High</option>
             </select>
           </div>

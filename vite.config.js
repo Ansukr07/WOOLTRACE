@@ -13,19 +13,17 @@ export default defineConfig({
       "/api": {
         target: "http://localhost:3000",
         changeOrigin: true,
-        bypass: (req, res) => {
-          // Handle /api calls gracefully when backend on port 3000 is not active
-          res.setHeader("Content-Type", "application/json");
-          if (req.url.includes("/processing/ceda")) {
-            res.end(JSON.stringify({ success: true, serviceStatus: "OFFLINE", message: "CEDA Dev Mock Active" }));
-            return false;
-          }
-          if (req.url.includes("/login")) {
-            res.end(JSON.stringify({ success: false, error: "Mock login fallback active" }));
-            return false;
-          }
-          res.end(JSON.stringify({ success: false, message: "Local mock API response" }));
-          return false;
+        configure: (proxy) => {
+          proxy.on("error", (err, req, res) => {
+            if (res.headersSent) return;
+            res.writeHead(503, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({
+              success: false,
+              backendUnavailable: true,
+              message: "Backend unavailable; using local fallback where supported.",
+              error: err.code || err.message
+            }));
+          });
         }
       }
     }

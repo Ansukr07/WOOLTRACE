@@ -7,14 +7,16 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useGlobalState } from '../../context/GlobalStateContext';
+import { useAuth } from '../../context/AuthContext';
 import { COMMODITIES, getCommodityById } from '../../services/market/cropCommodityRegistry';
 import { getMarketChannelsForCommodity } from '../../services/market/marketIntelligenceService';
 import { calculateMatchScore } from '../../services/market/matchingEngine';
 import { getPriceForecastAndRecommendation } from '../../services/market/priceforecastService';
 import { agmarknetService, formatDate, getDateOffset } from '../../services/market/agmarknetService';
 import { crop50Service, CROP50_METADATA } from '../../services/market/crop50Service';
+import { qaService } from '../../services/qa/qaService';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import QRCode from 'react-qr-code';
 import './KhetSetu.css';
@@ -24,7 +26,7 @@ import {
   ShieldCheck, ArrowRight, PackagePlus, WalletCards,
   MessageSquareWarning, Gavel, X, Sparkles, Filter, Info, Building2,
   Truck, Award, FileText, CheckCircle2, BarChart3, Globe, ArrowLeft,
-  Compass, Activity, HelpCircle
+  Compass, Activity, HelpCircle, ClipboardList
 } from 'lucide-react';
 
 const TRANSLATIONS = {
@@ -359,11 +361,19 @@ const TRANSLATIONS = {
 };
 
 export default function MarketIntelligence() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const requestedView = useMemo(() => new URLSearchParams(location.search).get('view'), [location.search]);
+  const isQualityPartner = user?.role === 'QUALITY_INSPECTOR';
   const globalContext = useGlobalState() || {};
   const {
     batches = [],
+    certificates = [],
     buyerDemands = [],
     woolLots = [],
+    addCertificate,
+    updateBatch,
     createWoolLot,
     submitOffer
   } = globalContext;
@@ -374,7 +384,7 @@ export default function MarketIntelligence() {
   const [selectedCrop, setSelectedCrop] = useState('WHEAT');
   const [selectedState, setSelectedState] = useState('Rajasthan');
   const [selectedDistrict, setSelectedDistrict] = useState('Kota');
-  const [activeTab, setActiveTab] = useState('overview'); // Default to CROP50 flagship index!
+  const [activeTab, setActiveTab] = useState(requestedView || (isQualityPartner ? 'trust' : 'overview'));
 
   // Derived Commodity Data from Registry
   const commodity = useMemo(() => {
@@ -403,6 +413,26 @@ export default function MarketIntelligence() {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
   const [apiWoolBatches, setApiWoolBatches] = useState([]);
+  const [inspectionRequests, setInspectionRequests] = useState([]);
+  const [backendCertificates, setBackendCertificates] = useState([]);
+  const [loadingInspections, setLoadingInspections] = useState(false);
+  const [selectedInspection, setSelectedInspection] = useState(null);
+  const [issuingCertificate, setIssuingCertificate] = useState(false);
+  const [inspectionError, setInspectionError] = useState('');
+  const [inspectionForm, setInspectionForm] = useState({
+    fiberDiameter: '',
+    stapleLength: '',
+    cleanYield: '',
+    moisture: '',
+    cleanliness: '',
+    vegetableMatter: '',
+    contamination: 'Low',
+    foreignMatter: 'Low',
+    strength: 'Good',
+    overallScore: '',
+    grade: '',
+    remarks: ''
+  });
 
   // Expandable accordions
   const [expandedReasoning, setExpandedReasoning] = useState(false);
@@ -436,15 +466,17 @@ export default function MarketIntelligence() {
     return Boolean(batch.woolType);
   }, [woolCommodityId]);
 
+  const allRegisteredWoolBatches = useMemo(() => (
+    [...apiWoolBatches, ...batches]
+      .filter(isRegisteredWoolBatch)
+      .filter((batch, index, list) => (
+        list.findIndex(item => getBatchKey(item) === getBatchKey(batch)) === index
+      ))
+  ), [apiWoolBatches, batches, isRegisteredWoolBatch]);
+
   const registeredBatches = useMemo(() => (
-    isWoolCommodity
-      ? [...apiWoolBatches, ...batches]
-        .filter(isRegisteredWoolBatch)
-        .filter((batch, index, list) => (
-          list.findIndex(item => getBatchKey(item) === getBatchKey(batch)) === index
-        ))
-      : []
-  ), [apiWoolBatches, batches, isRegisteredWoolBatch, isWoolCommodity]);
+    isWoolCommodity ? allRegisteredWoolBatches : []
+  ), [allRegisteredWoolBatches, isWoolCommodity]);
 
   const selectedBatch = useMemo(() => (
     isWoolCommodity
@@ -453,6 +485,71 @@ export default function MarketIntelligence() {
   ), [isWoolCommodity, registeredBatches, newLot.selectedBatchId]);
 
   const selectedBatchAvailableQuantity = selectedBatch ? getAvailableQuantity(selectedBatch) : 0;
+
+  const resetInspectionForm = () => {
+    setInspectionError('');
+    setInspectionForm({
+      fiberDiameter: '',
+      stapleLength: '',
+      cleanYield: '',
+      moisture: '',
+      cleanliness: '',
+      vegetableMatter: '',
+      contamination: 'Low',
+      foreignMatter: 'Low',
+      strength: 'Good',
+      overallScore: '',
+      grade: '',
+      remarks: ''
+    });
+  };
+
+  const allCertificates = useMemo(() => (
+    [...backendCertificates, ...certificates]
+      .filter(Boolean)
+      .filter((cert, index, list) => (
+        list.findIndex(item => (item.certificateId || item.id) === (cert.certificateId || cert.id)) === index
+      ))
+  ), [backendCertificates, certificates]);
+
+  const findCertificateForBatch = useCallback((batchId) => (
+    allCertificates.find(cert => cert.batchId === batchId || cert.id === batchId || cert.certificateId === batchId)
+  ), [allCertificates]);
+
+  const isWoolInspectionRequest = useCallback((request = {}) => {
+    const batch = allRegisteredWoolBatches.find(item => getBatchKey(item) === request.batchId);
+    if (batch) return true;
+    return /wool|fleece/i.test(`${request.woolType || ''} ${request.cropName || ''}`);
+  }, [allRegisteredWoolBatches]);
+
+  const inspectionRows = useMemo(() => {
+    const explicitRows = inspectionRequests.filter(isWoolInspectionRequest);
+    const explicitBatchIds = new Set(explicitRows.map(request => request.batchId).filter(Boolean));
+    const derivedRows = allRegisteredWoolBatches
+      .filter(batch => !explicitBatchIds.has(getBatchKey(batch)))
+      .filter(batch => !findCertificateForBatch(getBatchKey(batch)))
+      .map(batch => ({
+        id: `PENDING-${getBatchKey(batch)}`,
+        requestId: `PENDING-${getBatchKey(batch)}`,
+        batchId: getBatchKey(batch),
+        farmerId: batch.farmerId,
+        farmerName: batch.farmerName,
+        location: batch.origin || batch.currentLocation,
+        quantity: batch.quantity,
+        woolType: batch.woolType || batch.variety || batch.cropName,
+        status: batch.certificateStatus === 'Inspection Requested' ? 'PENDING_ASSIGNMENT' : 'PENDING_BATCH_REVIEW',
+        createdAt: batch.createdAt,
+        derivedFromBatch: true
+      }));
+    return [...explicitRows, ...derivedRows].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  }, [allRegisteredWoolBatches, findCertificateForBatch, inspectionRequests, isWoolInspectionRequest]);
+
+  const isCompletedInspection = useCallback((request = {}) => (
+    request.status === 'CERTIFICATE_ISSUED' || Boolean(findCertificateForBatch(request.batchId))
+  ), [findCertificateForBatch]);
+
+  const pendingInspectionCount = inspectionRows.filter(request => !isCompletedInspection(request) && request.status !== 'REJECTED').length;
+  const completedInspectionCount = inspectionRows.length - pendingInspectionCount;
 
   const handleBatchSelect = (batchId) => {
     const batch = registeredBatches.find(item => getBatchKey(item) === batchId);
@@ -484,7 +581,15 @@ export default function MarketIntelligence() {
   }, [commodity]);
 
   useEffect(() => {
-    if (!isWoolCommodity) {
+    if (requestedView) {
+      setActiveTab(requestedView);
+    } else if (isQualityPartner) {
+      setActiveTab('trust');
+    }
+  }, [isQualityPartner, requestedView]);
+
+  useEffect(() => {
+    if (!(isWoolCommodity || isQualityPartner || activeTab === 'trust')) {
       setApiWoolBatches([]);
       return;
     }
@@ -504,7 +609,35 @@ export default function MarketIntelligence() {
     return () => {
       isMounted = false;
     };
-  }, [isWoolCommodity]);
+  }, [activeTab, isQualityPartner, isWoolCommodity]);
+
+  useEffect(() => {
+    if (!(isQualityPartner || activeTab === 'trust')) return;
+
+    let isMounted = true;
+    setLoadingInspections(true);
+    Promise.all([
+      qaService.getRequests(),
+      qaService.getCertificates()
+    ])
+      .then(([requests, certs]) => {
+        if (!isMounted) return;
+        setInspectionRequests(Array.isArray(requests) ? requests : []);
+        setBackendCertificates(Array.isArray(certs) ? certs : []);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setInspectionRequests([]);
+        setBackendCertificates([]);
+      })
+      .finally(() => {
+        if (isMounted) setLoadingInspections(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeTab, isQualityPartner]);
 
   // CROP50 Derived Calculations
   const crop50Index = useMemo(() => crop50Service.getCurrentIndex(), []);
@@ -683,6 +816,200 @@ export default function MarketIntelligence() {
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const openInspection = async (request) => {
+    if (isCompletedInspection(request)) {
+      showToast('Certificate already issued for this batch.');
+      return;
+    }
+
+    let activeRequest = request;
+    const sourceBatch = allRegisteredWoolBatches.find(batch => getBatchKey(batch) === request.batchId);
+    if (sourceBatch) {
+      const synced = await qaService.syncBatchToBackend(sourceBatch);
+      if (!synced.success) {
+        showToast(synced.error || 'Could not sync WoolBatch before inspection.');
+        return;
+      }
+    }
+
+    if (request.derivedFromBatch) {
+      const created = await qaService.createRequest({
+        batchId: request.batchId,
+        farmerId: request.farmerId || 'FARMER-01',
+        farmerName: request.farmerName,
+        location: request.location,
+        quantity: request.quantity,
+        woolType: request.woolType,
+        preferredDate: new Date().toISOString(),
+        message: 'Inspection opened from KhetSetu Quality Partner workspace'
+      });
+      if (created?.success && created.data) {
+        activeRequest = created.data;
+        setInspectionRequests(prev => [
+          activeRequest,
+          ...prev.filter(item => item.batchId !== request.batchId)
+        ]);
+        if (created.persistedToBackend === false) {
+          showToast('Inspection saved locally because backend is unavailable.');
+        }
+      } else {
+        showToast(created?.error || 'Could not create inspection request.');
+        return;
+      }
+    }
+
+    if (activeRequest.status !== 'ASSIGNED') {
+      const requestId = activeRequest.requestId || activeRequest.id;
+      const assigned = await qaService.updateRequest(requestId, {
+        status: 'ASSIGNED',
+        inspectorId: user?.id || 'INS-01'
+      });
+      if (assigned?.success && assigned.data) {
+        activeRequest = { ...activeRequest, ...assigned.data, status: assigned.data.status || 'ASSIGNED' };
+        setInspectionRequests(prev => prev.map(item => (
+          item.requestId === requestId || item.id === requestId || item.batchId === activeRequest.batchId
+            ? activeRequest
+            : item
+        )));
+        if (assigned.persistedToBackend === false) {
+          showToast('Inspection assigned locally because backend is unavailable.');
+        }
+      } else {
+        showToast(assigned?.error || 'Could not assign inspection request.');
+        return;
+      }
+    }
+
+    resetInspectionForm();
+    setSelectedInspection(activeRequest);
+  };
+
+  const viewInspectionCertificate = async (request) => {
+    const existingCert = findCertificateForBatch(request.batchId);
+    if (existingCert?.certificateId || existingCert?.id) {
+      navigate(`/verify/${existingCert.certificateId || existingCert.id}`);
+      return;
+    }
+
+    const fetchedCert = await qaService.getCertificateByBatch(request.batchId);
+    if (fetchedCert?.certificateId || fetchedCert?.id) {
+      setBackendCertificates(prev => [
+        fetchedCert,
+        ...prev.filter(cert => (cert.certificateId || cert.id) !== (fetchedCert.certificateId || fetchedCert.id))
+      ]);
+      navigate(`/verify/${fetchedCert.certificateId || fetchedCert.id}`);
+      return;
+    }
+
+    showToast('Certificate details are not available yet.');
+  };
+
+  const issueInspectionCertificate = async (event) => {
+    event.preventDefault();
+    if (!selectedInspection) return;
+    setInspectionError('');
+    if (findCertificateForBatch(selectedInspection.batchId)) {
+      setSelectedInspection(null);
+      showToast('Certificate already issued for this batch.');
+      return;
+    }
+
+    const numericFields = [
+      ['fiberDiameter', 'Fiber Diameter'],
+      ['stapleLength', 'Staple Length'],
+      ['cleanYield', 'Clean Yield'],
+      ['moisture', 'Moisture'],
+      ['cleanliness', 'Cleanliness'],
+      ['overallScore', 'Overall Score']
+    ];
+    const parsedMetrics = {};
+    for (const [key, label] of numericFields) {
+      const rawValue = inspectionForm[key];
+      const parsedValue = Number(rawValue);
+      if (rawValue === '' || rawValue === null || rawValue === undefined || !Number.isFinite(parsedValue)) {
+        const message = `${label} is required and must be a valid number.`;
+        setInspectionError(message);
+        showToast(message);
+        return;
+      }
+      parsedMetrics[key] = parsedValue;
+    }
+    if (parsedMetrics.overallScore < 0 || parsedMetrics.overallScore > 100) {
+      const message = 'Overall Score must be between 0 and 100.';
+      setInspectionError(message);
+      showToast(message);
+      return;
+    }
+    if (!inspectionForm.grade) {
+      const message = 'Select final grade before issuing the certificate.';
+      setInspectionError(message);
+      showToast(message);
+      return;
+    }
+
+    setIssuingCertificate(true);
+    try {
+      const sourceBatch = allRegisteredWoolBatches.find(batch => getBatchKey(batch) === selectedInspection.batchId);
+      if (sourceBatch) {
+        const synced = await qaService.syncBatchToBackend(sourceBatch);
+        if (!synced.success) {
+          throw new Error(synced.error || 'Could not sync WoolBatch before issuing certificate.');
+        }
+      }
+
+      const result = await qaService.issueCertificate({
+        batchId: selectedInspection.batchId,
+        requestId: selectedInspection.requestId || selectedInspection.id,
+        farmerName: selectedInspection.farmerName,
+        origin: selectedInspection.location,
+        quantity: Number(selectedInspection.quantity) || selectedInspection.quantity,
+        woolType: selectedInspection.woolType,
+        inspectorId: user?.id || 'INS-01',
+        inspectorName: user?.name || 'Quality Partner',
+        ...inspectionForm,
+        ...parsedMetrics,
+        vegetableMatter: inspectionForm.vegetableMatter.trim(),
+        remarks: inspectionForm.remarks.trim()
+      });
+
+      if (result?.success && result.data) {
+        if (addCertificate) addCertificate(result.data);
+        setBackendCertificates(prev => [
+          result.data,
+          ...prev.filter(cert => (cert.certificateId || cert.id) !== (result.data.certificateId || result.data.id))
+        ]);
+        if (updateBatch) {
+          updateBatch(selectedInspection.batchId, {
+            qualityGrade: result.data.grade || inspectionForm.grade,
+            certificateStatus: 'Certified',
+            certificateId: result.data.certificateId
+          });
+        }
+        setInspectionRequests(prev => prev.map(request => (
+          request.requestId === selectedInspection.requestId || request.id === selectedInspection.id || request.batchId === selectedInspection.batchId
+            ? { ...request, status: 'CERTIFICATE_ISSUED' }
+            : request
+        )));
+        setSelectedInspection(null);
+        showToast(result.persistedToBackend === false
+          ? 'Certificate saved locally because backend is unavailable.'
+          : 'Quality certificate issued and linked to WoolBatch.'
+        );
+        return;
+      }
+
+      const message = result?.error || 'Certificate could not be issued.';
+      setInspectionError(message);
+      showToast(message);
+    } catch (error) {
+      const message = error.message || 'Certificate could not be issued.';
+      setInspectionError(message);
+      showToast(message);
+    } finally {
+      setIssuingCertificate(false);
+    }
   };
 
   const bestChannel = useMemo(() => {
@@ -872,6 +1199,18 @@ export default function MarketIntelligence() {
           <div className="ks-sidebar-section">
             <span className="ks-sidebar-heading">Transactions & Trade</span>
             <nav className="ks-sidebar-nav">
+              {(isQualityPartner || activeTab === 'trust') && (
+                <button 
+                  type="button"
+                  className={'ks-sidebar-btn ' + (activeTab === 'trust' ? 'active' : '')} 
+                  onClick={() => setActiveTab('trust')}
+                >
+                  <ClipboardList size={17} />
+                  <span className="ks-sidebar-btn-label">Quality Partner</span>
+                  <span className="ks-sidebar-count-badge">{pendingInspectionCount}</span>
+                </button>
+              )}
+
               <button 
                 type="button"
                 className={'ks-sidebar-btn ' + (activeTab === 'buyers' ? 'active' : '')} 
@@ -1709,6 +2048,107 @@ export default function MarketIntelligence() {
           </div>
         )}
 
+        {/* TRUST SERVICE: QUALITY PARTNER WORKSPACE */}
+        {activeTab === 'trust' && (
+          <div className="ks-tab-content">
+            <section className="ks-intro-strip">
+              <div>
+                <h2>Quality Partner Workspace</h2>
+                <p>Review wool inspection requests and issue verified quality certificates.</p>
+              </div>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <span className="ks-badge blue">{pendingInspectionCount} Pending</span>
+                <span className="ks-badge green">{completedInspectionCount} Completed</span>
+              </div>
+            </section>
+
+            <section className="ks-snapshot-grid">
+              <div className="ks-card ks-metric-card">
+                <div className="ks-card-label">PENDING WOOL INSPECTIONS</div>
+                <div className="ks-metric-large">{pendingInspectionCount}</div>
+                <p className="ks-mini-hint">Open requests and uninspected registered wool batches.</p>
+              </div>
+              <div className="ks-card ks-metric-card">
+                <div className="ks-card-label">CERTIFICATES ISSUED</div>
+                <div className="ks-metric-large">{completedInspectionCount}</div>
+                <p className="ks-mini-hint">Completed records linked to WoolBatch certificates.</p>
+              </div>
+              <div className="ks-card ks-metric-card highlight">
+                <div className="ks-card-label">SERVICE ROLE</div>
+                <div className="ks-signal-badge"><ShieldCheck size={15} /> Verification</div>
+                <p className="ks-signal-desc">Quality Partner verifies wool quality only; marketplace transactions remain separate.</p>
+              </div>
+            </section>
+
+            <section className="ks-card">
+              <div className="ks-section-head">
+                <div>
+                  <h3>Wool Inspection Queue</h3>
+                  <p>Certificates are issued through the existing QA backend and linked back to the production batch.</p>
+                </div>
+              </div>
+
+              <div className="ks-table-responsive">
+                <table className="ks-table">
+                  <thead>
+                    <tr>
+                      <th>Request</th>
+                      <th>Batch</th>
+                      <th>Farmer / Origin</th>
+                      <th>Wool</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loadingInspections ? (
+                      <tr><td colSpan="6">Loading wool inspections...</td></tr>
+                    ) : inspectionRows.length === 0 ? (
+                      <tr><td colSpan="6">No wool inspection requests found.</td></tr>
+                    ) : inspectionRows.map(request => {
+                      const existingCert = findCertificateForBatch(request.batchId);
+                      const status = existingCert ? 'CERTIFICATE_ISSUED' : request.status || 'PENDING_ASSIGNMENT';
+                      const isIssued = status === 'CERTIFICATE_ISSUED';
+                      const isAssigned = status === 'ASSIGNED';
+                      return (
+                        <tr key={request.requestId || request.id || request.batchId}>
+                          <td><b>{request.requestId || request.id}</b></td>
+                          <td>{request.batchId}</td>
+                          <td>
+                            <b>{request.farmerName || 'Registered Farmer'}</b>
+                            <div style={{ fontSize: 11, color: '#66766A' }}>{request.location || 'Registered origin'}</div>
+                          </td>
+                          <td>{request.quantity || 0} KG {request.woolType || 'Raw Wool'}</td>
+                          <td>
+                            <span className={'ks-badge ' + (existingCert ? 'green' : 'blue')}>
+                              {status.replaceAll('_', ' ')}
+                            </span>
+                          </td>
+                          <td>
+                            {isIssued && existingCert ? (
+                              <Link to={`/verify/${existingCert.certificateId || existingCert.id}`} className="ks-link-btn">
+                                View Certificate
+                              </Link>
+                            ) : isIssued ? (
+                              <button className="ks-link-btn" type="button" onClick={() => viewInspectionCertificate(request)}>
+                                View Certificate
+                              </button>
+                            ) : (
+                              <button className="ks-link-btn" type="button" onClick={() => openInspection(request)}>
+                                {isAssigned ? 'Open Inspection' : 'Assign / Start Inspection'}
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        )}
+
         {/* TAB 4: DEMAND BY QUALITY */}
         {activeTab === 'demand' && (
           <div className="ks-tab-content">
@@ -2094,6 +2534,99 @@ export default function MarketIntelligence() {
               Close Methodology
             </button>
           </div>
+        </div>
+      )}
+
+      {/* QUALITY CERTIFICATE ISSUANCE MODAL */}
+      {selectedInspection && (
+        <div className="ks-modal-backdrop">
+          <form className="ks-modal" style={{ maxWidth: 680 }} onSubmit={issueInspectionCertificate}>
+            <button type="button" className="ks-close" onClick={() => setSelectedInspection(null)}><X /></button>
+            <div className="ks-eyebrow"><ShieldCheck size={14} /> QUALITY VERIFICATION</div>
+            <h2>Issue Wool Quality Certificate</h2>
+            <p>Enter inspection metrics for Batch {selectedInspection.batchId}. Certificate data will be persisted through the existing QA backend.</p>
+
+            <div className="ks-modal-note">
+              <FileText size={16} />
+              <span>{selectedInspection.farmerName || 'Registered Farmer'} | {selectedInspection.quantity || 0} KG | {selectedInspection.woolType || 'Raw Wool'}</span>
+            </div>
+
+            {inspectionError && (
+              <div className="ks-modal-note" style={{ background: '#FEE2E2', color: '#991B1B' }}>
+                <Info size={16} />
+                <span>{inspectionError}</span>
+              </div>
+            )}
+
+            <div className="ks-form-grid">
+              <label>Fiber Diameter (micron)
+                <input required type="number" step="0.01" value={inspectionForm.fiberDiameter} onChange={e => setInspectionForm({ ...inspectionForm, fiberDiameter: e.target.value })} />
+              </label>
+              <label>Staple Length (mm)
+                <input required type="number" step="0.01" value={inspectionForm.stapleLength} onChange={e => setInspectionForm({ ...inspectionForm, stapleLength: e.target.value })} />
+              </label>
+            </div>
+
+            <div className="ks-form-grid">
+              <label>Clean Yield (%)
+                <input required type="number" step="0.01" value={inspectionForm.cleanYield} onChange={e => setInspectionForm({ ...inspectionForm, cleanYield: e.target.value })} />
+              </label>
+              <label>Moisture (%)
+                <input required type="number" step="0.01" value={inspectionForm.moisture} onChange={e => setInspectionForm({ ...inspectionForm, moisture: e.target.value })} />
+              </label>
+            </div>
+
+            <div className="ks-form-grid">
+              <label>Cleanliness (%)
+                <input required type="number" step="0.01" value={inspectionForm.cleanliness} onChange={e => setInspectionForm({ ...inspectionForm, cleanliness: e.target.value })} />
+              </label>
+              <label>Vegetable Matter
+                <input type="text" value={inspectionForm.vegetableMatter} onChange={e => setInspectionForm({ ...inspectionForm, vegetableMatter: e.target.value })} />
+              </label>
+            </div>
+
+            <div className="ks-form-grid">
+              <label>Contamination
+                <select value={inspectionForm.contamination} onChange={e => setInspectionForm({ ...inspectionForm, contamination: e.target.value })}>
+                  <option>None</option><option>Low</option><option>Moderate</option><option>High</option>
+                </select>
+              </label>
+              <label>Foreign Matter
+                <select value={inspectionForm.foreignMatter} onChange={e => setInspectionForm({ ...inspectionForm, foreignMatter: e.target.value })}>
+                  <option>None</option><option>Low</option><option>Moderate</option><option>High</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="ks-form-grid">
+              <label>Strength
+                <select value={inspectionForm.strength} onChange={e => setInspectionForm({ ...inspectionForm, strength: e.target.value })}>
+                  <option>Excellent</option><option>Good</option><option>Fair</option><option>Poor</option>
+                </select>
+              </label>
+              <label>Overall Score
+                <input required type="number" min="0" max="100" step="0.01" value={inspectionForm.overallScore} onChange={e => setInspectionForm({ ...inspectionForm, overallScore: e.target.value })} />
+              </label>
+            </div>
+
+            <label>Final Grade
+              <select required value={inspectionForm.grade} onChange={e => setInspectionForm({ ...inspectionForm, grade: e.target.value })}>
+                <option value="">Select grade</option>
+                <option value="A+">Grade A+</option>
+                <option value="A">Grade A</option>
+                <option value="B">Grade B</option>
+                <option value="C">Grade C</option>
+              </select>
+            </label>
+
+            <label>Remarks
+              <textarea rows="3" value={inspectionForm.remarks} onChange={e => setInspectionForm({ ...inspectionForm, remarks: e.target.value })} />
+            </label>
+
+            <button type="submit" className="ks-button ks-button-dark ks-modal-action" disabled={issuingCertificate}>
+              {issuingCertificate ? 'Issuing Certificate...' : 'Issue Certificate'} <ArrowRight size={16} />
+            </button>
+          </form>
         </div>
       )}
 

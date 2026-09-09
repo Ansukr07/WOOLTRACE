@@ -45,6 +45,35 @@ const normalizeBatchRecord = (batch = {}) => {
   };
 };
 
+const firstPresent = (...values) => values.find(value => value !== undefined && value !== null && value !== '');
+const formatPercent = (value) => {
+  if (value === undefined || value === null || value === '') return undefined;
+  const text = String(value);
+  return text.includes('%') ? text : `${text}%`;
+};
+const readApiJson = async (response) => {
+  const text = await response.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    throw new Error('Invalid JSON response from QA API');
+  }
+};
+const isBackendUnavailable = (response, data) => (
+  response?.status === 502 ||
+  response?.status === 503 ||
+  response?.status === 504 ||
+  data?.backendUnavailable === true
+);
+const getApiErrorMessage = (data, fallback) => data?.error || data?.message || fallback;
+const toNumberOrUndefined = (value, fieldName) => {
+  if (value === undefined || value === null || value === '') return undefined;
+  const number = Number(value);
+  if (!Number.isFinite(number)) throw new Error(`${fieldName} must be a valid number`);
+  return number;
+};
+
 export const qaService = {
   async getBatches(farmerId = 'FARMER-01') {
     try {
@@ -92,6 +121,53 @@ export const qaService = {
     } catch (e) {}
 
     return null;
+  },
+
+  async syncBatchToBackend(batch) {
+    const normalizedBatch = normalizeBatchRecord(batch);
+    if (!normalizedBatch.batchId) {
+      return { success: false, error: 'batchId is required to sync WoolBatch' };
+    }
+
+    try {
+      const existingRes = await fetch(`/api/batches?id=${normalizedBatch.batchId}`);
+      const existingData = await readApiJson(existingRes);
+      if (isBackendUnavailable(existingRes, existingData)) {
+        return { success: true, backendUnavailable: true, persistedToBackend: false };
+      }
+      if (existingData?.success && existingData.data) {
+        return { success: true, data: normalizeBatchRecord(existingData.data), alreadyExisted: true };
+      }
+      if (!existingRes.ok) {
+        return { success: false, error: getApiErrorMessage(existingData, `Batch lookup failed with ${existingRes.status}`) };
+      }
+
+      const createRes = await fetch('/api/batches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(normalizedBatch)
+      });
+      const createdData = await readApiJson(createRes);
+      if (isBackendUnavailable(createRes, createdData)) {
+        return { success: true, backendUnavailable: true, persistedToBackend: false };
+      }
+      if (createdData?.success && createdData.data) {
+        return { success: true, data: normalizeBatchRecord(createdData.data), alreadyExisted: false };
+      }
+
+      const refetchRes = await fetch(`/api/batches?id=${normalizedBatch.batchId}`);
+      const refetchData = await readApiJson(refetchRes);
+      if (isBackendUnavailable(refetchRes, refetchData)) {
+        return { success: true, backendUnavailable: true, persistedToBackend: false };
+      }
+      if (refetchData?.success && refetchData.data) {
+        return { success: true, data: normalizeBatchRecord(refetchData.data), alreadyExisted: true };
+      }
+
+      return { success: false, error: createdData?.error || createdData?.message || `Batch sync failed with ${createRes.status}` };
+    } catch (error) {
+      return { success: false, error: error.message || 'Unable to sync WoolBatch to backend' };
+    }
   },
 
   async createBatch(payload) {
@@ -173,11 +249,17 @@ export const qaService = {
     try {
       const params = new URLSearchParams(filters).toString();
       const res = await fetch(`/api/qa/requests?${params}`);
+      const data = await readApiJson(res);
+      if (isBackendUnavailable(res, data)) {
+        throw Object.assign(new Error(getApiErrorMessage(data, 'QA backend unavailable')), { backendUnavailable: true });
+      }
       if (res.ok) {
-        const data = await res.json();
         if (data.success) return data.data;
       }
-    } catch (e) {}
+      return [];
+    } catch (e) {
+      if (!e.backendUnavailable && e.name !== 'TypeError') return [];
+    }
 
     try {
       const stored = localStorage.getItem('wt_qa_requests_v2');
@@ -187,9 +269,92 @@ export const qaService = {
     }
   },
 
+  async getRequestById(id) {
+    try {
+      const res = await fetch(`/api/qa/requests?id=${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data) return data.data;
+      }
+    } catch (e) {}
+
+    try {
+      const stored = localStorage.getItem('wt_qa_requests_v2');
+      const list = stored ? JSON.parse(stored) : [];
+      return list.find(req => req.id === id || req.requestId === id) || null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  async updateRequest(id, updates) {
+    try {
+      const res = await fetch('/api/qa/requests', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId: id, ...updates })
+      });
+      const data = await readApiJson(res);
+      if (isBackendUnavailable(res, data)) {
+        throw Object.assign(new Error(getApiErrorMessage(data, 'QA backend unavailable')), { backendUnavailable: true });
+      }
+      if (res.ok) {
+        if (data.success && data.data) return { success: true, data: data.data };
+      }
+      return { success: false, error: getApiErrorMessage(data, `QA API returned ${res.status}`) };
+    } catch (e) {
+      if (!e.backendUnavailable && e.name !== 'TypeError') {
+        return { success: false, error: e.message };
+      }
+    }
+
+    try {
+      const stored = localStorage.getItem('wt_qa_requests_v2');
+      const list = stored ? JSON.parse(stored) : [];
+      const updated = list.map(req => (req.id === id || req.requestId === id) ? { ...req, ...updates } : req);
+      localStorage.setItem('wt_qa_requests_v2', JSON.stringify(updated));
+      return { success: true, data: updated.find(req => req.id === id || req.requestId === id) || null, persistedToBackend: false };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  },
+
   async createRequest(payload) {
+    try {
+      const res = await fetch('/api/qa/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await readApiJson(res);
+      if (isBackendUnavailable(res, data)) {
+        throw Object.assign(new Error(getApiErrorMessage(data, 'QA backend unavailable')), { backendUnavailable: true });
+      }
+      if (res.ok) {
+        if (data.success && data.data) {
+          const savedReq = { id: data.data.requestId || data.data.id, ...data.data };
+          try {
+            const stored = localStorage.getItem('wt_qa_requests_v2');
+            const list = stored ? JSON.parse(stored) : [];
+            localStorage.setItem('wt_qa_requests_v2', JSON.stringify([
+              savedReq,
+              ...list.filter(req => req.requestId !== savedReq.requestId && req.id !== savedReq.id)
+            ]));
+          } catch (e) {}
+          return { success: true, data: savedReq };
+        }
+      }
+      return { success: false, error: getApiErrorMessage(data, `QA API returned ${res.status}`) };
+    } catch (e) {
+      if (!e.backendUnavailable && e.name !== 'TypeError') {
+        return { success: false, error: e.message };
+      }
+    }
+
+    const requestId = payload.requestId || `QAR-${Math.floor(1000 + Math.random() * 9000)}`;
     const newReq = {
-      id: `QAR-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: requestId,
+      requestId,
       status: 'PENDING_ASSIGNMENT',
       createdAt: new Date().toISOString(),
       ...payload
@@ -201,7 +366,7 @@ export const qaService = {
       localStorage.setItem('wt_qa_requests_v2', JSON.stringify([newReq, ...list]));
     } catch (e) {}
 
-    return { success: true, data: newReq };
+    return { success: true, data: newReq, persistedToBackend: false };
   },
 
   async getCertificateByBatch(batchId) {
@@ -225,26 +390,143 @@ export const qaService = {
     return null;
   },
 
+  async getCertificates(filters = {}) {
+    try {
+      const params = new URLSearchParams(filters).toString();
+      const res = await fetch(`/api/qa/certificates?${params}`);
+      const data = await readApiJson(res);
+      if (isBackendUnavailable(res, data)) {
+        throw Object.assign(new Error(getApiErrorMessage(data, 'QA backend unavailable')), { backendUnavailable: true });
+      }
+      if (res.ok && data.success) {
+        return Array.isArray(data.data) ? data.data : (data.data ? [data.data] : []);
+      }
+      return [];
+    } catch (e) {
+      if (!e.backendUnavailable && e.name !== 'TypeError') return [];
+    }
+
+    try {
+      const stored = localStorage.getItem('wt_certificates_v2');
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
+    }
+  },
+
+  async getCertificate(certificateId) {
+    try {
+      const res = await fetch(`/api/qa/certificates?id=${certificateId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data) return data.data;
+      }
+    } catch (e) {}
+
+    try {
+      const stored = localStorage.getItem('wt_certificates_v2');
+      if (stored) {
+        const list = JSON.parse(stored);
+        const match = list.find(c => c.id === certificateId || c.certificateId === certificateId);
+        if (match) return match;
+      }
+    } catch (e) {}
+
+    return null;
+  },
+
   async issueCertificate(payload) {
     const certId = `WTC-QA-2026-${Math.floor(10000 + Math.random() * 90000)}`;
+    const cleanYieldValue = firstPresent(payload.cleanYield, payload.yieldPct, payload.yield);
     const newCert = {
       id: certId,
       certificateId: certId,
       batchId: payload.batchId,
-      inspectorId: payload.inspectorId || 'QA-01',
-      inspectorName: payload.inspectorName || 'Dr. Anita Desai',
-      grade: payload.grade || 'A',
-      overallScore: payload.overallScore || 88,
-      fiberDiameter: payload.fiberDiameter || 21.5,
-      yield: payload.yield || '72%',
-      cleanliness: payload.cleanliness || 92,
-      moisture: payload.moisture || 12,
-      farmerName: payload.farmerName || 'Farmer',
-      quantity: payload.quantity || 400,
+      requestId: payload.requestId,
+      inspectorId: payload.inspectorId,
+      inspectorName: payload.inspectorName || 'Authorized Quality Inspector',
+      grade: payload.grade,
+      overallScore: toNumberOrUndefined(payload.overallScore, 'Overall Score'),
+      fiberDiameter: toNumberOrUndefined(payload.fiberDiameter, 'Fiber Diameter'),
+      stapleLength: toNumberOrUndefined(payload.stapleLength, 'Staple Length'),
+      cleanYield: toNumberOrUndefined(cleanYieldValue, 'Clean Yield'),
+      yieldPct: toNumberOrUndefined(firstPresent(payload.yieldPct, cleanYieldValue), 'Clean Yield'),
+      yield: firstPresent(payload.yield, formatPercent(cleanYieldValue)),
+      cleanliness: toNumberOrUndefined(payload.cleanliness, 'Cleanliness'),
+      moisture: toNumberOrUndefined(payload.moisture, 'Moisture'),
+      color: payload.color,
+      strength: payload.strength,
+      tensileStrength: payload.tensileStrength,
+      contamination: payload.contamination,
+      vegetableMatter: payload.vegetableMatter,
+      foreignMatter: payload.foreignMatter,
+      remarks: payload.remarks,
+      farmerName: payload.farmerName,
+      origin: payload.origin,
+      quantity: payload.quantity,
+      woolType: payload.woolType,
       issuedAt: new Date().toISOString(),
       status: 'Approved',
       verificationUrl: `http://localhost:5173/verify/${certId}`
     };
+    Object.keys(newCert).forEach(key => {
+      if (newCert[key] === undefined || newCert[key] === null || newCert[key] === '') delete newCert[key];
+    });
+
+    try {
+      const res = await fetch('/api/qa/certificates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCert)
+      });
+      const data = await readApiJson(res);
+      if (isBackendUnavailable(res, data)) {
+        throw Object.assign(new Error(getApiErrorMessage(data, 'QA backend unavailable')), { backendUnavailable: true });
+      }
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || data.message || `QA API returned ${res.status}`);
+      }
+      if (data.data) {
+        const savedCert = data.data;
+        try {
+          const stored = localStorage.getItem('wt_certificates_v2');
+          const list = stored ? JSON.parse(stored) : [];
+          localStorage.setItem('wt_certificates_v2', JSON.stringify([
+            savedCert,
+            ...list.filter(cert => cert.certificateId !== newCert.certificateId && cert.certificateId !== savedCert.certificateId)
+          ]));
+        } catch (e) {}
+        try {
+          const stored = localStorage.getItem('wt_qa_requests_v2');
+          const list = stored ? JSON.parse(stored) : [];
+          localStorage.setItem('wt_qa_requests_v2', JSON.stringify(list.map(req => (
+            req.id === payload.requestId || req.requestId === payload.requestId
+              ? { ...req, status: 'CERTIFICATE_ISSUED' }
+              : req
+          ))));
+        } catch (e) {}
+        try {
+          const stored = localStorage.getItem('wt_batches_v2');
+          const list = stored ? JSON.parse(stored) : [];
+          localStorage.setItem('wt_batches_v2', JSON.stringify(list.map(batch => (
+            batch.id === payload.batchId || batch.batchId === payload.batchId
+              ? normalizeBatchRecord({
+                  ...batch,
+                  certificateStatus: 'Certified',
+                  qualityGrade: savedCert.grade || payload.grade,
+                  certificateId: savedCert.certificateId
+                })
+              : batch
+          ))));
+        } catch (e) {}
+        return { success: true, data: savedCert, persistedToBackend: true };
+      }
+      throw new Error('QA API did not return a certificate');
+    } catch (error) {
+      if (!error.backendUnavailable && error.name !== 'TypeError') {
+        return { success: false, error: error.message };
+      }
+    }
 
     try {
       const stored = localStorage.getItem('wt_certificates_v2');
@@ -252,6 +534,31 @@ export const qaService = {
       localStorage.setItem('wt_certificates_v2', JSON.stringify([newCert, ...list]));
     } catch (e) {}
 
-    return { success: true, data: newCert };
+    try {
+      const stored = localStorage.getItem('wt_qa_requests_v2');
+      const list = stored ? JSON.parse(stored) : [];
+      localStorage.setItem('wt_qa_requests_v2', JSON.stringify(list.map(req => (
+        req.id === payload.requestId || req.requestId === payload.requestId
+          ? { ...req, status: 'CERTIFICATE_ISSUED' }
+          : req
+      ))));
+    } catch (e) {}
+
+    try {
+      const stored = localStorage.getItem('wt_batches_v2');
+      const list = stored ? JSON.parse(stored) : [];
+      localStorage.setItem('wt_batches_v2', JSON.stringify(list.map(batch => (
+        batch.id === payload.batchId || batch.batchId === payload.batchId
+          ? normalizeBatchRecord({
+              ...batch,
+              certificateStatus: 'Certified',
+              qualityGrade: payload.grade,
+              certificateId: certId
+            })
+          : batch
+      ))));
+    } catch (e) {}
+
+    return { success: true, data: newCert, persistedToBackend: false };
   }
 };

@@ -37,6 +37,27 @@ export default function BatchDetail() {
 
   // Locate certificate
   const cert = certificates.find(c => c.batchId === id || c.id === batch.certificateId || c.certificateId === batch.certificateId);
+  const firstPresent = (...values) => values.find(value => value !== undefined && value !== null && value !== '');
+  const formatPercent = (value) => {
+    if (value === undefined || value === null || value === '') return null;
+    const text = String(value);
+    return text.includes('%') ? text : `${text}%`;
+  };
+  const certRows = cert ? [
+    ['Certificate ID', cert.certificateId],
+    ['Overall Quality Score', cert.overallScore !== undefined ? `${cert.overallScore}/100` : null],
+    ['Fiber Diameter', cert.fiberDiameter !== undefined ? `${cert.fiberDiameter} microns` : null],
+    ['Staple Length', cert.stapleLength !== undefined ? `${cert.stapleLength} mm` : null],
+    ['Clean Yield', formatPercent(firstPresent(cert.cleanYield, cert.yieldPct, cert.yield))],
+    ['Cleanliness Score', cert.cleanliness !== undefined ? `${cert.cleanliness}/100` : null],
+    ['Moisture Content', cert.moisture !== undefined ? `${cert.moisture}%` : null],
+    ['Color', cert.color],
+    ['Strength', firstPresent(cert.strength, cert.tensileStrength)],
+    ['Vegetable Matter', cert.vegetableMatter],
+    ['Contamination', cert.contamination],
+    ['Foreign Matter', cert.foreignMatter],
+    ['Remarks', cert.remarks]
+  ].filter(([, value]) => value !== undefined && value !== null && value !== '') : [];
 
   const isListed = listings.some(l => l.batchId === id);
 
@@ -173,12 +194,9 @@ export default function BatchDetail() {
                 </span>
               </div>
               <div className="quality-scores" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: '14px' }}>
-                <div>Certificate ID: <strong>{cert.certificateId}</strong></div>
-                <div>Overall Quality Score: <strong>{cert.overallScore}/100</strong></div>
-                <div>Fiber Diameter: <strong>{cert.fiberDiameter} microns</strong></div>
-                <div>Clean Yield: <strong>{cert.yield}</strong></div>
-                <div>Cleanliness Score: <strong>{cert.cleanliness}/100</strong></div>
-                <div>Moisture Content: <strong>{cert.moisture}%</strong></div>
+                {certRows.map(([label, value]) => (
+                  <div key={label}>{label}: <strong>{value}</strong></div>
+                ))}
               </div>
               
               <div style={{ marginTop: 20, display: 'flex', gap: 12 }}>

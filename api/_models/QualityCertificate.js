@@ -14,11 +14,17 @@ const qualityCertificateSchema = new mongoose.Schema({
   
   // Assessment metrics
   fiberDiameter: { type: Number },
+  stapleLength: { type: Number },
+  cleanYield: { type: Number },
+  yieldPct: { type: Number },
+  yield: { type: mongoose.Schema.Types.Mixed },
   cleanliness: { type: Number },
   moisture: { type: Number },
   color: { type: String },
   strength: { type: String },
+  tensileStrength: { type: String },
   contamination: { type: String },
+  vegetableMatter: { type: String },
   foreignMatter: { type: String },
   
   remarks: { type: String },

@@ -4,6 +4,13 @@ import { qaService } from '../../services/qa/qaService';
 import { ShieldCheck, CheckCircle, ShieldAlert, Check } from 'lucide-react';
 import './Verify.css';
 
+const firstPresent = (...values) => values.find(value => value !== undefined && value !== null && value !== '');
+const formatPercent = (value) => {
+  if (value === undefined || value === null || value === '') return null;
+  const text = String(value);
+  return text.includes('%') ? text : `${text}%`;
+};
+
 export default function VerifyCertificate() {
   const { certificateId } = useParams();
   const [cert, setCert] = useState(null);
@@ -36,6 +43,20 @@ export default function VerifyCertificate() {
       </div>
     </div>
   );
+
+  const qualityRows = [
+    ['Fiber Diameter', cert.fiberDiameter !== undefined ? `${cert.fiberDiameter} microns` : null],
+    ['Staple Length', cert.stapleLength !== undefined ? `${cert.stapleLength} mm` : null],
+    ['Clean Yield', formatPercent(firstPresent(cert.cleanYield, cert.yieldPct, cert.yield))],
+    ['Cleanliness', cert.cleanliness !== undefined ? `${cert.cleanliness}/100` : null],
+    ['Moisture', cert.moisture !== undefined ? `${cert.moisture}%` : null],
+    ['Color', cert.color],
+    ['Strength', firstPresent(cert.strength, cert.tensileStrength)],
+    ['Vegetable Matter', cert.vegetableMatter],
+    ['Contamination', cert.contamination],
+    ['Foreign Matter', cert.foreignMatter],
+    ['Remarks', cert.remarks]
+  ].filter(([, value]) => value !== undefined && value !== null && value !== '');
 
   return (
     <div className="verify-page">
@@ -92,6 +113,17 @@ export default function VerifyCertificate() {
               <div className="score-val">{cert.overallScore} <span>/ 100</span></div>
             </div>
           </div>
+
+          {qualityRows.length > 0 && (
+            <div className="cert-grid">
+              {qualityRows.map(([label, value]) => (
+                <div className="cert-item" key={label}>
+                  <label>{label}</label>
+                  <div className="val">{value}</div>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="trace-timeline">
             <h3>Farm-to-Fabric Traceability</h3>

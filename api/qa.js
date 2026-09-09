@@ -5,6 +5,22 @@ import WoolBatch from './_models/WoolBatch.js';
 import PDFDocument from 'pdfkit';
 import QRCode from 'qrcode';
 
+const firstPresent = (...values) => values.find(value => value !== undefined && value !== null && value !== '');
+const formatPercent = (value) => {
+  if (value === undefined || value === null || value === '') return null;
+  const text = String(value);
+  return text.includes('%') ? text : `${text}%`;
+};
+const addIfPresent = (target, key, value) => {
+  if (value !== undefined && value !== null && value !== '') target[key] = value;
+};
+const toNumberOrUndefined = (value, fieldName) => {
+  if (value === undefined || value === null || value === '') return undefined;
+  const number = Number(value);
+  if (!Number.isFinite(number)) throw new Error(`${fieldName} must be a valid number`);
+  return number;
+};
+
 // ── /api/qa/certificates ──────────────────────────────────────────────────
 async function handleCertificates(req, res) {
   await dbConnect();
@@ -18,7 +34,7 @@ async function handleCertificates(req, res) {
         return res.status(200).json({ success: true, data: cert });
       }
       if (batchId) {
-        const cert = await QualityCertificate.findOne({ batchId, status: 'VALID' });
+        const cert = await QualityCertificate.findOne({ batchId }).sort({ issuedAt: -1 });
         return res.status(200).json({ success: true, data: cert });
       }
       let query = {};
@@ -34,19 +50,55 @@ async function handleCertificates(req, res) {
     try {
       const {
         batchId, requestId, farmerName, origin, quantity, woolType,
-        grade, overallScore, fiberDiameter, cleanliness, moisture,
-        color, strength, contamination, foreignMatter, remarks, inspectorId
+        grade, overallScore, fiberDiameter, stapleLength, cleanYield, yieldPct,
+        cleanliness, moisture, color, strength, tensileStrength, contamination,
+        vegetableMatter, foreignMatter, remarks, inspectorId, inspectorName
       } = req.body;
+      if (!batchId || !requestId || !grade || overallScore === undefined || overallScore === null || overallScore === '') {
+        return res.status(400).json({ success: false, message: 'batchId, requestId, grade, and overallScore are required' });
+      }
+      const parsedOverallScore = toNumberOrUndefined(overallScore, 'Overall Score');
+      if (parsedOverallScore < 0 || parsedOverallScore > 100) {
+        return res.status(400).json({ success: false, message: 'Overall Score must be between 0 and 100' });
+      }
+      const existingCert = await QualityCertificate.findOne({ batchId }).sort({ issuedAt: -1 });
+      if (existingCert) {
+        await InspectionRequest.findOneAndUpdate({ requestId }, { status: 'CERTIFICATE_ISSUED' });
+        await WoolBatch.findOneAndUpdate({ batchId }, {
+          certificateStatus: 'Certified',
+          qualityGrade: existingCert.grade,
+          certificateId: existingCert.certificateId
+        });
+        return res.status(200).json({ success: true, data: existingCert, message: 'Certificate already issued for this batch' });
+      }
       const count = await QualityCertificate.countDocuments();
       const certificateId = `WTC-QA-2026-${String(count + 100).padStart(5, '0')}`;
       const verificationUrl = `${req.headers.origin || 'http://localhost:3000'}/verify/${certificateId}`;
-      const cert = await QualityCertificate.create({
+
+      const cleanYieldValue = firstPresent(cleanYield, yieldPct, req.body.yield);
+      const certPayload = {
         certificateId, batchId, requestId, farmerName, origin, quantity, woolType,
-        grade, overallScore, fiberDiameter, cleanliness, moisture,
-        color, strength, contamination, foreignMatter, remarks, inspectorId, verificationUrl
-      });
+        grade,
+        overallScore: parsedOverallScore,
+        fiberDiameter: toNumberOrUndefined(fiberDiameter, 'Fiber Diameter'),
+        stapleLength: toNumberOrUndefined(stapleLength, 'Staple Length'),
+        cleanliness: toNumberOrUndefined(cleanliness, 'Cleanliness'),
+        moisture: toNumberOrUndefined(moisture, 'Moisture'),
+        color, strength, tensileStrength, contamination, vegetableMatter,
+        foreignMatter, remarks, inspectorId, inspectorName, verificationUrl
+      };
+      addIfPresent(certPayload, 'cleanYield', toNumberOrUndefined(cleanYieldValue, 'Clean Yield'));
+      addIfPresent(certPayload, 'yieldPct', toNumberOrUndefined(firstPresent(yieldPct, cleanYieldValue), 'Clean Yield'));
+      addIfPresent(certPayload, 'yield', firstPresent(req.body.yield, formatPercent(cleanYieldValue)));
+      addIfPresent(certPayload, 'status', req.body.status || 'VALID');
+
+      const cert = await QualityCertificate.create(certPayload);
       await InspectionRequest.findOneAndUpdate({ requestId }, { status: 'CERTIFICATE_ISSUED' });
-      await WoolBatch.findOneAndUpdate({ batchId }, { qualityStatus: 'Certified' });
+      await WoolBatch.findOneAndUpdate({ batchId }, {
+        certificateStatus: 'Certified',
+        qualityGrade: grade,
+        certificateId
+      });
       return res.status(201).json({ success: true, data: cert });
     } catch (error) {
       return res.status(400).json({ success: false, error: error.message });
@@ -152,12 +204,23 @@ async function handleDownloadCertificate(req, res) {
     doc.text('Result', 250, startY);
     doc.moveTo(50, startY + 15).lineTo(500, startY + 15).stroke();
     let currentY = startY + 25;
-    const addRow = (param, result) => { doc.font('Helvetica').text(param, 50, currentY); doc.text(result, 250, currentY); currentY += 20; };
-    addRow('Cleanliness', cert.cleanliness ? `${cert.cleanliness}/100` : 'N/A');
-    addRow('Fiber Diameter', cert.fiberDiameter ? `${cert.fiberDiameter} microns` : 'N/A');
-    addRow('Moisture', cert.moisture ? `${cert.moisture}%` : 'Normal');
-    addRow('Color', cert.color || 'Natural');
-    addRow('Contamination', cert.contamination || 'Low');
+    const addRow = (param, result) => {
+      if (result === undefined || result === null || result === '') return;
+      doc.font('Helvetica').text(param, 50, currentY);
+      doc.text(String(result), 250, currentY);
+      currentY += 20;
+    };
+    addRow('Cleanliness', cert.cleanliness !== undefined ? `${cert.cleanliness}/100` : null);
+    addRow('Fiber Diameter', cert.fiberDiameter !== undefined ? `${cert.fiberDiameter} microns` : null);
+    addRow('Staple Length', cert.stapleLength !== undefined ? `${cert.stapleLength} mm` : null);
+    addRow('Clean Yield', formatPercent(firstPresent(cert.cleanYield, cert.yieldPct, cert.yield)));
+    addRow('Moisture', cert.moisture !== undefined ? `${cert.moisture}%` : null);
+    addRow('Color', cert.color);
+    addRow('Strength', firstPresent(cert.strength, cert.tensileStrength));
+    addRow('Vegetable Matter', cert.vegetableMatter);
+    addRow('Contamination', cert.contamination);
+    addRow('Foreign Matter', cert.foreignMatter);
+    addRow('Remarks', cert.remarks);
     doc.moveDown(3);
     doc.y = currentY + 40;
     doc.font('Helvetica-Bold').text('Verification', 50, doc.y, { underline: true });
