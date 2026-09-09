@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getRoleHome } from '../utils/roleRoutes';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, hasRole } = useAuth();
@@ -12,16 +13,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
   if (allowedRoles && !hasRole(allowedRoles)) {
     // Redirect to their default dashboard based on role
-    if (user.role === 'FARMER') return <Navigate to="/farmer" replace />;
-    if (user.role === 'SELLER') return <Navigate to="/seller" replace />;
-    if (user.role === 'QUALITY_INSPECTOR') return <Navigate to="/inspector" replace />;
-    if (user.role === 'WAREHOUSE') return <Navigate to="/warehouse" replace />;
-    if (user.role === 'TRANSPORT') return <Navigate to="/transport" replace />;
-    if (user.role === 'PROCESSING_UNIT') return <Navigate to="/processing" replace />;
-    if (user.role === 'EDUCATOR') return <Navigate to="/teacher" replace />;
-    
-    // Fallback if role is unmapped
-    return <Navigate to="/login" replace />;
+    return <Navigate to={getRoleHome(user.role)} replace />;
   }
 
   return children;

@@ -35,7 +35,7 @@ export default function FindWarehouse() {
   const [requestSuccessMessage, setRequestSuccessMessage] = useState('');
 
   // Request Form States
-  const [selectedBatchId, setSelectedBatchId] = useState(batches[0]?.id || 'WT-KA-2026-00124');
+  const [selectedBatchId, setSelectedBatchId] = useState(batches[0]?.id || 'BATCH-001');
   const [quantity, setQuantity] = useState(batches[0]?.quantity || 428);
   const [durationMonths, setDurationMonths] = useState(3);
   const [startDate, setStartDate] = useState('2026-08-16');
@@ -74,7 +74,7 @@ export default function FindWarehouse() {
       warehouseId: requestModalWarehouse.id,
       warehouseName: requestModalWarehouse.name,
       quantity: Number(quantity),
-      woolType: matchedBatch?.woolType || 'Raw Wool Fleece',
+      woolType: matchedBatch?.woolType || matchedBatch?.cropName || 'Harvest produce',
       grade: matchedBatch?.qualityGrade || 'A',
       storageDuration: `${durationMonths} Months`,
       durationMonths: Number(durationMonths),
@@ -99,10 +99,10 @@ export default function FindWarehouse() {
       <div className="find-warehouse-header">
         <div>
           <h1 className="find-warehouse-title">
-            <Warehouse size={28} color="#0B120D" /> Find Wool Warehouses
+            <Warehouse size={28} color="#0B120D" /> Find produce storage
           </h1>
           <p className="find-warehouse-subtitle">
-            Locate certified climate-controlled wool storage facilities across Karnataka & regional corridors.
+            Compare capacity, handling conditions and storage cost before you decide when to sell.
           </p>
         </div>
       </div>
@@ -283,7 +283,7 @@ export default function FindWarehouse() {
           <div className="modal-dialog-box" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', borderBottom: '1px solid #EEE', paddingBottom: '16px' }}>
               <div>
-                <span className="verified-pill">✓ Verified Wool Storage Depot</span>
+                <span className="verified-pill">✓ Storage credentials checked</span>
                 <h2 style={{ fontSize: '22px', fontWeight: '800', margin: '8px 0 4px 0', color: '#0B120D' }}>
                   {detailModalWarehouse.name}
                 </h2>
@@ -348,7 +348,7 @@ export default function FindWarehouse() {
                   setRequestModalWarehouse(wh);
                 }}
               >
-                Request Wool Storage <ArrowRight size={16} />
+                Request storage <ArrowRight size={16} />
               </button>
               <button
                 className="btn-wh-details"
@@ -362,14 +362,14 @@ export default function FindWarehouse() {
         </div>
       )}
 
-      {/* ── 4. Request Wool Storage Dialog ── */}
+      {/* Storage request dialog */}
       {requestModalWarehouse && (
         <div className="modal-overlay" onClick={() => setRequestModalWarehouse(null)}>
           <div className="modal-dialog-box" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #EEE', paddingBottom: '14px' }}>
               <div>
                 <h2 style={{ fontSize: '20px', fontWeight: '800', margin: 0, color: '#0B120D' }}>
-                  Request Wool Storage
+                  Request produce storage
                 </h2>
                 <span style={{ fontSize: '13px', color: '#666' }}>
                   Facility: <strong>{requestModalWarehouse.name}</strong>
@@ -387,7 +387,7 @@ export default function FindWarehouse() {
                 <select value={selectedBatchId} onChange={handleBatchSelectChange} required>
                   {batches.map(b => (
                     <option key={b.id || b.batchId} value={b.id || b.batchId}>
-                      {b.id || b.batchId} - {b.quantity} KG ({b.woolType})
+                      {b.id || b.batchId} - {b.quantity} KG ({b.cropName || b.woolType})
                     </option>
                   ))}
                 </select>

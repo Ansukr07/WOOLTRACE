@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   User, ChevronDown, Check, LogOut, Globe, Sparkles, 
-  ExternalLink, Warehouse, ShieldCheck, ShoppingCart, Truck, Factory, Sprout, Wallet 
+  ExternalLink, Warehouse, ShieldCheck, ShoppingCart, Truck, Sprout
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './UserRoleDropdown.css';
@@ -45,23 +45,12 @@ const ROLES_LIST = [
     role: 'SELLER',
     name: 'Shree Foods Pvt. Ltd.',
     email: 'buyer@khetsetu.in',
-    label: 'Verified Buyer',
+    label: 'Buyer',
     sub: 'Demand, offers and procurement orders',
     path: '/buyer',
     icon: ShoppingCart,
     badgeColor: '#0B120D',
     badgeBg: '#EDEDCE'
-  },
-  {
-    role: 'PROCESSING_UNIT',
-    name: 'Kota Food Processing',
-    email: 'processor@khetsetu.in',
-    label: 'Processor',
-    sub: 'Procurement demand and operations',
-    path: '/buyer',
-    icon: Factory,
-    badgeColor: '#1E3A8A',
-    badgeBg: '#DBEAFE'
   },
   {
     role: 'TRANSPORT',

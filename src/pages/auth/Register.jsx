@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, Box, Store, ShieldCheck, Warehouse, Truck, Combine, BookOpen, AlertCircle, CheckCircle, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { ArrowRight, Box, Store, ShieldCheck, Warehouse, Truck, BookOpen, AlertCircle, CheckCircle, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getRoleHome } from '../../utils/roleRoutes';
 import './Login.css';
 
 const ROLES = [
-  { id: 'FARMER', label: 'FARMER / FPO', desc: 'Discover markets and sell produce', icon: <Box size={24} /> },
-  { id: 'SELLER', label: 'BUYER / PROCESSOR', desc: 'Source verified produce at scale', icon: <Store size={24} /> },
-  { id: 'QUALITY_INSPECTOR', label: 'QUALITY PARTNER', desc: 'Grade produce and issue certificates', icon: <ShieldCheck size={24} /> },
-  { id: 'WAREHOUSE', label: 'STORAGE PARTNER', desc: 'Offer verified storage capacity', icon: <Warehouse size={24} /> },
-  { id: 'TRANSPORT', label: 'LOGISTICS PARTNER', desc: 'Coordinate farm-gate collection', icon: <Truck size={24} /> },
-  { id: 'PROCESSING_UNIT', label: 'PROCESSOR', desc: 'Publish procurement demand', icon: <Combine size={24} /> },
-  { id: 'EDUCATOR', label: 'MARKET FACILITATOR', desc: 'Support farmer market readiness', icon: <BookOpen size={24} /> }
+  { id: 'FARMER', label: 'Farmer / FPO', desc: 'Discover markets and sell produce', icon: <Box size={24} /> },
+  { id: 'SELLER', label: 'Buyer', desc: 'Source produce at scale', icon: <Store size={24} /> },
+  { id: 'QUALITY_INSPECTOR', label: 'Quality partner', desc: 'Grade produce and issue certificates', icon: <ShieldCheck size={24} /> },
+  { id: 'WAREHOUSE', label: 'Storage partner', desc: 'Offer storage capacity', icon: <Warehouse size={24} /> },
+  { id: 'TRANSPORT', label: 'Logistics partner', desc: 'Coordinate farm-gate collection', icon: <Truck size={24} /> },
+  { id: 'EDUCATOR', label: 'Market facilitator', desc: 'Support farmer market readiness', icon: <BookOpen size={24} /> }
 ];
 
 const Register = () => {

@@ -109,6 +109,10 @@
 .mobile-menu-toggle {
   display: none;
   cursor: pointer;
+  border: 0;
+  background: transparent;
+  color: #0B120D;
+  padding: 6px;
 }
 
 .header-right {

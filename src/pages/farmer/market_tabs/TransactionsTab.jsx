@@ -1,19 +1,20 @@
 import React from 'react';
-import { DollarSign, ShieldAlert } from 'lucide-react';
+import { DollarSign, ShieldAlert, Smartphone, CheckCircle2 } from 'lucide-react';
 
 export default function TransactionsTab({
   marketTransactions,
   onOpenDispute,
-  onConfirmDelivery
+  onConfirmDelivery,
+  onStartPayment
 }) {
   return (
     <div>
       <div className="panel-header-row">
         <h3 className="panel-title">
           <DollarSign size={20} />
-          Completed & In-Transit Transactions
+          Trade transactions
         </h3>
-        <span style={{ fontSize: '13px', color: '#64748B' }}>Full financial settlements, escrow vaults, and transport passports</span>
+        <span style={{ fontSize: '13px', color: '#64748B' }}>Delivery milestones, UPI payment requests, and transparent settlement records</span>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -69,24 +70,29 @@ export default function TransactionsTab({
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ fontSize: '12px', color: '#64748B' }}>
-                Transaction Date: {new Date(txn.transactionDate).toLocaleDateString('en-IN')} · Escrow Vault Protected
+                Transaction date: {new Date(txn.transactionDate).toLocaleDateString('en-IN')} · {txn.paymentReference || 'Payment request pending'}
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   className="btn-secondary"
                   style={{ fontSize: '12px', padding: '6px 12px' }}
-                  onClick={() => onOpenDispute(txn)}
+                  onClick={() => onOpenDispute?.(txn)}
                 >
                   <ShieldAlert size={14} style={{ marginRight: '4px' }} />
                   Raise Dispute
                 </button>
-                {txn.deliveryStatus !== 'DELIVERED' && (
+                {txn.paymentStatus !== 'PAID' && (
+                  <button className="btn-primary" style={{ fontSize: '12px', padding: '6px 12px' }} onClick={() => onStartPayment?.(txn)}>
+                    <Smartphone size={14} style={{ marginRight: '4px' }} /> Pay by UPI
+                  </button>
+                )}
+                {txn.paymentStatus === 'PAID' && txn.deliveryStatus !== 'DELIVERED' && (
                   <button
                     className="btn-primary"
                     style={{ fontSize: '12px', padding: '6px 12px' }}
                     onClick={() => onConfirmDelivery(txn)}
                   >
-                    Confirm Delivery & Release Escrow
+                    <CheckCircle2 size={14} style={{ marginRight: '4px' }} /> Confirm delivery
                   </button>
                 )}
               </div>

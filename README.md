@@ -1,16 +1,16 @@
-# React + Vite
+# KhetSetu
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+KhetSetu is a crop-market intelligence and transaction workspace for farmers, FPOs, buyers, quality partners, storage partners and logistics partners.
 
-Currently, two official plugins are available:
+## Run locally
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev
+```
 
-## React Compiler
+The local development server also serves the project API routes, including authentication, market intelligence and payment intent endpoints.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Payment flow
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+The app creates a UPI payment request, displays a scannable QR code, and records the confirmed payment against its trade transaction. It defaults to `TEST_UPI` so a demo cannot capture real money. Set `PAYMENT_GATEWAY_PROVIDER`, `UPI_COLLECT_VPA`, and provider credentials in the deployment environment before enabling a real merchant payment gateway.

@@ -16,12 +16,6 @@ const UserSchema = new mongoose.Schema({
   state: {
     type: String,
   },
-  numberOfSheep: {
-    type: Number,
-  },
-  woolProduction: {
-    type: Number,
-  },
   password: {
     type: String,
     required: true,

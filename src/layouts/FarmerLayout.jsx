@@ -86,9 +86,9 @@ const FarmerLayout = () => {
       <div className="farmer-main">
         {/* Top Header */}
         <header className="farmer-header">
-          <div className="mobile-menu-toggle" onClick={() => setIsMobileMenuOpen(true)}>
+          <button type="button" className="mobile-menu-toggle" onClick={() => setIsMobileMenuOpen(true)} aria-label="Open farmer navigation">
             <Menu size={24} />
-          </div>
+          </button>
           
           <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <button className="icon-btn">

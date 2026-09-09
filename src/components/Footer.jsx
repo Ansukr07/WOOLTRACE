@@ -12,8 +12,8 @@ const Footer = () => {
           
           {/* Brand Column */}
           <div className="footer-col brand-col">
-            <h3 className="footer-logo">WoolTrace</h3>
-            <p>WoolTrace is an agricultural market intelligence and transaction enablement platform connecting farmers, FPOs, and buyers across India.</p>
+            <h3 className="footer-logo">KhetSetu</h3>
+            <p>KhetSetu is an agricultural market intelligence and transaction platform connecting farmers, FPOs, and buyers across India.</p>
             <div className="social-links">
               <a href="#" className="social-icon">FB</a>
               <a href="#" className="social-icon">IG</a>
@@ -46,7 +46,7 @@ const Footer = () => {
             </div>
             <div className="info-item">
               <Mail size={16} className="info-icon" />
-              <span>support@wooltrace.in</span>
+              <span>support@khetsetu.in</span>
             </div>
           </div>
 
@@ -64,13 +64,13 @@ const Footer = () => {
 
         {/* Watermark Section */}
         <div className="footer-watermark">
-          WoolTrace
+          KhetSetu
         </div>
 
         {/* Bottom Section */}
         <div className="footer-bottom">
           <div className="copyright">
-            &copy; 2026 All Rights Reserved by WoolTrace
+            &copy; 2026 All Rights Reserved by KhetSetu
           </div>
           <div className="legal-links">
             <a href="#">Privacy Policy</a>

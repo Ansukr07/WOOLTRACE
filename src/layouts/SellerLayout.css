@@ -106,6 +106,9 @@
   display: none;
   cursor: pointer;
   color: #0B120D;
+  border: 0;
+  background: transparent;
+  padding: 6px;
 }
 
 .seller-header .header-right {

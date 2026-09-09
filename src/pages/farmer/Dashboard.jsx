@@ -79,7 +79,7 @@ const Dashboard = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <span style={{ background: '#DDFF86', color: '#0B120D', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              SIH 2026 · Agricultural Market Intelligence
+              Agricultural market intelligence
             </span>
             <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#0B120D', margin: '8px 0 4px 0' }}>
               Good morning, {user?.name || 'Ramesh Kumar'}
@@ -236,7 +236,7 @@ const Dashboard = () => {
               <span className="trend up"><TrendingUp size={14} /> +3.2%</span>
             </div>
             <div className="price-item">
-              <span className="type">Processor Direct</span>
+              <span className="type">Direct buyer</span>
               <span className="price">₹{currentCommodity.processorQuotePerKg}/KG</span>
               <span className="trend up"><TrendingUp size={14} /> +7.8%</span>
             </div>
@@ -272,7 +272,7 @@ const Dashboard = () => {
           <div className="panel" style={{ marginBottom: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <h2 style={{ fontSize: '15px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Users size={16} /> Verified Buyer Demand
+                <Users size={16} /> Buyer demand
               </h2>
               <span style={{ fontSize: '11px', fontWeight: '800', background: '#DDFF86', padding: '2px 6px', borderRadius: '4px' }}>
                 {(buyerDemands || []).length} Active

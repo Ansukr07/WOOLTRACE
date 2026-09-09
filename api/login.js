@@ -24,13 +24,13 @@ export default async function handler(req, res) {
       if (email.includes('inspector') || email.includes('quality')) return 'QUALITY_INSPECTOR';
       if (email.includes('warehouse') || email.includes('storage')) return 'WAREHOUSE';
       if (email.includes('transport') || email.includes('logistics')) return 'TRANSPORT';
-      if (email.includes('processing') || email.includes('processor')) return 'PROCESSING_UNIT';
+      if (email.includes('processing') || email.includes('processor')) return 'SELLER';
       if (email.includes('educator') || email.includes('teacher')) return 'EDUCATOR';
       return 'FARMER';
     };
 
     // Demo profiles are provisioned on demand for each KhetSetu workspace.
-    const isDemoProfile = identifier.endsWith('@wooltrace.com') || identifier.endsWith('@khetsetu.in');
+    const isDemoProfile = identifier.endsWith('@khetsetu.in');
     const demoRole = inferDemoRole(identifier);
     if (!user && isDemoProfile) {
       user = await User.create({
@@ -59,6 +59,7 @@ export default async function handler(req, res) {
       }
     }
 
+    const role = user.role === 'PROCESSING_UNIT' ? 'SELLER' : user.role;
     res.status(200).json({
       message: 'Login successful',
       user: {
@@ -66,7 +67,7 @@ export default async function handler(req, res) {
         name: user.name,
         email: user.email,
         mobile: user.mobile,
-        role: user.role,
+        role,
         state: user.state,
         preferredLanguage: user.preferredLanguage || 'en'
       }

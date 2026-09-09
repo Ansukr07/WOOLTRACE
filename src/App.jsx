@@ -17,11 +17,7 @@ const FarmerMarket = React.lazy(() => import('./pages/farmer/Market'));
 const TrackProduce = React.lazy(() => import('./pages/farmer/TrackWool'));
 const StorageFinder = React.lazy(() => import('./pages/farmer/FindWarehouse'));
 const BuyerLayout = React.lazy(() => import('./layouts/SellerLayout'));
-const BuyerDashboard = React.lazy(() => import('./pages/seller/SellerDashboard'));
-const BuyerMarketplace = React.lazy(() => import('./pages/seller/Marketplace'));
-const BuyerBids = React.lazy(() => import('./pages/seller/Bids'));
-const BuyerOrders = React.lazy(() => import('./pages/seller/Orders'));
-const BuyerWallet = React.lazy(() => import('./pages/seller/Wallet'));
+const BuyerWorkspace = React.lazy(() => import('./pages/buyer/BuyerWorkspace'));
 const StorageLayout = React.lazy(() => import('./layouts/WarehouseLayout'));
 const StorageDashboard = React.lazy(() => import('./pages/warehouse/WarehouseDashboard'));
 const StorageCheckIn = React.lazy(() => import('./pages/warehouse/WarehouseCheckIn'));
@@ -65,10 +61,12 @@ function App() {
       <Route path="*" element={<Navigate to="/farmer" replace />} />
     </Route>
 
-    <Route path="/buyer" element={secure(['SELLER', 'PROCESSING_UNIT'], <BuyerLayout />)}>
-      <Route index element={<BuyerDashboard />} /><Route path="marketplace" element={<BuyerMarketplace />} />
-      <Route path="bids" element={<BuyerBids />} /><Route path="orders" element={<BuyerOrders />} />
-      <Route path="payments" element={<BuyerWallet />} /><Route path="*" element={<Navigate to="/buyer" replace />} />
+    <Route path="/buyer" element={secure(['SELLER'], <BuyerLayout />)}>
+      <Route index element={<BuyerWorkspace />} /><Route path="demand" element={<BuyerWorkspace />} />
+      <Route path="lots" element={<BuyerWorkspace />} /><Route path="offers" element={<BuyerWorkspace />} />
+      <Route path="payments" element={<BuyerWorkspace />} /><Route path="marketplace" element={<Navigate to="/buyer/lots" replace />} />
+      <Route path="bids" element={<Navigate to="/buyer/offers" replace />} /><Route path="orders" element={<Navigate to="/buyer/payments" replace />} />
+      <Route path="*" element={<Navigate to="/buyer" replace />} />
     </Route>
 
     <Route path="/storage" element={secure(['WAREHOUSE'], <StorageLayout />)}>

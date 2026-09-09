@@ -7,11 +7,10 @@ import './Login.css';
 
 const DEMO_BUTTONS = [
   { label: 'Farmer / FPO', email: 'farmer@khetsetu.in', role: 'FARMER', color: '#166534', bg: '#DCFCE7' },
-  { label: 'Buyer / Processor', email: 'buyer@khetsetu.in', role: 'SELLER', color: '#0B120D', bg: '#EDEDCE' },
+  { label: 'Buyer', email: 'buyer@khetsetu.in', role: 'SELLER', color: '#0B120D', bg: '#EDEDCE' },
   { label: 'Quality Partner', email: 'quality@khetsetu.in', role: 'QUALITY_INSPECTOR', color: '#0B120D', bg: '#BED5E5' },
   { label: 'Storage Partner', email: 'storage@khetsetu.in', role: 'WAREHOUSE', color: '#0B120D', bg: '#DDFF86' },
   { label: 'Logistics Partner', email: 'logistics@khetsetu.in', role: 'TRANSPORT', color: '#92400E', bg: '#FEF3C7' },
-  { label: 'Processor', email: 'processor@khetsetu.in', role: 'PROCESSING_UNIT', color: '#1E3A8A', bg: '#DBEAFE' },
 ];
 
 const Login = () => {
@@ -152,7 +151,7 @@ const Login = () => {
           {/* Quick 1-Click Demo Login Panel */}
           <div style={{ marginTop: '28px', padding: '18px', backgroundColor: '#F8F8F3', borderRadius: '12px', border: '1px solid rgba(11, 18, 13, 0.08)' }}>
             <div style={{ fontSize: '12px', fontWeight: '800', textTransform: 'uppercase', color: '#777', marginBottom: '10px' }}>
-              ⚡ 1-Click Demo Logins:
+              Workspace previews
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {DEMO_BUTTONS.map((demo) => (

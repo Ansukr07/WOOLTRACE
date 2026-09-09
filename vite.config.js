@@ -4,11 +4,13 @@ import loginHandler from './api/login.js';
 import registerHandler from './api/register.js';
 import marketHandler from './api/market.js';
 import marketAdvisorHandler from './api/ai/market-advisor.js';
+import paymentsHandler from './api/payments.js';
 
 const LOCAL_HANDLERS = [
   ['/api/ai/market-advisor', marketAdvisorHandler],
   ['/api/login', loginHandler],
   ['/api/register', registerHandler],
+  ['/api/payments', paymentsHandler],
   ['/api/market', marketHandler]
 ];
 

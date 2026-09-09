@@ -101,14 +101,14 @@ export default function PriceTrendsTab({
                   name === 'volumeTonnes' ? `${value} Tonnes` : `₹${value}/KG`,
                   name === 'avgTradedPrice' ? 'Average Traded Price' :
                   name === 'mandiPrice' ? 'APMC Mandi Auction' :
-                  name === 'processorPrice' ? 'Processor Mill Quote' :
+                  name === 'processorPrice' ? 'Direct buyer quote' :
                   name === 'institutionalPrice' ? 'Institutional Co-op' : 'Arrival Volume'
                 ]}
               />
               <Legend />
               <Bar yAxisId="volume" dataKey="volumeTonnes" name="Arrival Volume (T)" fill="#BED5E5" opacity={0.6} radius={[4, 4, 0, 0]} />
               <Area yAxisId="price" type="monotone" dataKey="avgTradedPrice" name="Avg Traded Price" fill="#EDEDCE" stroke="#0B120D" strokeWidth={2} />
-              <Line yAxisId="price" type="monotone" dataKey="processorPrice" name="Processor Mill" stroke="#0B120D" strokeDasharray="4 4" dot={false} />
+              <Line yAxisId="price" type="monotone" dataKey="processorPrice" name="Direct buyer" stroke="#0B120D" strokeDasharray="4 4" dot={false} />
               <Line yAxisId="price" type="monotone" dataKey="mandiPrice" name="Mandi Auction" stroke="#6B7280" dot={false} />
             </ComposedChart>
           </ResponsiveContainer>

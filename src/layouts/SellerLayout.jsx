@@ -2,13 +2,10 @@ import React, { useState } from 'react';
 import { Outlet, NavLink, Link } from 'react-router-dom';
 import { 
   Home, 
-  Store, 
-  List, 
-  Package, 
-  ShoppingCart, 
-  Gavel, 
-  Wallet,
-  User,
+  ClipboardList,
+  PackageSearch,
+  Handshake,
+  WalletCards,
   LogOut,
   Bell,
   Menu,
@@ -23,11 +20,11 @@ const SellerLayout = () => {
   const { logout } = useAuth();
 
   const navItems = [
-    { name: 'Home', path: '/buyer', icon: <Home size={20} /> },
-    { name: 'Produce marketplace', path: '/buyer/marketplace', icon: <Store size={20} /> },
-    { name: 'Offers & negotiations', path: '/buyer/bids', icon: <Gavel size={20} /> },
-    { name: 'Orders', path: '/buyer/orders', icon: <ShoppingCart size={20} /> },
-    { name: 'Payments', path: '/buyer/payments', icon: <Wallet size={20} /> },
+    { name: 'Overview', path: '/buyer', icon: <Home size={20} /> },
+    { name: 'Buyer demand', path: '/buyer/demand', icon: <ClipboardList size={20} /> },
+    { name: 'Matched produce lots', path: '/buyer/lots', icon: <PackageSearch size={20} /> },
+    { name: 'Offers & negotiation', path: '/buyer/offers', icon: <Handshake size={20} /> },
+    { name: 'Orders & payments', path: '/buyer/payments', icon: <WalletCards size={20} /> },
   ];
 
   return (
@@ -38,7 +35,7 @@ const SellerLayout = () => {
           <Link to="/buyer" className="logo">
             KHET<span>SETU</span>
           </Link>
-          <div className="role-badge">Verified buyer workspace</div>
+          <div className="role-badge">Buyer workspace</div>
         </div>
         <nav className="sidebar-nav">
           {navItems.map((item) => (
@@ -51,7 +48,7 @@ const SellerLayout = () => {
             >
               {item.icon}
               <span>{item.name}</span>
-              {item.name === 'BIDS' && (
+              {item.name === 'Offers & negotiation' && (
                 <span style={{
                   position: 'absolute', right: '16px', background: '#DC2626', color: '#FFF', 
                   fontSize: '10px', fontWeight: '800', padding: '2px 6px', borderRadius: '10px'
@@ -73,9 +70,9 @@ const SellerLayout = () => {
       <div className="seller-main">
         {/* Top Header */}
         <header className="seller-header">
-          <div className="mobile-menu-toggle" onClick={() => setIsMobileMenuOpen(true)}>
+          <button type="button" className="mobile-menu-toggle" onClick={() => setIsMobileMenuOpen(true)} aria-label="Open buyer navigation">
             <Menu size={24} />
-          </div>
+          </button>
           
           <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <button className="icon-btn">

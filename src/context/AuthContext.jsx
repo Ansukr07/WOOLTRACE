@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import WoolCloudLoader from '../components/WoolCloudLoader';
 
 const AuthContext = createContext();
+const normalizeRole = (role) => role === 'PROCESSING_UNIT' ? 'SELLER' : role;
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -11,78 +12,71 @@ export const useAuth = () => {
   return context;
 };
 
-// Demo Users Mapping
+// Local fallback profiles. The API is the primary source of authentication.
 const DEMO_USERS = {
-  'farmer@wooltrace.com': {
+  'farmer@khetsetu.in': {
     id: 'FARMER-01',
     name: 'Rajesh Gowda',
-    email: 'farmer@wooltrace.com',
+    email: 'farmer@khetsetu.in',
     mobile: '9845012345',
     role: 'FARMER',
     state: 'Karnataka',
     preferredLanguage: 'en'
   },
-  'seller@wooltrace.com': {
+  'buyer@khetsetu.in': {
     id: 'SELLER-01',
     name: 'Anand Kumar',
-    email: 'seller@wooltrace.com',
+    email: 'buyer@khetsetu.in',
     mobile: '9845098765',
     role: 'SELLER',
     state: 'Karnataka',
     preferredLanguage: 'en'
   },
-  'inspector@wooltrace.com': {
+  'quality@khetsetu.in': {
     id: 'INS-01',
     name: 'Suresh Verma',
-    email: 'inspector@wooltrace.com',
+    email: 'quality@khetsetu.in',
     mobile: '9811223344',
     role: 'QUALITY_INSPECTOR',
     state: 'Karnataka',
     preferredLanguage: 'en'
   },
-  'warehouse@wooltrace.com': {
+  'storage@khetsetu.in': {
     id: 'WH-01',
-    name: 'Mysuru Wool Storage Centre',
-    email: 'warehouse@wooltrace.com',
+    name: 'Mysuru Produce Storage Centre',
+    email: 'storage@khetsetu.in',
     mobile: '9855667788',
     role: 'WAREHOUSE',
     state: 'Karnataka',
     preferredLanguage: 'en'
   },
-  'transport@wooltrace.com': {
+  'logistics@khetsetu.in': {
     id: 'TR-01',
     name: 'Rapid Farm Logistics',
-    email: 'transport@wooltrace.com',
+    email: 'logistics@khetsetu.in',
     mobile: '9877889900',
     role: 'TRANSPORT',
     state: 'Karnataka',
     preferredLanguage: 'en'
   },
-  'educator@wooltrace.com': {
+  'facilitator@khetsetu.in': {
     id: 'EDU-01',
-    name: 'WoolTrace Educator',
-    email: 'educator@wooltrace.com',
+    name: 'KhetSetu Market Facilitator',
+    email: 'facilitator@khetsetu.in',
     mobile: '9800011122',
     role: 'EDUCATOR',
     state: 'All India',
     preferredLanguage: 'en'
   },
-  'processing@wooltrace.com': {
-    id: 'PR-01',
-    name: 'WoolCraft Processing Centre',
-    email: 'processing@wooltrace.com',
-    mobile: '9866778899',
-    role: 'PROCESSING_UNIT',
-    state: 'Karnataka',
-    preferredLanguage: 'en'
-  }
+  'processor@khetsetu.in': { id: 'BUYER-02', name: 'Kota Agro Foods', email: 'processor@khetsetu.in', mobile: '9866778899', role: 'SELLER', state: 'Karnataka', preferredLanguage: 'en' }
 };
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     try {
-      const stored = localStorage.getItem('wooltrace_user');
-      return stored ? JSON.parse(stored) : null;
+      const stored = localStorage.getItem('khetsetu_user') || localStorage.getItem('wooltrace_user');
+      const parsed = stored ? JSON.parse(stored) : null;
+      return parsed ? { ...parsed, role: normalizeRole(parsed.role) } : null;
     } catch (e) {
       return null;
     }
@@ -94,7 +88,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (user) {
-      localStorage.setItem('wooltrace_user', JSON.stringify(user));
+      localStorage.setItem('khetsetu_user', JSON.stringify(user));
       
       if (user.preferredLanguage && user.preferredLanguage !== 'en') {
         document.cookie = `googtrans=/en/${user.preferredLanguage}; path=/`;
@@ -109,7 +103,7 @@ export const AuthProvider = ({ children }) => {
         }
       }
     } else {
-      localStorage.removeItem('wooltrace_user');
+      localStorage.removeItem('khetsetu_user');
     }
   }, [user]);
 
@@ -130,9 +124,9 @@ export const AuthProvider = ({ children }) => {
       if (response.ok) {
         const data = await response.json();
         if (data.user) {
-          setUser(data.user);
+          setUser({ ...data.user, role: normalizeRole(data.user.role) });
           setTimeout(() => setIsLoading(false), 400);
-          return { success: true, user: data.user };
+          return { success: true, user: { ...data.user, role: normalizeRole(data.user.role) } };
         }
       }
     } catch (error) {
@@ -148,7 +142,7 @@ export const AuthProvider = ({ children }) => {
 
       if (found) {
         if (found.password === password) {
-          const userObj = { id: found.id, name: found.name, email: found.email, role: found.role, preferredLanguage: found.preferredLanguage };
+          const userObj = { id: found.id, name: found.name, email: found.email, role: normalizeRole(found.role), preferredLanguage: found.preferredLanguage };
           setUser(userObj);
           setTimeout(() => setIsLoading(false), 400);
           return { success: true, user: userObj };
@@ -165,13 +159,13 @@ export const AuthProvider = ({ children }) => {
         return { success: true, user: demoUser };
       }
 
-      if (cleanId.endsWith('@wooltrace.com') || cleanId.endsWith('@khetsetu.in')) {
+      if (cleanId.endsWith('@khetsetu.in')) {
         let role = 'FARMER';
         if (cleanId.includes('seller')) role = 'SELLER';
         if (cleanId.includes('inspector') || cleanId.includes('quality')) role = 'QUALITY_INSPECTOR';
         if (cleanId.includes('warehouse') || cleanId.includes('storage')) role = 'WAREHOUSE';
         if (cleanId.includes('transport') || cleanId.includes('logistics')) role = 'TRANSPORT';
-        if (cleanId.includes('processing')) role = 'PROCESSING_UNIT';
+        if (cleanId.includes('processing') || cleanId.includes('processor')) role = 'SELLER';
         if (cleanId.includes('educator') || cleanId.includes('teacher')) role = 'EDUCATOR';
 
         const demoUser = {
@@ -191,7 +185,7 @@ export const AuthProvider = ({ children }) => {
       else if (cleanId.includes('inspector') || cleanId.includes('qa') || cleanId.includes('quality')) inferredRole = 'QUALITY_INSPECTOR';
       else if (cleanId.includes('seller') || cleanId.includes('buyer')) inferredRole = 'SELLER';
       else if (cleanId.includes('transport') || cleanId.includes('logistics')) inferredRole = 'TRANSPORT';
-      else if (cleanId.includes('processing')) inferredRole = 'PROCESSING_UNIT';
+      else if (cleanId.includes('processing') || cleanId.includes('processor')) inferredRole = 'SELLER';
       else if (cleanId.includes('educator') || cleanId.includes('teacher')) inferredRole = 'EDUCATOR';
 
       const fallbackUser = {
@@ -227,9 +221,9 @@ export const AuthProvider = ({ children }) => {
       if (response.ok) {
         const data = await response.json();
         if (data.user) {
-          setUser(data.user);
+          setUser({ ...data.user, role: normalizeRole(data.user.role) });
           setTimeout(() => setIsLoading(false), 400);
-          return { success: true, user: data.user };
+          return { success: true, user: { ...data.user, role: normalizeRole(data.user.role) } };
         }
       }
     } catch (error) {
@@ -269,7 +263,7 @@ export const AuthProvider = ({ children }) => {
     setLoadingText('Logging out of KhetSetu...');
     setTimeout(() => {
       setUser(null);
-      localStorage.removeItem('wooltrace_user');
+      localStorage.removeItem('khetsetu_user');
       const host = window.location.hostname;
       document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
       document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${host};`;

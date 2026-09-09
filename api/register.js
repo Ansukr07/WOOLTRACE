@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   try {
     await connectToDatabase();
 
-    const { name, email, mobile, state, numberOfSheep, woolProduction, password, role, preferredLanguage } = req.body;
+    const { name, email, mobile, state, password, role, preferredLanguage } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Missing required fields' });
@@ -33,14 +33,12 @@ export default async function handler(req, res) {
       name,
       email,
       password,
-      role: role || 'FARMER',
+      role: role === 'PROCESSING_UNIT' ? 'SELLER' : (role || 'FARMER'),
       preferredLanguage: preferredLanguage || 'en',
     };
 
     if (mobile) payload.mobile = mobile;
     if (state) payload.state = state;
-    if (numberOfSheep) payload.numberOfSheep = numberOfSheep;
-    if (woolProduction) payload.woolProduction = woolProduction;
 
     const newUser = await User.create(payload);
 

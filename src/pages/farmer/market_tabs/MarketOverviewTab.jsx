@@ -100,7 +100,7 @@ export default function MarketOverviewTab({ selectedCommodityId = 'WHEAT', saleW
                     <th>Variety / Type</th>
                     <th>Grade</th>
                     <th>Mandi Price</th>
-                    <th>Processor Quote</th>
+                    <th>Direct buyer quote</th>
                     <th>Institutional Quote</th>
                   </tr>
                 </thead>

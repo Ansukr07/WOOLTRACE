@@ -34,7 +34,7 @@ export default function OffersTab({
                   </span>
                 </div>
                 <div style={{ fontSize: '13px', color: '#475569' }}>
-                  Buyer: <strong>{offer.buyerName}</strong> ({offer.buyerType}) · Qty: {offer.quantityKg} KG
+                  Buyer: <strong>{offer.buyerName}</strong> · Qty: {offer.quantityKg} KG
                 </div>
               </div>
 
@@ -50,7 +50,7 @@ export default function OffersTab({
 
             <div style={{ background: '#F8F8F3', borderRadius: '10px', padding: '16px', margin: '14px 0' }}>
               <div style={{ fontSize: '12px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '8px' }}>
-                Negotiation History & Escrow Terms
+                Negotiation history & payment terms
               </div>
               <div className="trace-timeline">
                 {offer.history.map((step, idx) => (

@@ -20,14 +20,14 @@ export default function BuyerDiscoveryTab({
         <div>
           <h3 className="panel-title">
             <Building size={20} />
-            Verified Buyers & Institutional Procurement ({commodity.name})
+            Buyer demand & institutional procurement ({commodity.name})
           </h3>
           <span style={{ fontSize: '12px', color: '#64748B' }}>
-            Direct contracts with flour mills, food processors, retail chains, and export houses
+            Direct contracts with organised buyers, retail chains, institutions, and export houses
           </span>
         </div>
         <span style={{ fontSize: '12px', fontWeight: '800', background: '#DDFF86', padding: '4px 10px', borderRadius: '6px' }}>
-          {filteredDemands.length} Verified Buyers Active
+          {filteredDemands.length} active buyer demands
         </span>
       </div>
 

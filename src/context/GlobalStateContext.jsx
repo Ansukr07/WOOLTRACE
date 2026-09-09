@@ -1755,7 +1755,7 @@ export const GlobalStateProvider = ({ children }) => {
     setProcessingRecords(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
 
   
-  // ── Market Linkage & Price Discovery State (SIH 2026 PS 26132) ──────────
+  // ── Market linkage and price discovery state ─────────────────────────────
   const [woolLots, setWoolLots] = useState(() => {
     return loadSihMarketRecords('wt_wool_lots_v1', SIH_INITIAL_LOTS);
   });
@@ -1834,8 +1834,8 @@ export const GlobalStateProvider = ({ children }) => {
       newLot.batchIds.forEach(batchId => {
         addTraceEvent(batchId, {
           stage: 'MARKET',
-          title: 'Wool Lot Created & Listed for Discovery',
-          location: newLot.currentLocation || 'WoolTrace Market Exchange',
+          title: 'Produce lot listed for buyer discovery',
+          location: newLot.currentLocation || 'KhetSetu Market Exchange',
           status: 'Active',
           actor: (newLot.sellerName || 'Farmer') + ' (Seller)',
           description: 'Created Lot #' + newLot.lotNumber + ' (' + newLot.totalQuantity + ' KG, Asking ₹' + newLot.askingPrice + '/KG). Verified quality attached.'
@@ -1846,7 +1846,11 @@ export const GlobalStateProvider = ({ children }) => {
     return newLot;
   };
 
-  const aggregateFpoLot = (batchIds, fpoData) => {
+  const aggregateFpoLot = (batchIds, fpoData = {}) => {
+    if (!Array.isArray(batchIds)) {
+      fpoData = batchIds || {};
+      batchIds = fpoData.batchIds || [];
+    }
     const linkedBatches = batches.filter(b => batchIds.includes(b.id || b.batchId));
     const totalQty = linkedBatches.reduce((sum, b) => sum + (b.quantity || 0), 0);
     const randomId = Math.floor(1000 + Math.random() * 9000);
@@ -1856,7 +1860,7 @@ export const GlobalStateProvider = ({ children }) => {
       lotNumber: 'LOT-FPO-' + randomId,
       batchIds: linkedBatches.map(b => b.id || b.batchId),
       sellerId: fpoData.fpoId || 'FPO-01',
-      sellerName: fpoData.fpoName || 'Regional Wool Farmers Producer Co-op',
+      sellerName: fpoData.fpoName || 'Regional Farmers Producer Co-op',
       sellerType: 'FPO',
       isFpoAggregate: true,
       contributingFarmers: linkedBatches.map(b => ({
@@ -1866,24 +1870,26 @@ export const GlobalStateProvider = ({ children }) => {
         woolType: b.woolType,
         grade: b.qualityGrade || 'A'
       })),
-      woolType: fpoData.woolType || 'FPO Aggregated Commercial Fleece',
+      woolType: fpoData.woolType || fpoData.cropName || 'FPO Aggregated Produce',
       qualityGrade: fpoData.grade || 'A',
       qualityScore: 85,
       fiberDiameter: 22.8,
       origin: linkedBatches.map(b => b.origin).filter(Boolean).join(', ') || 'FPO Regional Hub',
       currentLocation: fpoData.currentLocation || 'FPO Central Aggregation Depot',
-      totalQuantity: totalQty,
-      availableQuantity: totalQty,
-      askingPrice: fpoData.askingPrice || 430,
-      minAcceptablePrice: fpoData.minAcceptablePrice || 410,
-      storageLocation: fpoData.storageLocation || 'Mysuru Wool Storage Centre',
+      cropId: fpoData.cropId || linkedBatches[0]?.cropId,
+      cropName: fpoData.cropName || linkedBatches[0]?.cropName || 'FPO aggregated produce',
+      totalQuantity: totalQty || toNonNegativeNumber(fpoData.totalQuantity, 1000),
+      availableQuantity: totalQty || toNonNegativeNumber(fpoData.totalQuantity, 1000),
+      askingPrice: fpoData.askingPrice || fpoData.targetPrice || 430,
+      minAcceptablePrice: fpoData.minAcceptablePrice || Math.max(0, (fpoData.askingPrice || fpoData.targetPrice || 430) - 2),
+      storageLocation: fpoData.storageLocation || 'Regional produce aggregation hub',
       certificateId: linkedBatches[0]?.certificateId || 'WTC-QA-FPO-AGG',
       traceabilityUrl: '/track/' + (linkedBatches[0]?.id || 'FPO-AGG'),
       status: 'AVAILABLE',
       availableFrom: new Date().toISOString().split('T')[0],
       verified: true,
       inspectionStatus: 'Multi-Batch FPO Verified',
-      description: fpoData.description || ('Consolidated FPO bulk lot aggregated from ' + linkedBatches.length + ' verified farmer batches for institutional & mill procurement.'),
+      description: fpoData.description || ('Consolidated FPO bulk lot aggregated from ' + linkedBatches.length + ' farmer batches for organised procurement.'),
       createdAt: new Date().toISOString()
     };
 
@@ -1917,7 +1923,7 @@ export const GlobalStateProvider = ({ children }) => {
           by: offerData.buyerName || 'Buyer',
           pricePerKg: offerData.offeredPricePerKg,
           quantityKg: offerData.quantityKg,
-          note: offerData.note || 'Initial offer submitted via WoolTrace Market Linkages.',
+          note: offerData.note || 'Initial offer submitted through the market workspace.',
           timestamp: new Date().toISOString()
         }
       ],
@@ -2029,13 +2035,13 @@ export const GlobalStateProvider = ({ children }) => {
       netRealization: net,
       netRealizationPerKg: Number((net / acceptedOffer.quantityKg).toFixed(2)),
       deliveryStatus: 'LOGISTICS_PENDING',
-      paymentStatus: 'IN_ESCROW',
-      paidAmount: gross,
-      outstandingAmount: 0,
+      paymentStatus: 'PAYMENT_PENDING',
+      paidAmount: 0,
+      outstandingAmount: gross,
       disputeStatus: 'NONE',
       transactionDate: new Date().toISOString(),
       expectedDeliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      notes: 'Deal finalized via digital contract. Escrow deposit verified.'
+      notes: 'Deal accepted. Awaiting buyer payment authorisation.'
     };
 
     setMarketTransactions(prev => [newTxn, ...prev]);
@@ -2070,6 +2076,25 @@ export const GlobalStateProvider = ({ children }) => {
         };
       }
       return t;
+    }));
+  };
+
+  const recordTransactionPayment = (txnId, payment = {}) => {
+    const paidAmount = payment.amount;
+    setMarketTransactions(prev => prev.map(transaction => {
+      if (transaction.id !== txnId) return transaction;
+      const paid = toNonNegativeNumber(paidAmount, transaction.grossValue);
+      return {
+        ...transaction,
+        paymentStatus: payment.status || 'PAID',
+        paidAmount: paid,
+        outstandingAmount: Math.max(0, transaction.grossValue - paid),
+        paymentMethod: payment.method || 'UPI',
+        paymentReference: payment.reference || null,
+        paymentGateway: payment.gateway || 'TEST_UPI',
+        paidAt: payment.paidAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
     }));
   };
 
@@ -2128,7 +2153,7 @@ export const GlobalStateProvider = ({ children }) => {
     const newDemand = {
       id: 'BD-2026-' + randomId,
       verified: true,
-      verificationBadge: 'VERIFIED_BUYER',
+      verificationBadge: 'CREDENTIAL_CHECKED',
       rating: 4.8,
       transactionsCompleted: 12,
       createdAt: new Date().toISOString(),
@@ -2162,7 +2187,7 @@ export const GlobalStateProvider = ({ children }) => {
       woolLots, createWoolLot, aggregateFpoLot,
       buyerDemands, publishBuyerDemand,
       marketOffers, submitOffer, respondOffer,
-      marketTransactions, createTransactionFromOffer, updateTransactionPayment, updateTransactionDelivery,
+      marketTransactions, createTransactionFromOffer, updateTransactionPayment, recordTransactionPayment, updateTransactionDelivery,
       disputes, raiseTransactionDispute, resolveDispute
     }}>
       {children}

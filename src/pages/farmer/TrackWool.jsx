@@ -14,7 +14,7 @@ export default function TrackWool() {
   const navigate = useNavigate();
   const { batches, certificates } = useGlobalState();
 
-  const initialQuery = searchParams.get('id') || 'WT-KA-2026-00124';
+  const initialQuery = searchParams.get('id') || batches[0]?.id || 'BATCH-001';
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedBatchId, setSelectedBatchId] = useState(initialQuery);
   const [showQRModal, setShowQRModal] = useState(false);
@@ -23,7 +23,7 @@ export default function TrackWool() {
   const currentBatch = batches.find(b => 
     (b.id || '').toLowerCase() === selectedBatchId.toLowerCase() ||
     (b.batchId || '').toLowerCase() === selectedBatchId.toLowerCase()
-  ) || batches[0];
+  );
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -40,7 +40,7 @@ export default function TrackWool() {
   };
 
   // Public verification URL
-  const publicVerifyUrl = `${window.location.origin}/track/${currentBatch?.id || 'WT-KA-2026-00124'}`;
+  const publicVerifyUrl = `${window.location.origin}/track/${currentBatch?.id || batches[0]?.id || 'BATCH-001'}`;
 
   return (
     <div className="track-wool-page">
@@ -63,7 +63,7 @@ export default function TrackWool() {
             <Search size={18} className="search-icon" />
             <input 
               type="text"
-              placeholder="Enter Batch ID (e.g. WT-KA-2026-00124)..."
+              placeholder="Enter your produce batch ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -83,7 +83,7 @@ export default function TrackWool() {
               className={`quick-chip ${(b.id === selectedBatchId || b.batchId === selectedBatchId) ? 'active' : ''}`}
               onClick={() => handleSelectQuick(b.id || b.batchId)}
             >
-              {b.id || b.batchId} ({b.woolType?.split(' ')[0]})
+              {b.id || b.batchId} ({(b.cropName || b.woolType || 'Produce').split(' ')[0]})
             </button>
           ))}
         </div>
@@ -105,9 +105,9 @@ export default function TrackWool() {
           </p>
           <button 
             className="quick-chip active"
-            onClick={() => handleSelectQuick('WT-KA-2026-00124')}
+            onClick={() => handleSelectQuick(batches[0]?.id || 'BATCH-001')}
           >
-            Load Example: WT-KA-2026-00124
+            Load available batch
           </button>
         </div>
       ) : (
@@ -145,7 +145,7 @@ export default function TrackWool() {
                 </div>
                 <div className="meta-item">
                   <span className="meta-label">Produce & Variety</span>
-                  <span className="meta-val">{currentBatch.woolType}</span>
+                  <span className="meta-val">{currentBatch.cropName || currentBatch.woolType}</span>
                 </div>
                 <div className="meta-item">
                   <span className="meta-label">Farmer / Origin</span>
@@ -158,7 +158,7 @@ export default function TrackWool() {
                   </span>
                 </div>
                 <div className="meta-item">
-                  <span className="meta-label">Shearing Date</span>
+                  <span className="meta-label">Harvest date</span>
                   <span className="meta-val">
                     {new Date(currentBatch.shearingDate || currentBatch.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </span>

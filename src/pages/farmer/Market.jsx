@@ -22,6 +22,8 @@ import MyLotsTab from './market_tabs/MyLotsTab';
 import OffersTab from './market_tabs/OffersTab';
 import TransactionsTab from './market_tabs/TransactionsTab';
 import DisputesTab from './market_tabs/DisputesTab';
+import PaymentModal from './market_tabs/PaymentModal';
+import { createUpiPayment } from '../../services/payment/paymentService';
 
 import {
   LineChart,
@@ -56,7 +58,8 @@ export default function Market() {
     createWoolLot = () => {},
     aggregateFpoLot = () => {},
     respondOffer = () => {},
-    createTransactionFromOffer = () => {},
+    recordTransactionPayment = () => {},
+    updateTransactionDelivery = () => {},
     raiseTransactionDispute = () => {}
   } = useGlobalState();
 
@@ -102,6 +105,8 @@ export default function Market() {
   const [disputeReasonCategory, setDisputeReasonCategory] = useState('QUALITY_MISMATCH');
   const [disputeDesc, setDisputeDesc] = useState('');
   const [toastMessage, setToastMessage] = useState(null);
+  const [paymentRequest, setPaymentRequest] = useState(null);
+  const [paymentTransaction, setPaymentTransaction] = useState(null);
 
   const selectedCommodity = getCommodityById(selectedCommodityId);
 
@@ -177,7 +182,7 @@ export default function Market() {
       {/* Header Banner */}
       <div className="market-header-banner">
         <div className="header-left">
-          <div className="sih-tag">SIH 2026 · Problem Statement 26132</div>
+          <div className="sih-tag">Market intelligence workspace</div>
           <h1 className="market-title">KhetSetu Market &amp; Trade Network</h1>
           <p className="market-subtitle">
             One connected workflow for mandi prices, buyer demand, quality, logistics, offers, settlement, and resolution.
@@ -357,8 +362,8 @@ export default function Market() {
           <MyLotsTab
             woolLots={woolLots}
             batches={batches}
-            onCreateLotClick={() => setShowCreateLotModal(true)}
-            onAggregateFpoClick={() => setShowFPOModal(true)}
+            onOpenCreateLot={() => setShowCreateLotModal(true)}
+            onOpenFpoAggregator={() => setShowFPOModal(true)}
           />
         )}
 
@@ -366,15 +371,15 @@ export default function Market() {
           <OffersTab
             marketOffers={marketOffers}
             onAcceptOffer={(offer) => {
-              createTransactionFromOffer(offer.id);
-              showToast(`Offer ${offer.id} accepted. Escrow transaction created!`);
+              respondOffer(offer.id, 'ACCEPT');
+              showToast(`Offer ${offer.id} accepted. Payment-ready transaction created.`);
               openTab('transactions');
             }}
             onRejectOffer={(offer) => {
               respondOffer(offer.id, 'REJECTED');
               showToast(`Offer ${offer.id} declined.`);
             }}
-            onCounterOffer={(offer) => {
+            onOpenCounter={(offer) => {
               setActiveOfferForCounter(offer);
               setCounterPrice(offer.offeredPricePerKg + 1.5);
               setShowCounterModal(true);
@@ -386,11 +391,19 @@ export default function Market() {
           <TransactionsTab
             marketTransactions={marketTransactions}
             onConfirmDelivery={(txn) => {
-              showToast(`Delivery confirmed for ${txn.id}. Escrow release initiated.`);
+              updateTransactionDelivery(txn.id, 'DELIVERED');
+              showToast(`Delivery confirmed for ${txn.id}. Settlement record updated.`);
             }}
-            onRaiseDispute={(txn) => {
+            onOpenDispute={(txn) => {
               setActiveTxnForDispute(txn);
               setShowDisputeModal(true);
+            }}
+            onStartPayment={async (txn) => {
+              try {
+                const request = await createUpiPayment(txn);
+                setPaymentTransaction(txn);
+                setPaymentRequest(request);
+              } catch (error) { showToast(error.message || 'Could not create a UPI payment request.'); }
             }}
           />
         )}
@@ -411,13 +424,21 @@ export default function Market() {
             <form onSubmit={(e) => {
               e.preventDefault();
               const form = e.target;
+              const crop = getCommodityById(form.cropId.value);
+              const quantity = Number(form.quantity.value);
+              const askingPrice = Number(form.askingPrice.value);
+              if (!crop || !Number.isFinite(quantity) || quantity <= 0 || !Number.isFinite(askingPrice) || askingPrice <= 0) {
+                showToast('Enter a crop, a quantity above zero, and a valid asking price.');
+                return;
+              }
               createWoolLot({
-                cropId: form.cropId.value,
-                cropName: getCommodityById(form.cropId.value).name,
-                woolType: getCommodityById(form.cropId.value).name,
+                cropId: crop.id,
+                cropName: crop.name,
+                woolType: crop.name,
                 variety: form.variety.value,
-                quantity: Number(form.quantity.value),
-                askingPrice: Number(form.askingPrice.value),
+                totalQuantity: quantity,
+                availableQuantity: quantity,
+                askingPrice,
                 origin: form.origin.value,
                 qualityGrade: form.qualityGrade.value,
                 farmerName: user?.name || 'Ramesh Kumar'
@@ -430,7 +451,7 @@ export default function Market() {
                 <div>
                   <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>Commodity</label>
                   <select name="cropId" defaultValue={selectedCommodityId} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CCC' }}>
-                    {COMMODITIES.map(c => (
+                    {COMMODITIES.filter(c => c.id !== 'WOOL' && c.category !== 'FIBER').map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
@@ -492,7 +513,8 @@ export default function Market() {
                 cropName: selectedCommodity.name,
                 woolType: selectedCommodity.name,
                 targetPrice: selectedCommodity.basePricePerKg + 2.5,
-                sourceBatchIds: ['WT-PB-2026-00401', 'WT-MH-2026-00305']
+                batchIds: batches.filter(batch => batch.cropId === selectedCommodityId).slice(0, 3).map(batch => batch.id || batch.batchId),
+                askingPrice: selectedCommodity.basePricePerKg + 2.5
               });
               setShowFPOModal(false);
               showToast('FPO Aggregated Lot created successfully!');
@@ -603,7 +625,7 @@ export default function Market() {
               <button className="btn-primary" onClick={() => {
                 raiseTransactionDispute(activeTxnForDispute.id, { reasonCategory: disputeReasonCategory, description: disputeDesc });
                 setShowDisputeModal(false);
-                showToast(`Dispute raised for ${activeTxnForDispute.id}. Escrow locked pending mediation.`);
+                showToast(`Dispute raised for ${activeTxnForDispute.id}. Payment is held for review.`);
                 openTab('disputes');
               }}>
                 Submit for CEDA / APMC Mediation
@@ -611,6 +633,12 @@ export default function Market() {
             </div>
           </div>
         </div>
+      )}
+      {paymentRequest && paymentTransaction && (
+        <PaymentModal transaction={paymentTransaction} payment={paymentRequest} onClose={() => { setPaymentRequest(null); setPaymentTransaction(null); }} onPaid={(paidPayment) => {
+          recordTransactionPayment(paymentTransaction.id, { amount: paidPayment.amount, status: paidPayment.status, method: paidPayment.method, reference: paidPayment.reference, gateway: paidPayment.gateway, paidAt: paidPayment.paidAt });
+          setPaymentRequest(null); setPaymentTransaction(null); showToast(`UPI payment ${paidPayment.reference} recorded successfully.`);
+        }} />
       )}
     </div>
   );
