@@ -1,5 +1,5 @@
-import connectToDatabase from './_utils/db.js';
-import MarketRecord from './_models/MarketRecord.js';
+import connectToDatabase from '../../api/_utils/db.js';
+import MarketRecord from '../../api/_models/MarketRecord.js';
 
 const ALLOWED_KINDS = new Set(['LOT', 'DEMAND', 'OFFER', 'TRANSACTION', 'DISPUTE']);
 

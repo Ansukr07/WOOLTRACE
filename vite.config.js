@@ -1,12 +1,13 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import loginHandler from './api/login.js';
-import registerHandler from './api/register.js';
+import loginHandler from './server/handlers/login.js';
+import registerHandler from './server/handlers/register.js';
 import marketHandler from './api/market.js';
 import marketAdvisorHandler from './api/ai/market-advisor.js';
-import paymentsHandler from './api/payments.js';
-import marketRecordsHandler from './api/market-records.js';
+import paymentsHandler from './server/handlers/payments.js';
+import marketRecordsHandler from './server/handlers/market-records.js';
 import chatHandler from './api/ai/chat.js';
+import notificationsHandler from './api/notifications.js';
 
 const LOCAL_HANDLERS = [
   ['/api/ai/market-advisor', marketAdvisorHandler],
@@ -15,7 +16,8 @@ const LOCAL_HANDLERS = [
   ['/api/register', registerHandler],
   ['/api/payments', paymentsHandler],
   ['/api/market', marketHandler]
-  ,['/api/market-records', marketRecordsHandler]
+  ,['/api/market-records', marketRecordsHandler],
+  ['/api/notifications', notificationsHandler]
 ];
 
 async function readBody(req) {

@@ -1,3 +1,4 @@
+// Shared core-function payment handler.
 const paymentStore = new Map();
 
 const createReference = () => `KS-UPI-${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 90 + 10)}`;

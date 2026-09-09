@@ -1,4 +1,4 @@
-import { crop50Service } from '../src/services/market/crop50Service.js';
+import { crop50Service } from '../../src/services/market/crop50Service.js';
 
 export default async function handler(req, res) {
   const url = req.url || '';

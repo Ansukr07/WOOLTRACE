@@ -1,6 +1,6 @@
-import seedResources from '../learning-resources.json' with { type: 'json' };
-import connectToDatabase from './_utils/db.js';
-import LearningResource from './_models/LearningResource.js';
+import seedResources from '../../learning-resources.json' with { type: 'json' };
+import connectToDatabase from '../../api/_utils/db.js';
+import LearningResource from '../../api/_models/LearningResource.js';
 
 const RESOURCE_TYPES = ['video', 'pdf', 'article', 'website', 'training'];
 let fallbackResources = seedResources.map((resource) => ({

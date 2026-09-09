@@ -1,4 +1,4 @@
-// KhetSetu market intelligence API.
+// KhetSetu market intelligence handler.
 // This endpoint is intentionally provider-neutral: replace the fixture adapter
 // with a live AGMARKNET/processor/FPO data adapter without changing the UI.
 const intelligence = {
