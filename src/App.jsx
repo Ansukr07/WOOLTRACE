@@ -5,6 +5,7 @@ import { GlobalStateProvider } from './context/GlobalStateContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import WoolCloudLoader from './components/WoolCloudLoader';
 import { getRoleHome } from './utils/roleRoutes';
+import MarketChatbot from './components/MarketChatbot';
 
 const LandingPage = React.lazy(() => import('./pages/LandingPage'));
 const Login = React.lazy(() => import('./pages/auth/Login'));
@@ -97,7 +98,7 @@ function App() {
     <Route path="/seller/*" element={<Navigate to="/buyer" replace />} /><Route path="/warehouse/*" element={<Navigate to="/storage" replace />} />
     <Route path="/transport/*" element={<Navigate to="/logistics" replace />} /><Route path="/inspector/*" element={<Navigate to="/quality" replace />} />
     <Route path="/processing/*" element={<Navigate to="/processor" replace />} /><Route path="*" element={<Navigate to="/" replace />} />
-  </Routes></Suspense></Router></GlobalStateProvider></AuthProvider>;
+  </Routes></Suspense><MarketChatbot /></Router></GlobalStateProvider></AuthProvider>;
 }
 
 export default App;

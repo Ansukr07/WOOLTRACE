@@ -6,9 +6,11 @@ import marketHandler from './api/market.js';
 import marketAdvisorHandler from './api/ai/market-advisor.js';
 import paymentsHandler from './api/payments.js';
 import marketRecordsHandler from './api/market-records.js';
+import chatHandler from './api/ai/chat.js';
 
 const LOCAL_HANDLERS = [
   ['/api/ai/market-advisor', marketAdvisorHandler],
+  ['/api/ai/chat', chatHandler],
   ['/api/login', loginHandler],
   ['/api/register', registerHandler],
   ['/api/payments', paymentsHandler],
