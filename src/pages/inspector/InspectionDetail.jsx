@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { qaService } from '../../services/qa/qaService';
 import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { notificationService } from '../../services/notificationService';
 
 export default function InspectionDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [request, setRequest] = useState(null);
   const [loading, setLoading] = useState(true);
   
@@ -49,7 +52,7 @@ export default function InspectionDetail() {
     if (!confirmApprove) return;
 
     try {
-      await qaService.issueCertificate({
+      const certificate = await qaService.issueCertificate({
         batchId: request.batchId,
         requestId: request.requestId,
         farmerName: request.farmerName,
@@ -59,6 +62,12 @@ export default function InspectionDetail() {
         inspectorId: 'WQI-41',
         ...form
       });
+      notificationService.emit(user, {
+        eventType: 'QUALITY_CERTIFICATE_ISSUED',
+        title: 'Certificate submitted',
+        message: `✅ Certificate submitted\n\nBatch: ${request.batchId}\nCertificate: ${certificate?.certificateId || 'Issued'}\nStatus: Issued\n\nThe certificate has been linked to the batch record.`,
+        idempotencyKey: `certificate-issued:${certificate?.certificateId || request.batchId}`,
+      }).catch(error => console.warn('Notification delivery deferred:', error.message));
       alert('Certificate generated successfully!');
       navigate('/inspector');
     } catch (e) {

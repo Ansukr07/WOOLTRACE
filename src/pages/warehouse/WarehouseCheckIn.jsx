@@ -6,12 +6,15 @@ import {
   Warehouse, ArrowRight, AlertCircle, Sparkles, MapPin, Check
 } from 'lucide-react';
 import { useGlobalState } from '../../context/GlobalStateContext';
+import { useAuth } from '../../context/AuthContext';
+import { notificationService } from '../../services/notificationService';
 import './WarehouseCheckIn.css';
 
 export default function WarehouseCheckIn() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { batches, certificates, transportJobs, warehouseBookings, checkInBatch, assignStorageLocation } = useGlobalState();
+  const { user } = useAuth();
 
   const defaultId = searchParams.get('id') || 'WT-KA-2026-00130';
   const [inputBatchId, setInputBatchId] = useState(defaultId);
@@ -92,6 +95,15 @@ export default function WarehouseCheckIn() {
       section,
       position
     });
+
+    const batchId = activeBatch.id || activeBatch.batchId;
+    const storageLocation = `Zone ${zone}, Rack ${rack}, Section ${section}, Position ${position}`;
+    notificationService.emit(user, {
+      eventType: 'BATCH_CHECKED_IN',
+      title: 'Batch checked in',
+      message: `✅ Batch checked in\n\nBatch: ${batchId}\nQuantity received: ${activeBatch.quantity || 0} kg\nStorage location: ${storageLocation}\nChecked in by: K. Somanna`,
+      idempotencyKey: `batch-checked-in:${batchId}`,
+    }).catch(error => console.warn('Notification delivery deferred:', error.message));
 
     setCheckInSuccess(true);
   };

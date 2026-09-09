@@ -1,7 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchMarketRecords, upsertMarketRecord } from '../services/market/marketRecordsService.js';
+import { notificationService } from '../services/notificationService.js';
 
 const GlobalStateContext = createContext();
+
+const currentSessionUser = () => {
+  try { return JSON.parse(localStorage.getItem('khetsetu_user') || localStorage.getItem('wooltrace_user') || 'null'); }
+  catch { return null; }
+};
 
 export const useGlobalState = () => useContext(GlobalStateContext);
 
@@ -2129,6 +2135,7 @@ export const GlobalStateProvider = ({ children }) => {
 
   const recordTransactionPayment = (txnId, payment = {}) => {
     const paidAmount = payment.amount;
+    const targetTransaction = marketTransactions.find(transaction => transaction.id === txnId);
     setMarketTransactions(prev => prev.map(transaction => {
       if (transaction.id !== txnId) return transaction;
       const paid = toNonNegativeNumber(paidAmount, transaction.grossValue);
@@ -2146,6 +2153,15 @@ export const GlobalStateProvider = ({ children }) => {
       syncMarketRecord('TRANSACTION', updated);
       return updated;
     }));
+    if ((payment.status || 'PAID') === 'PAID' && targetTransaction) {
+      const amount = toNonNegativeNumber(paidAmount, targetTransaction.grossValue);
+      notificationService.emit(currentSessionUser(), {
+        eventType: 'PAYMENT_RELEASED',
+        title: 'Payment released',
+        message: `💰 Payment released\n\nTransaction: ${txnId}\nAmount credited: ₹${amount.toLocaleString('en-IN')}\nBatch: ${targetTransaction.batchId || 'Linked batch'}\n\nPlease check your linked payment account.`,
+        idempotencyKey: `payment-released:${txnId}:${payment.reference || amount}`,
+      }).catch(error => console.warn('Notification delivery deferred:', error.message));
+    }
   };
 
   const updateTransactionDelivery = (txnId, deliveryStatus) => {
@@ -2183,6 +2199,13 @@ export const GlobalStateProvider = ({ children }) => {
     syncMarketRecord('DISPUTE', newDispute);
 
     setMarketTransactions(prev => prev.map(t => t.id === txnId ? { ...t, disputeStatus: 'OPEN' } : t));
+
+    notificationService.emit(currentSessionUser(), {
+      eventType: 'DISPUTE_RAISED',
+      title: 'New dispute raised',
+      message: `⚠️ New dispute raised\n\nDispute: ${newDispute.id}\nType: ${newDispute.reasonCategory}\nTransaction: ${txnId}\nRaised by: ${newDispute.raisedByName}\n\nOpen Disputes to review the evidence.`,
+      idempotencyKey: `dispute-raised:${newDispute.id}`,
+    }).catch(error => console.warn('Notification delivery deferred:', error.message));
 
     return newDispute;
   };

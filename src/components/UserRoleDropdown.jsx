@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   User, ChevronDown, Check, LogOut, Globe,
-  Warehouse, ShieldCheck, ShoppingCart, Truck, Sprout
+  Warehouse, ShieldCheck, ShoppingCart, Truck, Sprout, Bell
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './UserRoleDropdown.css';
@@ -167,6 +167,14 @@ export default function UserRoleDropdown() {
 
           {/* Account actions */}
           <div className="dropdown-footer-actions">
+            <button
+              type="button"
+              className="footer-link-btn"
+              onClick={() => { setIsOpen(false); navigate('/settings/notifications'); }}
+            >
+              <span>Notification settings</span>
+              <Bell size={13} />
+            </button>
             <button 
               type="button"
               className="footer-link-btn logout" 

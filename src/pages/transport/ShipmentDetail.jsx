@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Truck, MapPin, CheckCircle, Navigation, Camera, Package, Calendar, Phone } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import WoolCloudLoader from '../../components/WoolCloudLoader';
+import { notificationService } from '../../services/notificationService';
 
 const ShipmentDetail = () => {
   const { id } = useParams();
@@ -46,6 +47,12 @@ const ShipmentDetail = () => {
       if (response.ok) {
         const updated = await response.json();
         setShipment(updated);
+        notificationService.emit(user, {
+          eventType: 'SHIPMENT_STATUS_UPDATED',
+          title: 'Shipment update',
+          message: `🚚 Shipment update\n\nBatch: ${updated.batchId}\nStatus: ${newStatus.replaceAll('_', ' ')}\nCurrent location: ${updated.currentLocation || extraData.location || 'Location pending'}\nUpdated: ${new Date().toLocaleString()}`,
+          idempotencyKey: `shipment-status:${updated.shipmentId || id}:${newStatus}`,
+        }).catch(error => console.warn('Notification delivery deferred:', error.message));
       } else {
         alert('Failed to update status');
       }

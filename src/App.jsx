@@ -38,6 +38,7 @@ const QualityLayout = React.lazy(() => import('./layouts/InspectorLayout'));
 const QualityDashboard = React.lazy(() => import('./pages/inspector/InspectorDashboard'));
 const Certificates = React.lazy(() => import('./pages/inspector/Certificates'));
 const InspectionDetail = React.lazy(() => import('./pages/inspector/InspectionDetail'));
+const NotificationsSettings = React.lazy(() => import('./pages/settings/NotificationsSettings'));
 
 function RoleHomeRedirect() {
   const { user } = useAuth();
@@ -55,6 +56,7 @@ function App() {
     <Route path="/verify/:certificateId" element={<VerifyCertificate />} />
     <Route path="/track/:batchId" element={<PublicTrackBatch />} />
     <Route path="/track" element={<PublicTrackBatch />} />
+    <Route path="/settings/notifications" element={secure(['FARMER', 'SELLER', 'WAREHOUSE', 'QUALITY_INSPECTOR', 'TRANSPORT', 'ADMIN'], <NotificationsSettings />)} />
 
     <Route path="/farmer" element={secure(['FARMER'], <FarmerLayout />)}>
       <Route index element={<FarmerDashboard />} /><Route path="market" element={<FarmerMarket />} /><Route path="market/:view" element={<FarmerMarket />} />
