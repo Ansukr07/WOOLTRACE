@@ -2086,3 +2086,4 @@
   width: 100%;
 }
 .ks-landing-language{display:flex;align-items:center;gap:6px;color:#405047}.ks-landing-language select{border:0;background:transparent;color:inherit;font-family:'Satoshi',sans-serif;font-size:12px;font-weight:500;outline:none;cursor:pointer}
+.ks-model-forecast-result{grid-column:1/-1;padding:12px 14px;border:1px solid #cfe5bd;border-radius:12px;background:#f2f9ec;display:flex;align-items:center;gap:14px}.ks-model-forecast-result span{font-size:11px;color:#53734a;text-transform:uppercase;letter-spacing:.08em}.ks-model-forecast-result b{font-size:18px;color:#173c2b}.ks-model-forecast-result small{color:#6a7b69;font-size:11px}

@@ -4,6 +4,9 @@
   "buildCommand": "npm run build",
   "devCommand": "npm run dev -- --host 127.0.0.1 --port %PORT%",
   "outputDirectory": "dist",
+  "functions": {
+    "api/ai/mandi-forecast.py": { "runtime": "python3.12" }
+  },
   "rewrites": [
     { "source": "/api/health", "destination": "/api/core?handler=health" },
     { "source": "/api/crop50", "destination": "/api/core?handler=crop50" },
@@ -18,6 +21,7 @@
     { "source": "/api/market/(.*)",  "destination": "/api/market"  },
     { "source": "/api/processing/(.*)", "destination": "/api/processing" },
     { "source": "/api/qa/(.*)",      "destination": "/api/qa"      },
+    { "source": "/api/ai/mandi-forecast", "destination": "/api/ai/mandi-forecast.py" },
     { "source": "/api/transport/(.*)", "destination": "/api/transport" },
     { "source": "/api/warehouse/(.*)", "destination": "/api/warehouse" },
     { "source": "/api/notifications/(.*)", "destination": "/api/notifications" }

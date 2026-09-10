@@ -436,6 +436,7 @@ export default function MarketIntelligence() {
 
   // Live Price State from CEDA / Agmarknet
   const [livePriceData, setLivePriceData] = useState(null);
+  const [trainedModelForecast, setTrainedModelForecast] = useState(null);
   const [dataSource, setDataSource] = useState('Agmarknet Live Feed');
   const [loadingPrices, setLoadingPrices] = useState(false);
 
@@ -733,6 +734,28 @@ export default function MarketIntelligence() {
     loadLivePrices();
     return () => { isMounted = false; };
   }, [selectedCrop, selectedDistrict, commodity]);
+
+  // Use the exported notebook model for the visible forecast when the backend
+  // has enough chronological observations. Gemini remains the explanation layer.
+  useEffect(() => {
+    const history = livePriceData?.history;
+    if (!Array.isArray(history) || history.length < 31) { setTrainedModelForecast(null); return undefined; }
+    let active = true;
+    const observations = history.map((row, index) => ({
+      state: row.state || selectedState,
+      district_name: row.district_name || selectedDistrict,
+      market_name: row.market_name || livePriceData.marketName || `${selectedDistrict} Mandi`,
+      commodity: row.commodity || commodity.name,
+      variety: row.variety || commodity.varieties?.[0] || commodity.name,
+      grade: row.grade || 'A',
+      min_price: row.min_price ?? row.minPrice,
+      max_price: row.max_price ?? row.maxPrice,
+      modal_price: row.modal_price ?? row.modalPrice,
+      price_date: row.price_date || row.priceDate || new Date(Date.now() - (history.length - index) * 86400000).toISOString().slice(0, 10)
+    }));
+    getMandiForecast(observations).then(result => { if (active) setTrainedModelForecast(result); }).catch(() => { if (active) setTrainedModelForecast(null); });
+    return () => { active = false; };
+  }, [livePriceData, selectedState, selectedDistrict, commodity]);
 
   // Current effective modal price
   const currentModalPrice = livePriceData?.modalPrice || (commodity.mandiPricePerKg * 100) || 2400;
@@ -1997,6 +2020,11 @@ export default function MarketIntelligence() {
               </div>
 
               <div className="ks-forecast-metrics">
+                {trainedModelForecast && <div className="ks-model-forecast-result">
+                  <span>Trained mandi model</span>
+                  <b>₹{Number(trainedModelForecast.predictedNextModalPrice).toLocaleString('en-IN')} / qtl</b>
+                  <small>{trainedModelForecast.predictedDelta >= 0 ? '+' : ''}{trainedModelForecast.predictedDelta} delta · {trainedModelForecast.modelVersion}</small>
+                </div>}
                 <div>
                   <span>{t.expectedRangeLabel}</span>
                   <b>{forecast.expectedPriceRange}</b>
