@@ -3,6 +3,7 @@ import QualityCertificate from './_models/QualityCertificate.js';
 import InspectionRequest from './_models/InspectionRequest.js';
 import WoolBatch from './_models/WoolBatch.js';
 import PDFDocument from 'pdfkit';
+import { getApiRoute, handleCors } from './_utils/http.js';
 import QRCode from 'qrcode';
 
 const firstPresent = (...values) => values.find(value => value !== undefined && value !== null && value !== '');
@@ -242,7 +243,8 @@ async function handleDownloadCertificate(req, res) {
 
 // ── Main dispatcher ───────────────────────────────────────────────────────
 export default async function handler(req, res) {
-  const url = req.url || '';
+  if (handleCors(req, res)) return;
+  const url = getApiRoute(req);
   if (url.includes('/download-certificate')) return handleDownloadCertificate(req, res);
   if (url.includes('/certificates'))        return handleCertificates(req, res);
   if (url.includes('/requests'))            return handleQaRequests(req, res);

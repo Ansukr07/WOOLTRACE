@@ -1,10 +1,12 @@
 import connectToDatabase from './_utils/db.js';
 import WarehouseRelease from './_models/WarehouseRelease.js';
+import { getApiRoute, handleCors } from './_utils/http.js';
 
 export default async function handler(req, res) {
+  if (handleCors(req, res)) return;
   try {
     await connectToDatabase();
-    const parts = (req.url || '').split('/').filter(Boolean);
+    const parts = getApiRoute(req).split('/').filter(Boolean);
     const approve = parts.includes('approve');
     const releaseId = approve ? parts[parts.indexOf('approve') - 1] : null;
 

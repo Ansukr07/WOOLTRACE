@@ -3,6 +3,7 @@ import BiddingListing from './_models/BiddingListing.js';
 import Bid from './_models/Bid.js';
 import Order from './_models/Order.js';
 import WoolBatch from './_models/WoolBatch.js';
+import { getApiRoute, handleCors } from './_utils/http.js';
 import QualityCertificate from './_models/QualityCertificate.js';
 
 // ── POST /api/bidding/accept ──────────────────────────────────────────────
@@ -119,7 +120,8 @@ async function handleGetListings(req, res) {
 
 // ── Main dispatcher ───────────────────────────────────────────────────────
 export default async function handler(req, res) {
-  const url = req.url || '';
+  if (handleCors(req, res)) return;
+  const url = getApiRoute(req);
   if (url.includes('/accept')) return handleAccept(req, res);
   if (url.includes('/bid'))    return handleBid(req, res);
   if (url.includes('/list') && req.method === 'POST') return handleCreateListing(req, res);

@@ -1,8 +1,10 @@
 import { fetchCedaApi, handleCedaError } from './_utils/ceda.js';
+import { getApiRoute, handleCors } from './_utils/http.js';
 
 // ── Main dispatcher ───────────────────────────────────────────────────────
 export default async function handler(req, res) {
-  const url = req.url || '';
+  if (handleCors(req, res)) return;
+  const url = getApiRoute(req);
 
   // GET /api/market/commodities
   if (url.includes('/commodities')) {

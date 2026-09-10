@@ -4,6 +4,7 @@ import connectToDatabase from './_utils/db.js';
 import User from './_models/User.js';
 import NotificationLog from './_models/NotificationLog.js';
 import { notifyUser, sendTelegram } from './_utils/telegram.js';
+import { getApiRoute, handleCors } from './_utils/http.js';
 
 const publicPreferences = (user) => ({
   telegram: {
@@ -41,9 +42,10 @@ const commandText = (command, user) => {
 };
 
 export default async function handler(req, res) {
+  if (handleCors(req, res)) return;
   try {
     await connectToDatabase();
-    const url = req.url || '';
+    const url = getApiRoute(req);
 
     if (url.includes('/telegram/webhook')) {
       if (req.method !== 'POST') return res.status(405).json({ message: 'Method Not Allowed' });

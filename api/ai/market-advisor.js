@@ -1,3 +1,5 @@
+import { handleCors } from '../_utils/http.js';
+
 const GEMINI_MODEL = 'gemini-2.5-flash';
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
@@ -57,6 +59,7 @@ function validateAssistantOutput(output, evidenceIds) {
 }
 
 export default async function handler(req, res) {
+  if (handleCors(req, res)) return;
   if (req.method !== 'POST') {
     return sendJson(res, 405, { success: false, message: 'Method not allowed' });
   }

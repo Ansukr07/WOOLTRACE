@@ -13,7 +13,7 @@ MODEL_VERSION = "khetsetu-mandi-xgb-v2-delta"
 
 
 def json_response(status, body):
-    return {"statusCode": status, "headers": {"Content-Type": "application/json"}, "body": json.dumps(body, default=str)}
+    return {"statusCode": status, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "POST,OPTIONS", "Access-Control-Allow-Headers": "Content-Type, Authorization", "Access-Control-Max-Age": "86400"}, "body": json.dumps(body, default=str)}
 
 
 def make_features(observations, prep):
@@ -60,6 +60,8 @@ def make_features(observations, prep):
 
 
 def handler(request):
+    if request.method == "OPTIONS":
+        return {"statusCode": 204, "headers": {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "POST,OPTIONS", "Access-Control-Allow-Headers": "Content-Type, Authorization", "Access-Control-Max-Age": "86400"}, "body": ""}
     if request.method != "POST":
         return json_response(405, {"success": False, "message": "Method not allowed"})
     try:

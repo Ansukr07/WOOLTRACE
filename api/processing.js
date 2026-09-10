@@ -3,6 +3,7 @@ import ProcessingRequest from './_models/ProcessingRequest.js';
 import ProcessingRecord from './_models/ProcessingRecord.js';
 import WoolBatch from './_models/WoolBatch.js';
 import { getProcessingCedaData } from './_utils/processingCedaService.js';
+import { getApiRoute, handleCors } from './_utils/http.js';
 
 // -- GET /api/processing/ceda ----------------------------------------------
 async function handleCedaProxy(req, res) {
@@ -231,7 +232,8 @@ async function handleRecords(req, res) {
 
 // -- Main dispatcher -------------------------------------------------------
 export default async function handler(req, res) {
-  const url = req.url || '';
+  if (handleCors(req, res)) return;
+  const url = getApiRoute(req);
   if (url.includes('/ceda')) return handleCedaProxy(req, res);
   if (url.includes('/action')) return handleBatchAction(req, res);
   if (url.includes('/records')) return handleRecords(req, res);

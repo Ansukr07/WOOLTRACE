@@ -4,9 +4,11 @@ import Shipment from './_models/Shipment.js';
 import Vehicle from './_models/Vehicle.js';
 import Order from './_models/Order.js';
 import WoolBatch from './_models/WoolBatch.js';
+import { getApiRoute, handleCors } from './_utils/http.js';
 
 export default async function handler(req, res) {
-  const url = req.url || '';
+  if (handleCors(req, res)) return;
+  const url = getApiRoute(req);
   const method = req.method;
 
   try {

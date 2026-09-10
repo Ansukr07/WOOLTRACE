@@ -1,3 +1,5 @@
+import { handleCors } from '../_utils/http.js';
+
 const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
 const LANGUAGES = new Set(['English', 'Hindi', 'Bengali', 'Marathi', 'Telugu', 'Tamil', 'Gujarati', 'Kannada', 'Malayalam', 'Punjabi', 'Odia']);
 
@@ -9,6 +11,7 @@ const cleanAnswer = (value = '') => String(value)
   .trim();
 
 export default async function handler(req, res) {
+  if (handleCors(req, res)) return;
   if (req.method !== 'POST') return res.status(405).json({ success: false, message: 'Method not allowed' });
   const apiKey = process.env.GROQ_API_KEY || process.env.OPENROUTER_API_KEY;
   if (!apiKey) return res.status(503).json({ success: false, message: 'Chat service is not configured.' });

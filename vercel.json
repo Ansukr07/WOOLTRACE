@@ -17,13 +17,13 @@
     { "source": "/api/market-records", "destination": "/api/core?handler=market-records" },
     { "source": "/api/payments", "destination": "/api/core?handler=payments" },
     { "source": "/api/seed-demo", "destination": "/api/core?handler=seed-demo" },
-    { "source": "/api/bidding/(.*)", "destination": "/api/bidding" },
-    { "source": "/api/market/(.*)",  "destination": "/api/market"  },
-    { "source": "/api/processing/(.*)", "destination": "/api/processing" },
-    { "source": "/api/qa/(.*)",      "destination": "/api/qa"      },
+    { "source": "/api/bidding/:route*", "destination": "/api/bidding?route=:route*" },
+    { "source": "/api/market/:route*",  "destination": "/api/market?route=:route*"  },
+    { "source": "/api/processing/:route*", "destination": "/api/processing?route=:route*" },
+    { "source": "/api/qa/:route*",      "destination": "/api/qa?route=:route*"      },
     { "source": "/api/ai/mandi-forecast", "destination": "/api/ai/mandi-forecast.py" },
-    { "source": "/api/transport/(.*)", "destination": "/api/transport" },
-    { "source": "/api/warehouse/(.*)", "destination": "/api/warehouse" },
-    { "source": "/api/notifications/(.*)", "destination": "/api/notifications" }
+    { "source": "/api/transport/:route*", "destination": "/api/transport?route=:route*" },
+    { "source": "/api/warehouse/:route*", "destination": "/api/warehouse?route=:route*" },
+    { "source": "/api/notifications/:route*", "destination": "/api/notifications?route=:route*" }
   ]
 }

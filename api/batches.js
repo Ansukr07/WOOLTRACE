@@ -1,5 +1,6 @@
 import dbConnect from './_utils/db.js';
 import WoolBatch from './_models/WoolBatch.js';
+import { handleCors } from './_utils/http.js';
 
 function toNonNegativeNumber(value, fallback = 0) {
   const number = Number(value);
@@ -45,6 +46,7 @@ function normalizeBatchRecord(batch = {}) {
 }
 
 export default async function handler(req, res) {
+  if (handleCors(req, res)) return;
   await dbConnect();
 
   if (req.method === 'GET') {
