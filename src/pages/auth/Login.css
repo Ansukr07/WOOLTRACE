@@ -1,7 +1,9 @@
 .login-page {
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   background-color: #f4f4f1;
@@ -258,25 +260,129 @@
 }
 
 @media (max-width: 640px) {
+  .login-page {
+    justify-content: flex-start;
+    overflow-x: hidden;
+    padding: 68px 14px 28px;
+  }
+
   .top-left-brand-link {
-    top: 16px;
-    left: 16px;
-    padding: 8px 12px;
-    font-size: 12px;
+    top: 14px;
+    left: 14px;
+    min-height: 40px;
+    padding: 8px 4px;
+    font-size: 13px;
   }
 
   .login-container {
-    padding: 32px 24px;
+    max-width: 100%;
+    padding: 20px 18px 24px;
+    border-radius: 10px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.055);
+  }
+
+  .language-selector {
+    position: static;
+    min-height: 34px;
+    justify-content: flex-end;
+    margin: 0 0 8px;
+  }
+
+  .language-selector select {
+    max-width: 150px;
+    font-size: 13px;
+  }
+
+  .login-header {
+    margin-bottom: 24px;
+  }
+
+  .login-header .logo {
+    margin-bottom: 16px;
+    font-size: clamp(26px, 8vw, 30px);
+  }
+
+  .login-header h2 {
+    font-size: 19px !important;
+    line-height: 1.25;
+  }
+
+  .login-header p {
+    margin-inline: auto;
+    max-width: 280px;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .login-form {
+    gap: 17px;
+  }
+
+  .form-group input,
+  .form-group select {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  .form-options {
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 13px;
+  }
+
+  .forgot-password {
+    text-align: right;
+  }
+
+  .btn-primary {
+    min-height: 50px;
+    margin-top: 2px;
+  }
+
+  .form-footer {
+    margin-top: 10px;
+    font-size: 14px;
   }
 
   .workspace-previews {
     position: static;
-    margin-top: 18px;
-    justify-content: center;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 430px;
+    margin-top: 20px;
+    align-items: stretch;
     flex-direction: column;
+    gap: 9px;
+    text-align: center;
+  }
+
+  .workspace-preview-links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .workspace-preview-links button {
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px 7px;
+    line-height: 1.2;
+  }
+
+  .workspace-preview-links button:last-child {
+    grid-column: 1 / -1;
   }
   
   .form-row {
     grid-template-columns: 1fr;
   }
+}
+
+@media (max-width: 360px) {
+  .login-page { padding-inline: 10px; }
+  .login-container { padding-inline: 15px; }
+  .form-options { flex-direction: column; gap: 10px; }
+  .forgot-password { text-align: left; }
 }
